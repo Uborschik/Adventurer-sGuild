@@ -1,0 +1,60 @@
+{
+  "classes": [
+    {
+      "id": "warrior",
+      "name": { "ru": "Воин", "en": "Warrior" },
+      "primaryStat": "might",
+      "hitDie": 10,
+      "weight": 5
+    },
+    {
+      "id": "barbarian",
+      "name": { "ru": "Варвар", "en": "Barbarian" },
+      "primaryStat": "might",
+      "hitDie": 12,
+      "weight": 2
+    },
+    {
+      "id": "paladin",
+      "name": { "ru": "Паладин", "en": "Paladin" },
+      "primaryStat": "might",
+      "hitDie": 10,
+      "weight": 1
+    },
+    {
+      "id": "rogue",
+      "name": { "ru": "Плут", "en": "Rogue" },
+      "primaryStat": "finesse",
+      "hitDie": 8,
+      "weight": 4
+    },
+    {
+      "id": "ranger",
+      "name": { "ru": "Рейнджер", "en": "Ranger" },
+      "primaryStat": "finesse",
+      "hitDie": 10,
+      "weight": 3
+    },
+    {
+      "id": "mage",
+      "name": { "ru": "Маг", "en": "Mage" },
+      "primaryStat": "wits",
+      "hitDie": 6,
+      "weight": 3
+    },
+    {
+      "id": "cleric",
+      "name": { "ru": "Клирик", "en": "Cleric" },
+      "primaryStat": "presence",
+      "hitDie": 8,
+      "weight": 3
+    },
+    {
+      "id": "bard",
+      "name": { "ru": "Бард", "en": "Bard" },
+      "primaryStat": "presence",
+      "hitDie": 8,
+      "weight": 2
+    }
+  ]
+}

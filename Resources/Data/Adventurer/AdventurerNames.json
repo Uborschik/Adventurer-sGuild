@@ -1,0 +1,328 @@
+{
+	"firstNamesMale": [
+		{
+			"en": "Garrett",
+			"ru": "Гаррет"
+		},
+		{
+			"en": "Aldric",
+			"ru": "Олдрик"
+		},
+		{
+			"en": "Cedric",
+			"ru": "Седрик"
+		},
+		{
+			"en": "Rowan",
+			"ru": "Роуэн"
+		},
+		{
+			"en": "Thorne",
+			"ru": "Торн"
+		},
+		{
+			"en": "Bran",
+			"ru": "Бран"
+		},
+		{
+			"en": "Eadric",
+			"ru": "Эдрик"
+		},
+		{
+			"en": "Godric",
+			"ru": "Годрик"
+		},
+		{
+			"en": "Leofric",
+			"ru": "Леофрик"
+		},
+		{
+			"en": "Osric",
+			"ru": "Осрик"
+		},
+		{
+			"en": "Wulfric",
+			"ru": "Вульфрик"
+		},
+		{
+			"en": "Baldric",
+			"ru": "Балдрик"
+		},
+		{
+			"en": "Corvin",
+			"ru": "Корвин"
+		},
+		{
+			"en": "Darian",
+			"ru": "Дариан"
+		},
+		{
+			"en": "Fendrel",
+			"ru": "Фендрел"
+		},
+		{
+			"en": "Garrick",
+			"ru": "Гаррик"
+		},
+		{
+			"en": "Hadrian",
+			"ru": "Хадриан"
+		},
+		{
+			"en": "Ivar",
+			"ru": "Ивар"
+		},
+		{
+			"en": "Kael",
+			"ru": "Каэль"
+		},
+		{
+			"en": "Lucan",
+			"ru": "Лукан"
+		}
+	],
+	"firstNamesFemale": [
+		{
+			"en": "Lyra",
+			"ru": "Лира"
+		},
+		{
+			"en": "Elara",
+			"ru": "Элара"
+		},
+		{
+			"en": "Seraphina",
+			"ru": "Серафина"
+		},
+		{
+			"en": "Rowena",
+			"ru": "Ровена"
+		},
+		{
+			"en": "Isolde",
+			"ru": "Изольда"
+		},
+		{
+			"en": "Guinevere",
+			"ru": "Гвиневра"
+		},
+		{
+			"en": "Morgana",
+			"ru": "Моргана"
+		},
+		{
+			"en": "Astrid",
+			"ru": "Астрид"
+		},
+		{
+			"en": "Freya",
+			"ru": "Фрейя"
+		},
+		{
+			"en": "Sigrid",
+			"ru": "Сигрид"
+		},
+		{
+			"en": "Elena",
+			"ru": "Елена"
+		},
+		{
+			"en": "Miriel",
+			"ru": "Мириэль"
+		},
+		{
+			"en": "Arwen",
+			"ru": "Арвен"
+		},
+		{
+			"en": "Aeliana",
+			"ru": "Элиана"
+		},
+		{
+			"en": "Yvaine",
+			"ru": "Ивейн"
+		},
+		{
+			"en": "Rosalind",
+			"ru": "Розалинд"
+		},
+		{
+			"en": "Brienne",
+			"ru": "Бриенна"
+		},
+		{
+			"en": "Alanna",
+			"ru": "Аланна"
+		},
+		{
+			"en": "Nymeria",
+			"ru": "Нимерия"
+		},
+		{
+			"en": "Sylvaine",
+			"ru": "Сильвейн"
+		}
+	],
+	"surnames": [
+		{
+			"en": "Stone",
+			"ru": "Стоун"
+		},
+		{
+			"en": "Blackwood",
+			"ru": "Чёрный Лес"
+		},
+		{
+			"en": "Ashford",
+			"ru": "Эшфорд"
+		},
+		{
+			"en": "Greycastle",
+			"ru": "Серый Замок"
+		},
+		{
+			"en": "Redmoor",
+			"ru": "Редмур"
+		},
+		{
+			"en": "Ironheart",
+			"ru": "Железное Сердце"
+		},
+		{
+			"en": "Stormwind",
+			"ru": "Штормовой Ветер"
+		},
+		{
+			"en": "Ravenwing",
+			"ru": "Крыло Ворона"
+		},
+		{
+			"en": "Silvermoon",
+			"ru": "Серебряная Луна"
+		},
+		{
+			"en": "Thornfield",
+			"ru": "Торнфилд"
+		},
+		{
+			"en": "Wolfsbane",
+			"ru": "Волчья Погибель"
+		},
+		{
+			"en": "Brightsteel",
+			"ru": "Яркая Сталь"
+		},
+		{
+			"en": "Nightshade",
+			"ru": "Ночная Тень"
+		},
+		{
+			"en": "Firebrand",
+			"ru": "Огненный Клинок"
+		},
+		{
+			"en": "Ironwood",
+			"ru": "Железное Дерево"
+		},
+		{
+			"en": "Greystone",
+			"ru": "Грейстоун"
+		},
+		{
+			"en": "Blackthorn",
+			"ru": "Чёрный Шип"
+		},
+		{
+			"en": "Winterbourne",
+			"ru": "Винтерборн"
+		},
+		{
+			"en": "Eastwatch",
+			"ru": "Восточный Дозор"
+		},
+		{
+			"en": "Darkwater",
+			"ru": "Тёмная Вода"
+		},
+		{
+			"en": "Swiftarrow",
+			"ru": "Быстрая Стрела"
+		},
+		{
+			"en": "Lionheart",
+			"ru": "Львиное Сердце"
+		},
+		{
+			"en": "Foxglove",
+			"ru": "Лисья Перчатка"
+		},
+		{
+			"en": "Hawkeye",
+			"ru": "Ястребиный Глаз"
+		},
+		{
+			"en": "Steelhand",
+			"ru": "Стальная Рука"
+		},
+		{
+			"en": "Windrider",
+			"ru": "Всадник Ветра"
+		},
+		{
+			"en": "Moonwhisper",
+			"ru": "Шёпот Луны"
+		},
+		{
+			"en": "Duskblade",
+			"ru": "Клинок Заката"
+		},
+		{
+			"en": "Ashborn",
+			"ru": "Рождённый из Пепла"
+		},
+		{
+			"en": "Flameheart",
+			"ru": "Пламенное Сердце"
+		},
+		{
+			"en": "Frostmane",
+			"ru": "Морозная Грива"
+		},
+		{
+			"en": "Oakenshield",
+			"ru": "Дубовый Щит"
+		},
+		{
+			"en": "Wyrmbane",
+			"ru": "Погибель Драконов"
+		},
+		{
+			"en": "Redhand",
+			"ru": "Красная Рука"
+		},
+		{
+			"en": "Coldwater",
+			"ru": "Холодная Вода"
+		},
+		{
+			"en": "Grimstone",
+			"ru": "Гримстоун"
+		},
+		{
+			"en": "Halloway",
+			"ru": "Хэллоуэй"
+		},
+		{
+			"en": "Ironfist",
+			"ru": "Железный Кулак"
+		},
+		{
+			"en": "Blackbriar",
+			"ru": "Чёрный Терновник"
+		},
+		{
+			"en": "Whitecliff",
+			"ru": "Белый Утёс"
+		}
+	]
+}

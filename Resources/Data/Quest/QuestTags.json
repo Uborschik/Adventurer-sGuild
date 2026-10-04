@@ -1,0 +1,61 @@
+{
+	"tags": [
+		{
+			"id": "combat",
+			"weights": {
+				"might": 1
+			}
+		},
+		{
+			"id": "stealth",
+			"weights": {
+				"finesse": 1
+			}
+		},
+		{
+			"id": "puzzle",
+			"weights": {
+				"wits": 1
+			}
+		},
+		{
+			"id": "social",
+			"weights": {
+				"presence": 1
+			}
+		},
+		{
+			"id": "tracking",
+			"weights": {
+				"finesse": 1,
+				"wits": 1
+			}
+		},
+		{
+			"id": "exploration",
+			"weights": {
+				"wits": 1,
+				"might": 1
+			}
+		},
+		{
+			"id": "guard",
+			"weights": {
+				"might": 1,
+				"presence": 1
+			}
+		},
+		{
+			"id": "easy",
+			"tier": "easy"
+		},
+		{
+			"id": "normal",
+			"tier": "normal"
+		},
+		{
+			"id": "hard",
+			"tier": "hard"
+		}
+	]
+}

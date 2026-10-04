@@ -1,0 +1,45 @@
+{
+  "statuses": [
+    {
+      "id": "free",
+      "name": {
+        "ru": "Свободен",
+        "en": "Free"
+      },
+      "blocksAssignment": false
+    },
+    {
+      "id": "on_quest",
+      "name": {
+        "ru": "В походе",
+        "en": "On quest"
+      },
+      "blocksAssignment": true
+    },
+    {
+      "id": "in_party",
+      "name": {
+        "ru": "В группе",
+        "en": "On party"
+      },
+      "blocksAssignment": true
+    },
+    {
+      "id": "wounded",
+      "name": {
+        "ru": "Ранен",
+        "en": "Wounded"
+      },
+      "blocksAssignment": true
+    },
+    {
+      "id": "dead",
+      "name": {
+        "ru": "Погиб",
+        "en": "Dead"
+      },
+      "blocksAssignment": true,
+      "autoRemoveAfterDays": 4
+    }
+  ]
+}

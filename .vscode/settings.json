@@ -1,0 +1,11 @@
+{
+    "godotTools.editorPath.godot4": "f:\\Godot_C#\\Core\\Godot_v4.7.2-stable_mono_win64.exe",
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit",
+        "source.unusedImports": "explicit"
+    },
+    "[csharp]": {
+        "editor.defaultFormatter": "ms-dotnettools.csharp",
+        "editor.formatOnSave": true
+    }
+}

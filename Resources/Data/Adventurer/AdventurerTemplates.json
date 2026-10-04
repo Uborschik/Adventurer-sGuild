@@ -1,0 +1,14 @@
+{
+	"templates": [
+		{
+			"id": "recruit",
+			"minLevel": 1,
+			"maxLevel": 3
+		},
+		{
+			"id": "veteran",
+			"minLevel": 5,
+			"maxLevel": 10
+		}
+	]
+}

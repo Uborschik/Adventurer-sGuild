@@ -1,0 +1,18 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://crmjq6bubh24d"]
+
+[ext_resource type="Shader" uid="uid://bec761dwylj62" path="res://Resources/Shaders/Watchfire.gdshader" id="1_ilrb2"]
+
+[resource]
+resource_local_to_scene = true
+shader = ExtResource("1_ilrb2")
+shader_parameter/state = 1
+shader_parameter/core_color_active = Color(0.8, 0.97749996, 1, 1)
+shader_parameter/body_color_active = Color(0.19999999, 0.53499985, 1, 1)
+shader_parameter/halo_color_active = Color(0.05098039, 0.23485309, 1, 1)
+shader_parameter/flicker_speed_active = 5.0
+shader_parameter/flicker_amp_active = 0.2
+shader_parameter/core_color_idle = Color(0.14901958, 0.49651957, 0.54901963, 1)
+shader_parameter/body_color_idle = Color(0.07843137, 0.163652, 0.3019608, 1)
+shader_parameter/halo_color_idle = Color(0.031372547, 0.05455879, 0.2, 1)
+shader_parameter/flicker_speed_idle = 1.2
+shader_parameter/flicker_amp_idle = 0.08

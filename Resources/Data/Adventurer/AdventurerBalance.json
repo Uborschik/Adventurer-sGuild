@@ -1,0 +1,5 @@
+{
+  "maxLevel": 100,
+  "expCapLvl1": 30,
+  "expCapScaling": "linear"
+}

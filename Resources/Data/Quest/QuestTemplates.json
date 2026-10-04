@@ -1,0 +1,64 @@
+{
+  "templates": [
+	{
+	  "id": "hunt_template",
+	  "name": {
+		"ru": "Охота",
+		"en": "Hunt"
+	  },
+	  "levelRange": { "min": 1, "max": 5 },
+	  "description": {
+		"ru": "Охота на {creature:acc} в {location:pre}.",
+		"en": "A hunt for a {creature} in the {location}."
+	  },
+	  "type": "hunt",
+	  "tags": ["tracking", "combat"],
+	  "recommendedPartySize": 2,
+	  "baseGold": 30,
+	  "baseGlory": 3,
+	  "durationDays": 2,
+	  "creatures": ["wolf", "goblin", "bear", "boar"],
+	  "locations": ["forest", "mountains", "swamps"]
+	},
+	{
+	  "id": "dungeon_template",
+	  "name": {
+		"ru": "Подземелье",
+		"en": "Dungeon"
+	  },
+	  "levelRange": { "min": 1, "max": 5 },
+	  "description": {
+		"ru": "Исследование руин в {location:pre}. \nГоворят, там {creature:nom}.",
+		"en": "Explore the ruins in the {location}. \nThey say there is a {creature}."
+	  },
+	  "type": "dungeon",
+	  "tags": ["exploration", "combat"],
+	  "recommendedPartySize": 4,
+	  "baseGold": 100,
+	  "baseGlory": 15,
+	  "durationDays": 4,
+	  "creatures": ["undead", "traps", "ancient_machines"],
+	  "locations": ["ancient_ruins", "forgotten_catacombs", "cursed_halls"]
+	},
+	{
+	  "id": "escort_template",
+	  "name": {
+		"ru": "Сопровождение",
+		"en": "Escort"
+	  },
+	  "levelRange": { "min": 1, "max": 5 },
+	  "description": {
+		"ru": "Проводить караван через {location:acc}.",
+		"en": "Escort a caravan through the {location}."
+	  },
+	  "type": "escort",
+	  "tags": ["guard", "normal"],
+	  "recommendedPartySize": 4,
+	  "baseGold": 60,
+	  "baseGlory": 8,
+	  "durationDays": 3,
+	  "creatures": ["merchant", "ambassador", "pilgrim"],
+	  "locations": ["forest", "mountain_pass", "steppe"]
+	}
+  ]
+}

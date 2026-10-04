@@ -1,0 +1,176 @@
+{
+  "creatures": [
+	{
+	  "id": "wolf",
+	  "name": {
+		"ru": {
+		  "nom": "волк",
+		  "gen": "волка",
+		  "acc": "волка",
+		  "ins": "волком",
+		  "pre": "волке"
+		},
+		"en": "wolf"
+	  },
+	  "tags": [
+		"combat",
+        "easy"
+	  ]
+	},
+	{
+	  "id": "goblin",
+	  "name": {
+		"ru": {
+		  "nom": "гоблин",
+		  "gen": "гоблина",
+		  "acc": "гоблина",
+		  "ins": "гоблином",
+		  "pre": "гоблине"
+		},
+		"en": "goblin"
+	  },
+	  "tags": [
+		"combat",
+		"stealth",
+        "easy"
+	  ]
+	},
+	{
+	  "id": "bear",
+	  "name": {
+		"ru": {
+		  "nom": "медведь",
+		  "gen": "медведя",
+		  "acc": "медведя",
+		  "ins": "медведем",
+		  "pre": "медведе"
+		},
+		"en": "bear"
+	  },
+	  "tags": [
+		"combat",
+        "normal"
+	  ]
+	},
+	{
+	  "id": "boar",
+	  "name": {
+		"ru": {
+		  "nom": "кабан",
+		  "gen": "кабана",
+		  "acc": "кабана",
+		  "ins": "кабаном",
+		  "pre": "кабане"
+		},
+		"en": "boar"
+	  },
+	  "tags": [
+		"combat",
+        "easy"
+	  ]
+	},
+	{
+	  "id": "undead",
+	  "name": {
+		"ru": {
+		  "nom": "нежить",
+		  "gen": "нежити",
+		  "acc": "нежить",
+		  "ins": "нежитью",
+		  "pre": "нежити"
+		},
+		"en": "undead"
+	  },
+	  "tags": [
+		"combat",
+		"puzzle",
+        "hard"
+	  ]
+	},
+	{
+	  "id": "traps",
+	  "name": {
+		"ru": {
+		  "nom": "ловушки",
+		  "gen": "ловушек",
+		  "acc": "ловушки",
+		  "ins": "ловушками",
+		  "pre": "ловушках"
+		},
+		"en": "traps"
+	  },
+	  "tags": [
+		"stealth",
+        "hard"
+	  ]
+	},
+	{
+	  "id": "ancient_machines",
+	  "name": {
+		"ru": {
+		  "nom": "древние механизмы",
+		  "gen": "древних механизмов",
+		  "acc": "древние механизмы",
+		  "ins": "древними механизмами",
+		  "pre": "древних механизмах"
+		},
+		"en": "ancient machines"
+	  },
+	  "tags": [
+		"puzzle",
+        "hard"
+	  ]
+	},
+	{
+	  "id": "merchant",
+	  "name": {
+		"ru": {
+		  "nom": "торговец",
+		  "gen": "торговца",
+		  "acc": "торговца",
+		  "ins": "торговцем",
+		  "pre": "торговце"
+		},
+		"en": "merchant"
+	  },
+	  "tags": [
+		"social",
+        "easy"
+	  ]
+	},
+	{
+	  "id": "ambassador",
+	  "name": {
+		"ru": {
+		  "nom": "посол",
+		  "gen": "посла",
+		  "acc": "посла",
+		  "ins": "послом",
+		  "pre": "после"
+		},
+		"en": "ambassador"
+	  },
+	  "tags": [
+		"social",
+        "normal"
+	  ]
+	},
+	{
+	  "id": "pilgrim",
+	  "name": {
+		"ru": {
+		  "nom": "паломник",
+		  "gen": "паломника",
+		  "acc": "паломника",
+		  "ins": "паломником",
+		  "pre": "паломнике"
+		},
+		"en": "pilgrim"
+	  },
+	  "tags": [
+		"social",
+        "easy"
+	  ]
+	}
+  ]
+}

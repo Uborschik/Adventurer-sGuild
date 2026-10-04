@@ -1,0 +1,40 @@
+{
+	"ru": {
+		"quest.gold": "Золото",
+		"quest.glory": "Слава",
+		"quest.expires": "Истекает",
+		"quest.duration": "Длительность",
+		"quest.days": "дн.",
+		"quest.select_hint": "Выберите квест из списка.",
+		"quest.party_size": "Отряд",
+		"quest.tier.easy": "Лёгкий",
+		"quest.tier.normal": "Обычный",
+		"quest.tier.hard": "Сложный",
+		"ui.hire": "Нанять",
+		"ui.reject": "Отклонить",
+		"ui.cancel": "Отмена",
+		"ui.confirm": "Подтверждение",
+		"ui.class": "Класс",
+		"ui.select_adventurer": "Выберите авантюриста",
+		"ui.day": "День {0}"
+	},
+	"en": {
+		"quest.gold": "Gold",
+		"quest.glory": "Glory",
+		"quest.expires": "Expires",
+		"quest.duration": "Duration",
+		"quest.days": "days",
+		"quest.select_hint": "Select a quest from the list.",
+		"quest.party_size": "Party",
+		"quest.tier.easy": "Easy",
+		"quest.tier.normal": "Normal",
+		"quest.tier.hard": "Hard",
+		"ui.hire": "Hire",
+		"ui.reject": "Reject",
+		"ui.cancel": "Cancel",
+		"ui.confirm": "Confirm",
+		"ui.class": "Class",
+		"ui.select_adventurer": "Select an adventurer",
+		"ui.day": "Day {0}"
+	}
+}

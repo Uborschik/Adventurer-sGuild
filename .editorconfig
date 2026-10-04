@@ -1,0 +1,10 @@
+root = true
+
+[*]
+charset = utf-8
+
+# CA1050: Объявите типы в пространствах имен
+dotnet_diagnostic.CA1050.severity = none
+
+# Default severity for all analyzer diagnostics
+dotnet_analyzer_diagnostic.severity = none

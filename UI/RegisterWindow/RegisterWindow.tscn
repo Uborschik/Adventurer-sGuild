@@ -1,0 +1,89 @@
+[gd_scene format=3 uid="uid://btxj6fchakec3"]
+
+[ext_resource type="Script" uid="uid://c2sssrfc1c5ah" path="res://UI/RegisterWindow/RegisterWindow.cs" id="1_l3ce5"]
+[ext_resource type="Script" uid="uid://4avbinggux3l" path="res://UI/Common/AdventurerList.cs" id="2_l3ce5"]
+[ext_resource type="PackedScene" uid="uid://71rvwg3j2430" path="res://UI/Common/AdventurerRow.tscn" id="3_xlfes"]
+
+[node name="RegisterWindow" type="Control" unique_id=972038317]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_l3ce5")
+Type = 7
+
+[node name="Control" type="Control" parent="." unique_id=489582308]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -217.0
+offset_top = -125.0
+offset_right = -35.0
+offset_bottom = 137.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="AdventurerList" type="PanelContainer" parent="Control" unique_id=196348415]
+custom_minimum_size = Vector2(182, 200)
+custom_maximum_size = Vector2(182, 200)
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -91.0
+offset_right = 91.0
+offset_bottom = 200.0
+grow_horizontal = 2
+size_flags_horizontal = 6
+size_flags_vertical = 4
+script = ExtResource("2_l3ce5")
+AdventurerRowPrefab = ExtResource("3_xlfes")
+
+[node name="Scroll" type="ScrollContainer" parent="Control/AdventurerList" unique_id=1920813205]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="VBox" type="VBoxContainer" parent="Control/AdventurerList/Scroll" unique_id=752118341]
+custom_maximum_size = Vector2(138, -1)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Buttons" type="PanelContainer" parent="Control" unique_id=456918782]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -83.0
+offset_top = -48.0
+offset_right = 83.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="HBox" type="HBoxContainer" parent="Control/Buttons" unique_id=461120865]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 38
+
+[node name="Hire" type="Button" parent="Control/Buttons/HBox" unique_id=1772214398]
+custom_minimum_size = Vector2(64, 32)
+custom_maximum_size = Vector2(64, -1)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Hire"
+
+[node name="Reject" type="Button" parent="Control/Buttons/HBox" unique_id=1977722191]
+custom_minimum_size = Vector2(64, 48)
+custom_maximum_size = Vector2(64, 48)
+layout_mode = 2
+size_flags_horizontal = 8
+text = "Reject"

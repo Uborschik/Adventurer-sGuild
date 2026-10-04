@@ -1,0 +1,36 @@
+{
+  "stats": [
+    {
+      "id": "might",
+      "name": { "ru": "Сила", "en": "Might" },
+      "description": {
+        "ru": "Бой, выносливость, грубая сила.",
+        "en": "Combat, endurance, raw strength."
+      }
+    },
+    {
+      "id": "finesse",
+      "name": { "ru": "Ловкость", "en": "Finesse" },
+      "description": {
+        "ru": "Ловкость, скрытность, точность.",
+        "en": "Agility, stealth, precision."
+      }
+    },
+    {
+      "id": "wits",
+      "name": { "ru": "Разум", "en": "Wits" },
+      "description": {
+        "ru": "Знания, магия, исследование.",
+        "en": "Knowledge, magic, investigation."
+      }
+    },
+    {
+      "id": "presence",
+      "name": { "ru": "Харизма", "en": "Presence" },
+      "description": {
+        "ru": "Харизма, воля, убеждение.",
+        "en": "Charisma, will, persuasion."
+      }
+    }
+  ]
+}

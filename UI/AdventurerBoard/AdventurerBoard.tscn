@@ -1,0 +1,126 @@
+[gd_scene format=3 uid="uid://bh25hj6wv1tra"]
+
+[ext_resource type="Script" uid="uid://hmreoybdq7h3" path="res://UI/AdventurerBoard/AdventurerBoard.cs" id="1_yjoyy"]
+[ext_resource type="Script" uid="uid://4avbinggux3l" path="res://UI/Common/AdventurerList.cs" id="2_hr007"]
+[ext_resource type="Script" uid="uid://chqb43jghwtn5" path="res://UI/AdventurerBoard/AdventurerInfo.cs" id="3_sv4ao"]
+[ext_resource type="PackedScene" uid="uid://71rvwg3j2430" path="res://UI/Common/AdventurerRow.tscn" id="3_yjoyy"]
+[ext_resource type="Script" uid="uid://cx7mwe50r6g5n" path="res://UI/AdventurerBoard/Context.cs" id="5_spxoc"]
+
+[node name="AdventurerBoard" type="PanelContainer" unique_id=250230971]
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 140.0
+grow_vertical = 2
+script = ExtResource("1_yjoyy")
+
+[node name="VBox" type="VBoxContainer" parent="." unique_id=2117173451]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="AdventurerList" type="PanelContainer" parent="VBox" unique_id=357206379]
+layout_mode = 2
+size_flags_vertical = 3
+script = ExtResource("2_hr007")
+AdventurerRowPrefab = ExtResource("3_yjoyy")
+
+[node name="Scroll" type="ScrollContainer" parent="VBox/AdventurerList" unique_id=1507077914]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="VBox" type="VBoxContainer" parent="VBox/AdventurerList/Scroll" unique_id=1004331892]
+custom_maximum_size = Vector2(138, -1)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Context" type="Control" parent="VBox" unique_id=358088404]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+script = ExtResource("5_spxoc")
+
+[node name="HBox" type="HBoxContainer" parent="VBox/Context" unique_id=1853533058]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 2
+
+[node name="Reject" type="Button" parent="VBox/Context/HBox" unique_id=272688451]
+custom_minimum_size = Vector2(16, 16)
+custom_maximum_size = Vector2(16, 16)
+layout_mode = 2
+size_flags_horizontal = 10
+size_flags_vertical = 4
+
+[node name="Hire" type="Button" parent="VBox/Context/HBox" unique_id=1282416131]
+custom_minimum_size = Vector2(16, 16)
+custom_maximum_size = Vector2(16, 16)
+layout_mode = 2
+size_flags_horizontal = 10
+size_flags_vertical = 4
+
+[node name="AdventurerInfo" type="PanelContainer" parent="VBox" unique_id=597502989]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("3_sv4ao")
+
+[node name="VBox" type="VBoxContainer" parent="VBox/AdventurerInfo" unique_id=1112590561]
+layout_mode = 2
+
+[node name="Name" type="Label" parent="VBox/AdventurerInfo/VBox" unique_id=1820185786]
+layout_mode = 2
+size_flags_vertical = 1
+text = "bbjkhbkjhb"
+horizontal_alignment = 1
+vertical_alignment = 1
+uppercase = true
+metadata/_edit_use_anchors_ = true
+
+[node name="Class" type="Label" parent="VBox/AdventurerInfo/VBox" unique_id=234111852]
+custom_minimum_size = Vector2(0, 18)
+custom_maximum_size = Vector2(-1, 18)
+layout_mode = 2
+size_flags_vertical = 2
+text = "bbjkhbkjhb"
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Might" type="Label" parent="VBox/AdventurerInfo/VBox" unique_id=21425989]
+custom_minimum_size = Vector2(0, 18)
+custom_maximum_size = Vector2(-1, 18)
+layout_mode = 2
+size_flags_vertical = 3
+text = "bbjkhbkjhb"
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Finesse" type="Label" parent="VBox/AdventurerInfo/VBox" unique_id=1453975002]
+custom_minimum_size = Vector2(-1, 18)
+custom_maximum_size = Vector2(-1, 18)
+layout_mode = 2
+size_flags_vertical = 3
+text = "bbjkhbkjhb"
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Wits" type="Label" parent="VBox/AdventurerInfo/VBox" unique_id=990584029]
+custom_minimum_size = Vector2(-1, 18)
+custom_maximum_size = Vector2(-1, 18)
+layout_mode = 2
+size_flags_vertical = 3
+text = "bbjkhbkjhb"
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Presence" type="Label" parent="VBox/AdventurerInfo/VBox" unique_id=246667789]
+custom_minimum_size = Vector2(-1, 18)
+custom_maximum_size = Vector2(-1, 18)
+layout_mode = 2
+size_flags_vertical = 3
+text = "bbjkhbkjhb"
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true

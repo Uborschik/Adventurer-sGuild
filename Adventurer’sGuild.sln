@@ -1,0 +1,19 @@
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adventurer’sGuild", "Adventurer’sGuild.csproj", "{FEBF6542-CAAF-41E1-AD9B-7AE6CA880973}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+	Debug|Any CPU = Debug|Any CPU
+	ExportDebug|Any CPU = ExportDebug|Any CPU
+	ExportRelease|Any CPU = ExportRelease|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FEBF6542-CAAF-41E1-AD9B-7AE6CA880973}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FEBF6542-CAAF-41E1-AD9B-7AE6CA880973}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FEBF6542-CAAF-41E1-AD9B-7AE6CA880973}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
+		{FEBF6542-CAAF-41E1-AD9B-7AE6CA880973}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
+		{FEBF6542-CAAF-41E1-AD9B-7AE6CA880973}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
+		{FEBF6542-CAAF-41E1-AD9B-7AE6CA880973}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
+	EndGlobalSection
+EndGlobal
