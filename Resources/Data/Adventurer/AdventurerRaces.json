@@ -1,107 +1,82 @@
 {
   "races": [
-	{
-	  "id": "human",
-	  "name": { "ru": "Человек", "en": "Human" },
-	  "statBonuses": { "wits": 1, "presence": 1 },
-	  "weight": {
-		"population": 6,
-		"classes": {
-			"warrior": 3,
-			"barbarian": 1,
-			"paladin": 3,
-			"rogue": 3,
-			"ranger": 1,
-			"mage": 3,
-			"cleric": 3,
-			"bard": 2
-		}
-	  }
-	},
-	{
-	  "id": "elf",
-	  "name": { "ru": "Эльф", "en": "Elf" },
-	  "statBonuses": { "finesse": 2 },
-	  "weight": {
-		"population": 6,
-		"classes": {
-			"warrior": 2,
-			"paladin": 1,
-			"rogue": 3,
-			"ranger": 3,
-			"mage": 3,
-			"cleric": 3,
-			"bard": 2
-		}
-	  }
-	},
-	{
-	  "id": "dwarf",
-	  "name": { "ru": "Дварф", "en": "Dwarf" },
-	  "statBonuses": { "might": 2 },
-	  "weight": {
-		"population": 6,
-		"classes": {
-			"warrior": 3,
-			"barbarian": 2,
-			"paladin": 2,
-			"rogue": 1,
-			"ranger": 1,
-			"cleric": 1,
-			"bard": 2
-		}
-	  }
-	},
-	{
-	  "id": "halfling",
-	  "name": { "ru": "Полурослик", "en": "Halfling" },
-	  "statBonuses": {
-		"finesse": 1,
-		"presence": 1
-	  },
-	  "weight": {
-		"population": 6,
-		"classes": {
-			"warrior": 1,
-			"rogue": 3,
-			"ranger": 2,
-			"mage": 1,
-			"cleric": 2,
-			"bard": 3
-		}
-	  }
-	},
-	{
-	  "id": "dragonborn",
-	  "name": { "ru": "Драконорождённый", "en": "Dragonborn" },
-	  "statBonuses": { "might": 1, "presence": 1 },
-	  "weight": {
-		"population": 6,
-		"classes": {
-			"warrior": 3,
-			"barbarian": 2,
-			"paladin": 3,
-			"mage": 2,
-			"cleric": 1
-		}
-	  }
-	},
-	{
-	  "id": "half_orc",
-	  "name": { "ru": "Полуорк", "en": "Half-Orc" },
-	  "statBonuses": { "might": 2 },
-	  "weight": {
-		"population": 6,
-		"classes": {
-			"warrior": 3,
-			"barbarian": 3,
-			"rogue": 2,
-			"ranger": 2,
-			"mage": 1,
-			"cleric": 1,
-			"bard": 1
-		}
-	  }
-	}
+    {
+      "id": "human",
+      "name": { "ru": "Человек", "en": "Human" },
+      "statBonuses": { "str": 1, "dex": 1, "int": 1, "cha": 1 },
+      "resilienceMultiplier": 1.00,
+      "weight": {
+        "population": 6,
+        "classes": {
+          "warrior": 3, "barbarian": 1, "paladin": 3, "rogue": 3,
+          "ranger": 1, "mage": 3, "cleric": 3, "bard": 2
+        }
+      }
+    },
+    {
+      "id": "elf",
+      "name": { "ru": "Эльф", "en": "Elf" },
+      "statBonuses": { "str": -1, "dex": 2, "int": 1, "wis": 1, "cha": 1 },
+      "resilienceMultiplier": 0.95,
+      "weight": {
+        "population": 6,
+        "classes": {
+          "warrior": 2, "paladin": 1, "rogue": 3, "ranger": 3,
+          "mage": 3, "cleric": 3, "bard": 2
+        }
+      }
+    },
+    {
+      "id": "dwarf",
+      "name": { "ru": "Дварф", "en": "Dwarf" },
+      "statBonuses": { "str": 2, "end": 2, "int": -1, "wis": 1 },
+      "resilienceMultiplier": 1.20,
+      "weight": {
+        "population": 6,
+        "classes": {
+          "warrior": 3, "barbarian": 2, "paladin": 2, "rogue": 1,
+          "ranger": 1, "cleric": 1, "bard": 2
+        }
+      }
+    },
+    {
+      "id": "halfling",
+      "name": { "ru": "Полурослик", "en": "Halfling" },
+      "statBonuses": { "dex": 1, "int": 1, "wis": 1, "cha": 1 },
+      "resilienceMultiplier": 0.90,
+      "weight": {
+        "population": 6,
+        "classes": {
+          "warrior": 1, "rogue": 3, "ranger": 2,
+          "mage": 1, "cleric": 2, "bard": 3
+        }
+      }
+    },
+    {
+      "id": "dragonborn",
+      "name": { "ru": "Драконорождённый", "en": "Dragonborn" },
+      "statBonuses": { "str": 1, "end": 1, "int": 1, "wis": 2, "cha": -1 },
+      "resilienceMultiplier": 1.10,
+      "weight": {
+        "population": 6,
+        "classes": {
+          "warrior": 3, "barbarian": 2, "paladin": 3,
+          "mage": 2, "cleric": 1
+        }
+      }
+    },
+    {
+      "id": "half_orc",
+      "name": { "ru": "Полуорк", "en": "Half-Orc" },
+      "statBonuses": { "str": 3, "dex": -1, "end": 2, "int": -1, "wis": 1, "cha": 0 },
+      "resilienceMultiplier": 1.15,
+      "weight": {
+        "population": 6,
+        "classes": {
+          "warrior": 3, "barbarian": 3, "rogue": 2,
+          "ranger": 2, "mage": 1, "cleric": 1, "bard": 1
+        }
+      }
+    }
   ]
 }

@@ -1,6 +1,11 @@
 public class AdventurerBalanceProfile
 {
-    public int MaxLevel { get; set; } = 100;
-    public int ExpCapLvl1 { get; set; } = 30;
-    public string ExpCapScaling { get; set; } = "linear";
+    public int MaxLevel { get; set; } = 60;
+    public int ExpCapLvl1 { get; set; } = 45;
+    public string ExpCapScaling { get; set; } = "polynomial";
+    public double ExpCapAcceleration { get; set; } = 0.22;
+
+    public double StatBaseValue { get; set; } = 8.0;
+    public double StatStartPool { get; set; } = 16.0;
+    public double StatBaseSlope { get; set; } = 2.5;
 }

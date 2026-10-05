@@ -1,61 +1,15 @@
 {
-	"tags": [
-		{
-			"id": "combat",
-			"weights": {
-				"might": 1
-			}
-		},
-		{
-			"id": "stealth",
-			"weights": {
-				"finesse": 1
-			}
-		},
-		{
-			"id": "puzzle",
-			"weights": {
-				"wits": 1
-			}
-		},
-		{
-			"id": "social",
-			"weights": {
-				"presence": 1
-			}
-		},
-		{
-			"id": "tracking",
-			"weights": {
-				"finesse": 1,
-				"wits": 1
-			}
-		},
-		{
-			"id": "exploration",
-			"weights": {
-				"wits": 1,
-				"might": 1
-			}
-		},
-		{
-			"id": "guard",
-			"weights": {
-				"might": 1,
-				"presence": 1
-			}
-		},
-		{
-			"id": "easy",
-			"tier": "easy"
-		},
-		{
-			"id": "normal",
-			"tier": "normal"
-		},
-		{
-			"id": "hard",
-			"tier": "hard"
-		}
-	]
+  "tags": [
+    { "id": "combat",      "weights": { "str": 1 } },
+    { "id": "stealth",     "weights": { "dex": 1 } },
+    { "id": "puzzle",      "weights": { "int": 1 } },
+    { "id": "social",      "weights": { "cha": 1 } },
+    { "id": "tracking",    "weights": { "dex": 1, "wis": 1 } },
+    { "id": "exploration", "weights": { "int": 1, "wis": 1 } },
+    { "id": "guard",       "weights": { "str": 1, "cha": 1 } },
+
+    { "id": "easy",   "tier": "easy" },
+    { "id": "normal", "tier": "normal" },
+    { "id": "hard",   "tier": "hard" }
+  ]
 }

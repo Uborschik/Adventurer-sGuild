@@ -198,7 +198,7 @@ public partial class Party : Control
     {
         var data = party[index];
         if (data == null) slots[index].Clear();
-        else slots[index].SetContent(data, AdventurerDatabase.ClassIcon(data.ClassId));
+        else slots[index].SetContent(data, IconLoader.Get("Classes", data.ClassId));
     }
 
     private void RefreshHighlight()

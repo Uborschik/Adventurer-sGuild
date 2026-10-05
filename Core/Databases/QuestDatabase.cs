@@ -1,9 +1,7 @@
-using Godot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using static QuestCalculator;
 
 public enum QuestGradeRole
 {
@@ -59,7 +57,7 @@ public static class QuestDatabase
         {
             if (string.IsNullOrEmpty(t.Name.Ru) || string.IsNullOrEmpty(t.Name.En))
             {
-                GD.PushError($"[QuestDB] Тип '{t.Id}': неполное name");
+                Log.Error($"[QuestDB] Тип '{t.Id}': неполное name");
                 errors++;
             }
         }
@@ -69,7 +67,7 @@ public static class QuestDatabase
         {
             if (string.IsNullOrEmpty(g.Name.Ru) || string.IsNullOrEmpty(g.Name.En))
             {
-                GD.PushError($"[QuestDB] Градация '{g.Role}': неполное name");
+                Log.Error($"[QuestDB] Градация '{g.Role}': неполное name");
                 errors++;
             }
         }
@@ -79,38 +77,38 @@ public static class QuestDatabase
         {
             if (string.IsNullOrEmpty(t.Name.Ru) || string.IsNullOrEmpty(t.Name.En))
             {
-                GD.PushError($"[QuestDB] Шаблон '{t.Id}': неполное name");
+                Log.Error($"[QuestDB] Шаблон '{t.Id}': неполное name");
                 errors++;
             }
 
             if (t.LevelRange == null)
             {
-                GD.PushError($"[QuestDB] Шаблон '{t.Id}': нет levelRange");
+                Log.Error($"[QuestDB] Шаблон '{t.Id}': нет levelRange");
                 errors++;
             }
             else
             {
                 if (t.LevelRange.Min < 1)
                 {
-                    GD.PushError($"[QuestDB] Шаблон '{t.Id}': levelRange.min < 1");
+                    Log.Error($"[QuestDB] Шаблон '{t.Id}': levelRange.min < 1");
                     errors++;
                 }
                 if (t.LevelRange.Max < t.LevelRange.Min)
                 {
-                    GD.PushError($"[QuestDB] Шаблон '{t.Id}': levelRange.max < min");
+                    Log.Error($"[QuestDB] Шаблон '{t.Id}': levelRange.max < min");
                     errors++;
                 }
             }
 
             if (string.IsNullOrEmpty(t.Description.Ru) || string.IsNullOrEmpty(t.Description.En))
             {
-                GD.PushError($"[QuestDB] Шаблон '{t.Id}': неполное description");
+                Log.Error($"[QuestDB] Шаблон '{t.Id}': неполное description");
                 errors++;
             }
 
             if (string.IsNullOrEmpty(t.Type) || !Types.ContainsKey(t.Type))
             {
-                GD.PushError($"[QuestDB] Шаблон '{t.Id}': тип '{t.Type}' не найден");
+                Log.Error($"[QuestDB] Шаблон '{t.Id}': тип '{t.Type}' не найден");
                 errors++;
             }
 
@@ -120,7 +118,7 @@ public static class QuestDatabase
                 {
                     if (string.IsNullOrEmpty(c) || !Creatures.ContainsKey(c))
                     {
-                        GD.PushError($"[QuestDB] Шаблон '{t.Id}': creature '{c}' не найден");
+                        Log.Error($"[QuestDB] Шаблон '{t.Id}': creature '{c}' не найден");
                         errors++;
                     }
                 }
@@ -132,7 +130,7 @@ public static class QuestDatabase
                 {
                     if (string.IsNullOrEmpty(l) || !Locations.ContainsKey(l))
                     {
-                        GD.PushError($"[QuestDB] Шаблон '{t.Id}': location '{l}' не найден");
+                        Log.Error($"[QuestDB] Шаблон '{t.Id}': location '{l}' не найден");
                         errors++;
                     }
                 }
@@ -144,7 +142,7 @@ public static class QuestDatabase
                 {
                     if (string.IsNullOrEmpty(tag) || !tagsById.ContainsKey(tag))
                     {
-                        GD.PushError($"[QuestDB] Шаблон '{t.Id}': тег '{tag}' не найден");
+                        Log.Error($"[QuestDB] Шаблон '{t.Id}': тег '{tag}' не найден");
                         errors++;
                     }
                 }
@@ -160,7 +158,7 @@ public static class QuestDatabase
                 {
                     if (string.IsNullOrEmpty(tag) || !tagsById.ContainsKey(tag))
                     {
-                        GD.PushError($"[QuestDB] Creature '{c.Id}': тег '{tag}' не найден");
+                        Log.Error($"[QuestDB] Creature '{c.Id}': тег '{tag}' не найден");
                         errors++;
                     }
                 }
@@ -168,13 +166,13 @@ public static class QuestDatabase
 
             if (string.IsNullOrEmpty(c.Name?.Ru?.Nom))
             {
-                GD.PushError($"[QuestDB] Creature '{c.Id}': нет русского имени");
+                Log.Error($"[QuestDB] Creature '{c.Id}': нет русского имени");
                 errors++;
             }
 
             if (string.IsNullOrEmpty(c.Name?.En))
             {
-                GD.PushError($"[QuestDB] Creature '{c.Id}': нет английского имени");
+                Log.Error($"[QuestDB] Creature '{c.Id}': нет английского имени");
                 errors++;
             }
         }
@@ -184,12 +182,12 @@ public static class QuestDatabase
         {
             if (string.IsNullOrEmpty(l.Name?.Ru?.Nom))
             {
-                GD.PushError($"[QuestDB] Location '{l.Id}': нет русского имени");
+                Log.Error($"[QuestDB] Location '{l.Id}': нет русского имени");
                 errors++;
             }
             if (string.IsNullOrEmpty(l.Name?.En))
             {
-                GD.PushError($"[QuestDB] Location '{l.Id}': нет английского имени");
+                Log.Error($"[QuestDB] Location '{l.Id}': нет английского имени");
                 errors++;
             }
         }
@@ -197,7 +195,7 @@ public static class QuestDatabase
         // === Outcomes ===
         if (Outcomes == null)
         {
-            GD.PushError("[QuestDB] Outcomes не загружены");
+            Log.Error("[QuestDB] Outcomes не загружены");
             errors++;
         }
         else
@@ -207,7 +205,7 @@ public static class QuestDatabase
                 string key = role.ToString().ToLowerInvariant();
                 if (!Outcomes.ContainsKey(key))
                 {
-                    GD.PushError($"[QuestDB] Нет outcome для градации {role}");
+                    Log.Error($"[QuestDB] Нет outcome для градации {role}");
                     errors++;
                 }
             }
@@ -216,7 +214,7 @@ public static class QuestDatabase
             {
                 if (o.DeathChance < 0 || o.DeathChance > 100)
                 {
-                    GD.PushError($"[QuestDB] Outcome '{o.GradeRole}': deathChance вне [0, 100]");
+                    Log.Error($"[QuestDB] Outcome '{o.GradeRole}': deathChance вне [0, 100]");
                     errors++;
                 }
 
@@ -226,17 +224,17 @@ public static class QuestDatabase
                 {
                     if (string.IsNullOrEmpty(s.Id) || !AdventurerDatabase.Statuses.ContainsKey(s.Id))
                     {
-                        GD.PushError($"[QuestDB] Outcome '{o.GradeRole}': неизвестный статус '{s.Id}'");
+                        Log.Error($"[QuestDB] Outcome '{o.GradeRole}': неизвестный статус '{s.Id}'");
                         errors++;
                     }
                     if (s.Chance < 0 || s.Chance > 100)
                     {
-                        GD.PushError($"[QuestDB] Outcome '{o.GradeRole}': chance у '{s.Id}' вне [0, 100]");
+                        Log.Error($"[QuestDB] Outcome '{o.GradeRole}': chance у '{s.Id}' вне [0, 100]");
                         errors++;
                     }
                     if (s.DurationDaysMin < 1 || s.DurationDaysMax < s.DurationDaysMin)
                     {
-                        GD.PushError($"[QuestDB] Outcome '{o.GradeRole}': некорректная длительность '{s.Id}'");
+                        Log.Error($"[QuestDB] Outcome '{o.GradeRole}': некорректная длительность '{s.Id}'");
                         errors++;
                     }
                 }
@@ -245,11 +243,11 @@ public static class QuestDatabase
 
         // === Итог ===
         if (errors == 0)
-            GD.Print($"[QuestDB] Валидация: ok ({Types.Count} типов, {Grades.Count} градаций, " +
+            Log.Info($"[QuestDB] Валидация: ok ({Types.Count} типов, {Grades.Count} градаций, " +
                      $"{Templates.Count} шаблонов, {Creatures.Count} существ, {Locations.Count} локаций, " +
                      $"{Outcomes.Count} исходов)");
         else
-            GD.PushError($"[QuestDB] Валидация: {errors} ошибок");
+            Log.Error($"[QuestDB] Валидация: {errors} ошибок");
 
         // === Неиспользуемые теги ===
         var used = new HashSet<string>();
@@ -262,7 +260,7 @@ public static class QuestDatabase
 
         foreach (var tag in tagsById.Keys)
             if (!used.Contains(tag))
-                GD.PushWarning($"[QuestDB] Тег '{tag}' не используется");
+                Log.Warn($"[QuestDB] Тег '{tag}' не используется");
     }
 
     private static readonly HashSet<string> ValidCases = new()
@@ -285,7 +283,7 @@ public static class QuestDatabase
                 string caseCode = m.Groups[2].Value;
                 if (!ValidCases.Contains(caseCode))
                 {
-                    GD.PushError($"[QuestDB] Шаблон '{t.Id}': неизвестный падеж '{caseCode}'");
+                    Log.Error($"[QuestDB] Шаблон '{t.Id}': неизвестный падеж '{caseCode}'");
                     continue;
                 }
                 neededCases.Add(caseCode);
@@ -294,7 +292,7 @@ public static class QuestDatabase
 
         if (neededCases.Count == 0)
         {
-            GD.Print("[QuestDB] Валидация падежей: падежи не используются");
+            Log.Info("[QuestDB] Валидация падежей: падежи не используются");
             return;
         }
 
@@ -306,7 +304,7 @@ public static class QuestDatabase
             {
                 if (string.IsNullOrEmpty(c.Name?.Ru?.Get(caseCode)))
                 {
-                    GD.PushError($"[QuestDB] Creature '{c.Id}': нет формы '{caseCode}'");
+                    Log.Error($"[QuestDB] Creature '{c.Id}': нет формы '{caseCode}'");
                     errors++;
                 }
             }
@@ -318,17 +316,17 @@ public static class QuestDatabase
             {
                 if (string.IsNullOrEmpty(l.Name?.Ru?.Get(caseCode)))
                 {
-                    GD.PushError($"[QuestDB] Location '{l.Id}': нет формы '{caseCode}'");
+                    Log.Error($"[QuestDB] Location '{l.Id}': нет формы '{caseCode}'");
                     errors++;
                 }
             }
         }
 
         if (errors == 0)
-            GD.Print($"[QuestDB] Валидация падежей: ok ({neededCases.Count} падежей, " +
+            Log.Info($"[QuestDB] Валидация падежей: ok ({neededCases.Count} падежей, " +
                      $"{Creatures.Count + Locations.Count} сущностей)");
         else
-            GD.PushError($"[QuestDB] Валидация падежей: {errors} ошибок");
+            Log.Error($"[QuestDB] Валидация падежей: {errors} ошибок");
     }
 
     // === Загрузка отдельных секций ===
@@ -346,12 +344,12 @@ public static class QuestDatabase
         {
             if (!Enum.TryParse<QuestGradeRole>(grade.Role, ignoreCase: true, out var role))
             {
-                GD.PushError($"[QuestDB] Неизвестная роль градации: '{grade.Role}'");
+                Log.Error($"[QuestDB] Неизвестная роль градации: '{grade.Role}'");
                 continue;
             }
             if (byRole.ContainsKey(role))
             {
-                GD.PushError($"[QuestDB] Роль '{role}' дублируется");
+                Log.Error($"[QuestDB] Роль '{role}' дублируется");
                 continue;
             }
             byRole[role] = grade;
@@ -359,7 +357,7 @@ public static class QuestDatabase
 
         foreach (QuestGradeRole role in Enum.GetValues<QuestGradeRole>())
             if (!byRole.ContainsKey(role))
-                GD.PushError($"[QuestDB] Нет градации с ролью {role}");
+                Log.Error($"[QuestDB] Нет градации с ролью {role}");
 
         GradesByRole = byRole;
     }
@@ -370,7 +368,7 @@ public static class QuestDatabase
         tagsById = tagList.ToDictionary(t => t.Id);
 
         if (tagsById.Count == 0)
-            GD.PushWarning("[QuestDB] QuestTags.json пуст — все теги будут неизвестны");
+            Log.Warn("[QuestDB] QuestTags.json пуст — все теги будут неизвестны");
     }
 
     private static void LoadCreatures()
@@ -459,13 +457,14 @@ public static class QuestDatabase
         double sum = weights.Values.Sum();
         if (sum <= 0)
         {
-            GD.PushWarning($"[QuestDB] '{t.Id}'+'{creatureId}': нет валидных весов, использую mixed");
+            Log.Warn($"[QuestDB] '{t.Id}'+'{creatureId}': нет валидных весов, использую mixed");
             weights = new Dictionary<string, double>
             {
-                [StatIds.Might] = 0.25,
-                [StatIds.Finesse] = 0.25,
-                [StatIds.Wits] = 0.25,
-                [StatIds.Presence] = 0.25,
+                [StatIds.Strength] = 0.20,
+                [StatIds.Dexterity] = 0.20,
+                [StatIds.Intelligence] = 0.20,
+                [StatIds.Wisdom] = 0.20,
+                [StatIds.Charisma] = 0.20,
             };
         }
         else
@@ -498,7 +497,7 @@ public static class QuestDatabase
 
             if (!tagsById.TryGetValue(tagId, out var tag))
             {
-                GD.PushError($"[QuestDB] {context}: неизвестный тег '{tagId}'");
+                Log.Error($"[QuestDB] {context}: неизвестный тег '{tagId}'");
                 continue;
             }
 
@@ -508,7 +507,7 @@ public static class QuestDatabase
                 {
                     if (!StatIds.All.Contains(kv.Key))
                     {
-                        GD.PushError($"[QuestDB] Тег '{tagId}': неизвестный стат '{kv.Key}'");
+                        Log.Error($"[QuestDB] Тег '{tagId}': неизвестный стат '{kv.Key}'");
                         continue;
                     }
                     weights[kv.Key] = weights.GetValueOrDefault(kv.Key, 0) + kv.Value;
@@ -520,7 +519,7 @@ public static class QuestDatabase
                 if (Enum.TryParse<QuestTier>(tag.Tier, ignoreCase: true, out var parsed))
                     tierFromTags = parsed;
                 else
-                    GD.PushError($"[QuestDB] Тег '{tagId}': неизвестный tier '{tag.Tier}'");
+                    Log.Error($"[QuestDB] Тег '{tagId}': неизвестный tier '{tag.Tier}'");
             }
         }
     }
@@ -534,7 +533,7 @@ public static class QuestDatabase
             {
                 if (!StatIds.All.Contains(kv.Key))
                 {
-                    GD.PushError($"[QuestDB] {context}: неизвестный стат '{kv.Key}'");
+                    Log.Error($"[QuestDB] {context}: неизвестный стат '{kv.Key}'");
                     continue;
                 }
                 weights[kv.Key] = kv.Value;
@@ -546,7 +545,7 @@ public static class QuestDatabase
             if (Enum.TryParse<QuestTier>(overrideTier, ignoreCase: true, out var parsed))
                 tierFromTags = parsed;
             else
-                GD.PushError($"[QuestDB] {context}: неизвестный tier '{overrideTier}'");
+                Log.Error($"[QuestDB] {context}: неизвестный tier '{overrideTier}'");
         }
     }
 
@@ -560,12 +559,10 @@ public static class QuestDatabase
         return t?.Name.Get(Loc.Language) ?? id;
     }
 
-    public static Texture2D QuestIcon(string id) => IconLoader.Get("Quests", id);
-
     public static QuestGradeInfo GetByRole(QuestGradeRole role)
     {
         if (GradesByRole != null && GradesByRole.TryGetValue(role, out var g)) return g;
-        GD.PushError($"[QuestDB] Нет градации с ролью {role}");
+        Log.Error($"[QuestDB] Нет градации с ролью {role}");
         return null;
     }
 
@@ -583,21 +580,21 @@ public static class QuestDatabase
             resolvedCombos.TryGetValue((templateId, creatureId), out var r))
             return r;
 
-        GD.PushError($"[QuestDB] Нет resolved: template='{templateId}', creature='{creatureId}'");
+        Log.Error($"[QuestDB] Нет resolved: template='{templateId}', creature='{creatureId}'");
         return null;
     }
 
     public static CreatureInfo GetCreature(string id)
     {
         if (Creatures != null && Creatures.TryGetValue(id, out var c)) return c;
-        GD.PushWarning($"[QuestDB] Не найдено существо: {id}");
+        Log.Warn($"[QuestDB] Не найдено существо: {id}");
         return null;
     }
 
     public static LocationInfo GetLocation(string id)
     {
         if (Locations != null && Locations.TryGetValue(id, out var l)) return l;
-        GD.PushWarning($"[QuestDB] Не найдена локация: {id}");
+        Log.Warn($"[QuestDB] Не найдена локация: {id}");
         return null;
     }
 
@@ -605,14 +602,14 @@ public static class QuestDatabase
     {
         string key = role.ToString().ToLowerInvariant();
         if (Outcomes != null && Outcomes.TryGetValue(key, out var o)) return o;
-        GD.PushWarning($"[QuestDB] Нет outcome для роли {role}");
+        Log.Warn($"[QuestDB] Нет outcome для роли {role}");
         return null;
     }
 
     private static T Lookup<T>(IReadOnlyDictionary<string, T> dict, string id, string what) where T : class
     {
         if (dict != null && dict.TryGetValue(id, out var value)) return value;
-        GD.PushWarning($"[QuestDB] Не найден {what}: {id}");
+        Log.Warn($"[QuestDB] Не найден {what}: {id}");
         return null;
     }
 }

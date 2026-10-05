@@ -20,7 +20,10 @@ public class QuestBalanceProfile
     public string Id { get; set; }
 
     public int BasePenalty { get; set; } = 20;
-    public int ReferenceStatAtLevel1 { get; set; } = 6;
+
+    public double ReferenceStatBase { get; set; } = 8.0;
+    public double ReferenceStatSlope { get; set; } = 2.5;
+
     public double CoverageThreshold { get; set; } = 0.75;
     public double CoverageBonusPerStat { get; set; } = 0.25;
 
@@ -31,6 +34,14 @@ public class QuestBalanceProfile
     public double MarginFailure { get; set; } = -40;
 
     public double TriumphCapPercent { get; set; } = 10;
+
+    // Травмы: Endurance помогает сильно
+    public double EnduranceInjuryK { get; set; } = 60;
+    public double EnduranceInjuryCap { get; set; } = 0.75;
+
+    // Смерть: Endurance помогает умеренно
+    public double EnduranceDeathK { get; set; } = 150;
+    public double EnduranceDeathCap { get; set; } = 0.50;
 
     public ExperienceBalance Experience { get; set; } = new();
 }

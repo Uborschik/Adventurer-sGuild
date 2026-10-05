@@ -1,4 +1,3 @@
-using Godot;
 using System;
 using System.Collections.Generic;
 
@@ -9,7 +8,7 @@ public static class QuestCalculator
     private static QuestBalanceProfile B => QuestBalance.Active;
 
     public static double ReferenceMaxStat(AdventurerModel a)
-        => B.ReferenceStatAtLevel1 + (a.Level.Number - 1);
+        => B.ReferenceStatBase + (a.Level.Number - 1) * B.ReferenceStatSlope;
 
     public static double NormalizedStat(AdventurerModel a, string statId)
     {

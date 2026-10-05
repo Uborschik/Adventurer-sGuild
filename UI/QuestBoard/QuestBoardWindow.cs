@@ -1,7 +1,3 @@
-using System;
-using System.Linq;
-using Godot;
-
 public partial class QuestBoardWindow : InteractableWindow
 {
     private AdventurerBoard adventurerBoard;

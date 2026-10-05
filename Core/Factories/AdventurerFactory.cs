@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Godot;
 
 public enum Gender { Male, Female }
 
@@ -16,7 +15,7 @@ public class AdventurerFactory(int? seed = null)
         {
             if (AdventurerDatabase.Templates.Count == 0)
             {
-                GD.PushError("[AdventurerFactory] Нет шаблонов");
+                Log.Error("[AdventurerFactory] Нет шаблонов");
                 return null;
             }
             template = AdventurerDatabase.Templates[0];
@@ -31,7 +30,8 @@ public class AdventurerFactory(int? seed = null)
 
         if (classId == null) return null;
 
-        var level = rng.Next(template.MinLevel, template.MaxLevel + 1);
+        // var level = rng.Next(template.MinLevel, template.MaxLevel + 1);
+        var level = 1;
         var stats = StatGrowth.AtLevel(classId, raceId, level);
 
         var gender = rng.Next(2) == 0 ? Gender.Male : Gender.Female;
@@ -53,7 +53,7 @@ public class AdventurerFactory(int? seed = null)
 
         if (total <= 0)
         {
-            GD.PushError("[AdventurerFactory] Нет рас с population > 0");
+            Log.Error("[AdventurerFactory] Нет рас с population > 0");
             return null;
         }
 
@@ -80,7 +80,7 @@ public class AdventurerFactory(int? seed = null)
     {
         if (weights == null || weights.Count == 0)
         {
-            GD.PushError("[AdventurerFactory] PickByWeight: пустой словарь");
+            Log.Error("[AdventurerFactory] PickByWeight: пустой словарь");
             return null;
         }
 

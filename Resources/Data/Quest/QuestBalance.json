@@ -1,34 +1,43 @@
 {
-	"profiles": [
-		{
-			"id": "default",
-			"basePenalty": 20,
-			"referenceStatAtLevel1": 6,
-			"coverageThreshold": 0.75,
-			"coverageBonusPerStat": 0.25,
-			"tierBonus": {
-				"easy": 0,
-				"normal": 25,
-				"hard": 50
-			},
-			"marginTriumph": 50,
-			"marginFailure": -40,
-			"triumphCapPercent": 10,
-			"experience": {
-				"expBonusLvl1": 5,
-				"tierModifiers": {
-					"easy": 0,
-					"normal": 5,
-					"hard": 10
-				},
-				"roleMultipliers": {
-					"triumph": 2.0,
-					"success": 1.0,
-					"failure": 0.25,
-					"disaster": 0.1
-				},
-				"contributionBaseScore": 0.2
-			}
-		}
-	]
+  "profiles": [
+    {
+      "id": "default",
+
+      "basePenalty": 20,
+      "referenceStatBase": 18.0,
+      "referenceStatSlope": 2.5,
+      "coverageThreshold": 0.75,
+      "coverageBonusPerStat": 0.25,
+
+      "tierBonus": {
+        "easy": 0,
+        "normal": 25,
+        "hard": 50
+      },
+
+      "marginTriumph": 50,
+      "marginFailure": -40,
+      "triumphCapPercent": 10,
+
+      "enduranceInjuryK": 60,
+      "enduranceInjuryCap": 0.75,
+
+      "enduranceDeathK": 150,
+      "enduranceDeathCap": 0.50,
+
+      "experience": {
+        "expBonusLvl1": 5,
+        "tierModifiers": {
+          "easy": 0, "normal": 5, "hard": 10
+        },
+        "roleMultipliers": {
+          "triumph": 2.0,
+          "success": 1.0,
+          "failure": 0.25,
+          "disaster": 0.1
+        },
+        "contributionBaseScore": 0.2
+      }
+    }
+  ]
 }

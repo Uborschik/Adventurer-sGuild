@@ -5,6 +5,7 @@ public class AdventurerRaceInfo
     public string Id { get; set; }
     public LocalizedString Name { get; set; }
     public Dictionary<string, int> StatBonuses { get; set; }
+    public double ResilienceMultiplier { get; set; } = 1.0;
     public RaceWeightInfo Weight { get; set; }
 }
 

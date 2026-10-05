@@ -1,5 +1,10 @@
 {
-  "maxLevel": 100,
-  "expCapLvl1": 30,
-  "expCapScaling": "linear"
+  "maxLevel": 60,
+  "expCapLvl1": 45,
+  "expCapScaling": "polynomial",
+  "expCapAcceleration": 0.22,
+
+  "statBaseValue": 2.0,
+  "statStartPool": 16.0,
+  "statBaseSlope": 2.5
 }

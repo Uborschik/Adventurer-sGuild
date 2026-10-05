@@ -1,4 +1,3 @@
-using System;
 using Godot;
 
 public partial class AdventurerRow : SceneListRow
@@ -41,10 +40,10 @@ public partial class AdventurerRow : SceneListRow
         nameLabel.Text = model.FirstName;
         levelLabel.Text = model.Level.Number.ToString();
 
-        classIcon.Texture = AdventurerDatabase.ClassIcon(model.ClassId);
-        raceIcon.Texture = AdventurerDatabase.RaceIcon(model.RaceId);
+        classIcon.Texture = IconLoader.Get("Classes", model.ClassId);
+        raceIcon.Texture = IconLoader.Get("Races", model.RaceId);
 
-        statusIcon.Texture = AdventurerDatabase.StatusIcon(model.StatusId);
+        statusIcon.Texture = IconLoader.Get("Statuses", model.StatusId);
 
         TooltipText = $"{model.FullName} · {AdventurerDatabase.ClassName(model.ClassId)} · ур. {model.Level} · оп. {model.Level.Experience}/{model.Level.ExpToNext}";
 
@@ -66,7 +65,7 @@ public partial class AdventurerRow : SceneListRow
     private void RefreshStatus()
     {
         if (bound == null) return;
-        statusIcon.Texture = AdventurerDatabase.StatusIcon(bound.StatusId);
+        statusIcon.Texture = IconLoader.Get("Statuses", bound.StatusId);
     }
 
     private void RefreshLevel()

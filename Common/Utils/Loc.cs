@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Godot;
 
 public static class Loc
 {
@@ -31,7 +30,7 @@ public static class Loc
     {
         if (data == null)
         {
-            GD.PushError("Loc.Load() не был вызван");
+            Log.Error("Loc.Load() не был вызван");
             return $"#{key}#";
         }
 
@@ -41,7 +40,7 @@ public static class Loc
         if (data.TryGetValue(FallbackLang, out var fallback) && fallback.TryGetValue(key, out var fb))
             return fb;
 
-        GD.PushWarning($"Отсутствует строка: {key}");
+        Log.Warn($"Отсутствует строка: {key}");
         return $"#{key}#";
     }
 

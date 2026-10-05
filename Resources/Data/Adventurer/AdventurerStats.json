@@ -1,35 +1,51 @@
 {
   "stats": [
     {
-      "id": "might",
-      "name": { "ru": "Сила", "en": "Might" },
+      "id": "str",
+      "name": { "ru": "Сила", "en": "Strength" },
       "description": {
-        "ru": "Бой, выносливость, грубая сила.",
-        "en": "Combat, endurance, raw strength."
+        "ru": "Ближний бой, мощь, грубая физическая сила.",
+        "en": "Melee combat, power, raw physical might."
       }
     },
     {
-      "id": "finesse",
-      "name": { "ru": "Ловкость", "en": "Finesse" },
+      "id": "dex",
+      "name": { "ru": "Ловкость", "en": "Dexterity" },
       "description": {
-        "ru": "Ловкость, скрытность, точность.",
-        "en": "Agility, stealth, precision."
+        "ru": "Точность, скрытность, скорость реакции.",
+        "en": "Precision, stealth, reaction speed."
       }
     },
     {
-      "id": "wits",
-      "name": { "ru": "Разум", "en": "Wits" },
+      "id": "end",
+      "name": { "ru": "Стойкость", "en": "Endurance" },
       "description": {
-        "ru": "Знания, магия, исследование.",
-        "en": "Knowledge, magic, investigation."
+        "ru": "Выносливость, сопротивляемость ранам и смерти.",
+        "en": "Fortitude, resistance to injury and death."
       }
     },
     {
-      "id": "presence",
-      "name": { "ru": "Харизма", "en": "Presence" },
+      "id": "int",
+      "name": { "ru": "Интеллект", "en": "Intelligence" },
       "description": {
-        "ru": "Харизма, воля, убеждение.",
-        "en": "Charisma, will, persuasion."
+        "ru": "Знания, магия, анализ и исследование.",
+        "en": "Knowledge, magic, analysis and investigation."
+      }
+    },
+    {
+      "id": "wis",
+      "name": { "ru": "Мудрость", "en": "Wisdom" },
+      "description": {
+        "ru": "Восприятие, интуиция, выживание в дикой природе.",
+        "en": "Perception, intuition, wilderness survival."
+      }
+    },
+    {
+      "id": "cha",
+      "name": { "ru": "Харизма", "en": "Charisma" },
+      "description": {
+        "ru": "Убеждение, лидерство, воля.",
+        "en": "Persuasion, leadership, force of will."
       }
     }
   ]

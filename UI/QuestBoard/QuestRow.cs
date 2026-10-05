@@ -1,5 +1,4 @@
 using Godot;
-using System.Xml;
 
 public partial class QuestRow : SceneListRow
 {
@@ -20,7 +19,7 @@ public partial class QuestRow : SceneListRow
     {
         SetId(model.Id);
 
-        icon.Texture = QuestDatabase.QuestIcon(model.TypeId);
+        icon.Texture = IconLoader.Get("Quests", model.TypeId);
         name.Text = model.Name;
         difficulty.Text = model.Difficulty.ToString();
     }

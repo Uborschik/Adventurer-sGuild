@@ -5,7 +5,8 @@ public class AdventurerClassInfo
     public string Id { get; set; }
     public LocalizedString Name { get; set; }
     public string PrimaryStat { get; set; }
-    public int HitDie { get; set; }
+    public string SecondaryStat { get; set; }
+    public Dictionary<string, double> GrowthWeights { get; set; }
     public int Weight { get; set; }
 }
 

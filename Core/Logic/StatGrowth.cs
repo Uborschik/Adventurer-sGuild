@@ -1,12 +1,9 @@
+using System;
 using System.Collections.Generic;
-using Godot;
 
 public static class StatGrowth
 {
-    public const int Cap = 100;
-    public const int BaseValue = 4;
-    public const int ClassBonus = 2;
-    private const float SecondaryGrowth = 0.7f;
+    private const double DefaultTertiaryWeight = 0.20;
 
     public static Dictionary<string, int> AtLevel(string classId, string raceId, int level = 1)
     {
@@ -16,21 +13,30 @@ public static class StatGrowth
         if (cls == null || race == null)
             return new Dictionary<string, int>();
 
-        int levelsAboveOne = Mathf.Max(0, level - 1);
-
-        int primaryValue = BaseValue + ClassBonus + levelsAboveOne;
-        int secondaryValue = (int)(BaseValue + levelsAboveOne * SecondaryGrowth);
+        var p = AdventurerBalance.Active;
+        int levelsAboveOne = Math.Max(0, level - 1);
 
         var result = new Dictionary<string, int>();
 
-        foreach (var statId in AdventurerDatabase.Stats.Keys)
+        foreach (var statId in StatIds.All)
         {
-            int value = (statId == cls.PrimaryStat) ? primaryValue : secondaryValue;
+            double weight = DefaultTertiaryWeight;
 
-            if (race.StatBonuses.TryGetValue(statId, out int bonus))
+            if (cls.GrowthWeights != null
+                && cls.GrowthWeights.TryGetValue(statId, out var w))
+                weight = w;
+
+            double value = p.StatBaseValue + (p.StatStartPool + levelsAboveOne * p.StatBaseSlope) * weight;
+
+            if (race.StatBonuses != null
+                && race.StatBonuses.TryGetValue(statId, out int bonus))
                 value += bonus;
 
-            result[statId] = Mathf.Min(Cap, value);
+            if (statId == StatIds.Endurance
+                && Math.Abs(race.ResilienceMultiplier - 1.0) > 1e-6)
+                value *= race.ResilienceMultiplier;
+
+            result[statId] = (int)Math.Round(value);
         }
 
         return result;

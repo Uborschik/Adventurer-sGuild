@@ -28,6 +28,10 @@ public partial class GameWindow : Control
         Loc.Load();
         Loc.SetLanguage("ru");
 
+        Log.InfoSink = GD.Print;
+        Log.WarnSink = GD.PushWarning;
+        Log.ErrorSink = GD.PushError;
+
         AdventurerBalance.Load();
         QuestBalance.Load();
         AdventurerDatabase.Load();

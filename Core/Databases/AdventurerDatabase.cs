@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Godot;
 
 public static class AdventurerDatabase
 {
@@ -104,13 +103,6 @@ public static class AdventurerDatabase
         return s?.Name.Get(Loc.Language) ?? id;
     }
 
-    // === Публичное API — иконки ===
-
-    public static Texture2D ClassIcon(string id) => IconLoader.Get("Classes", id);
-    public static Texture2D RaceIcon(string id) => IconLoader.Get("Races", id);
-    public static Texture2D StatIcon(string id) => IconLoader.Get("Stats", id);
-    public static Texture2D StatusIcon(string id) => IconLoader.Get("Statuses", id);
-
     // === Публичное API — прочее ===
 
     public static bool IsFree(AdventurerModel a)
@@ -131,17 +123,17 @@ public static class AdventurerDatabase
         {
             if (race.Weight == null)
             {
-                GD.PushError($"[AdventurerDB] Раса '{race.Id}': нет weight");
+                Log.Error($"[AdventurerDB] Раса '{race.Id}': нет weight");
                 errors++;
                 continue;
             }
 
             if (race.Weight.Population <= 0)
-                GD.PushWarning($"[AdventurerDB] Раса '{race.Id}': population = 0, никогда не появится");
+                Log.Warn($"[AdventurerDB] Раса '{race.Id}': population = 0, никогда не появится");
 
             if (race.Weight.Classes == null || race.Weight.Classes.Count == 0)
             {
-                GD.PushError($"[AdventurerDB] Раса '{race.Id}': пустой список classes");
+                Log.Error($"[AdventurerDB] Раса '{race.Id}': пустой список classes");
                 errors++;
                 continue;
             }
@@ -150,7 +142,7 @@ public static class AdventurerDatabase
             {
                 if (!Classes.ContainsKey(classId))
                 {
-                    GD.PushError($"[AdventurerDB] Раса '{race.Id}': неизвестный класс '{classId}'");
+                    Log.Error($"[AdventurerDB] Раса '{race.Id}': неизвестный класс '{classId}'");
                     errors++;
                 }
             }
@@ -161,10 +153,16 @@ public static class AdventurerDatabase
                 {
                     if (!Stats.ContainsKey(statId))
                     {
-                        GD.PushError($"[AdventurerDB] Раса '{race.Id}': неизвестный стат '{statId}' в statBonuses");
+                        Log.Error($"[AdventurerDB] Раса '{race.Id}': неизвестный стат '{statId}' в statBonuses");
                         errors++;
                     }
                 }
+            }
+
+            if (race.ResilienceMultiplier <= 0)
+            {
+                Log.Error($"[AdventurerDB] Раса '{race.Id}': resilienceMultiplier <= 0");
+                errors++;
             }
         }
 
@@ -173,8 +171,62 @@ public static class AdventurerDatabase
         {
             if (string.IsNullOrEmpty(cls.PrimaryStat) || !Stats.ContainsKey(cls.PrimaryStat))
             {
-                GD.PushError($"[AdventurerDB] Класс '{cls.Id}': primaryStat '{cls.PrimaryStat}' не найден");
+                Log.Error($"[AdventurerDB] Класс '{cls.Id}': primaryStat '{cls.PrimaryStat}' не найден");
                 errors++;
+            }
+
+            if (string.IsNullOrEmpty(cls.SecondaryStat) || !Stats.ContainsKey(cls.SecondaryStat))
+            {
+                Log.Error($"[AdventurerDB] Класс '{cls.Id}': secondaryStat '{cls.SecondaryStat}' не найден");
+                errors++;
+            }
+
+            if (!string.IsNullOrEmpty(cls.PrimaryStat) &&
+                cls.PrimaryStat == cls.SecondaryStat)
+            {
+                Log.Error($"[AdventurerDB] Класс '{cls.Id}': primary == secondary ('{cls.PrimaryStat}')");
+                errors++;
+            }
+
+            if (cls.GrowthWeights == null || cls.GrowthWeights.Count == 0)
+            {
+                Log.Error($"[AdventurerDB] Класс '{cls.Id}': пустой growthWeights");
+                errors++;
+            }
+            else
+            {
+                foreach (var statId in StatIds.All)
+                {
+                    if (!cls.GrowthWeights.ContainsKey(statId))
+                        Log.Warn($"[AdventurerDB] Класс '{cls.Id}': нет веса для '{statId}', будет 0.20");
+                }
+
+                foreach (var kv in cls.GrowthWeights)
+                {
+                    if (!Stats.ContainsKey(kv.Key))
+                    {
+                        Log.Error($"[AdventurerDB] Класс '{cls.Id}': неизвестный стат '{kv.Key}' в growthWeights");
+                        errors++;
+                    }
+                    if (kv.Value < 0)
+                    {
+                        Log.Error($"[AdventurerDB] Класс '{cls.Id}': отрицательный вес '{kv.Key}' = {kv.Value}");
+                        errors++;
+                    }
+                }
+
+                // Primary должен иметь максимальный вес, а не просто существовать
+                if (cls.GrowthWeights.TryGetValue(cls.PrimaryStat, out var pw))
+                {
+                    foreach (var kv in cls.GrowthWeights)
+                    {
+                        if (kv.Key != cls.PrimaryStat && kv.Value > pw)
+                        {
+                            Log.Warn($"[AdventurerDB] Класс '{cls.Id}': вес '{kv.Key}' ({kv.Value}) " +
+                                           $"больше primary '{cls.PrimaryStat}' ({pw})");
+                        }
+                    }
+                }
             }
         }
 
@@ -183,23 +235,23 @@ public static class AdventurerDatabase
         {
             if (t.MinLevel < 1)
             {
-                GD.PushError($"[AdventurerDB] Шаблон '{t.Id}': minLevel < 1");
+                Log.Error($"[AdventurerDB] Шаблон '{t.Id}': minLevel < 1");
                 errors++;
             }
 
             if (t.MaxLevel < t.MinLevel)
             {
-                GD.PushError($"[AdventurerDB] Шаблон '{t.Id}': maxLevel < minLevel");
+                Log.Error($"[AdventurerDB] Шаблон '{t.Id}': maxLevel < minLevel");
                 errors++;
             }
         }
 
         // === Итог ===
         if (errors == 0)
-            GD.Print($"[AdventurerDB] Валидация: ok ({Classes.Count} классов, {Races.Count} рас, " +
-         $"{Stats.Count} статов, {Statuses.Count} статусов, {Templates.Count} шаблонов, ");
+            Log.Info($"[AdventurerDB] Валидация: ok ({Classes.Count} классов, {Races.Count} рас, " +
+                     $"{Stats.Count} статов, {Statuses.Count} статусов, {Templates.Count} шаблонов)");
         else
-            GD.PushError($"[AdventurerDB] Валидация: {errors} ошибок");
+            Log.Error($"[AdventurerDB] Валидация: {errors} ошибок");
     }
 
     private static void ValidateNames()
@@ -211,12 +263,12 @@ public static class AdventurerDatabase
         {
             if (string.IsNullOrEmpty(stat.Name.Ru) || string.IsNullOrEmpty(stat.Name.En))
             {
-                GD.PushError($"[AdventurerDB] Стат '{stat.Id}': неполное name");
+                Log.Error($"[AdventurerDB] Стат '{stat.Id}': неполное name");
                 errors++;
             }
             if (string.IsNullOrEmpty(stat.Description.Ru) || string.IsNullOrEmpty(stat.Description.En))
             {
-                GD.PushError($"[AdventurerDB] Стат '{stat.Id}': неполное description");
+                Log.Error($"[AdventurerDB] Стат '{stat.Id}': неполное description");
                 errors++;
             }
         }
@@ -226,7 +278,7 @@ public static class AdventurerDatabase
         {
             if (string.IsNullOrEmpty(race.Name.Ru) || string.IsNullOrEmpty(race.Name.En))
             {
-                GD.PushError($"[AdventurerDB] Раса '{race.Id}': неполное name");
+                Log.Error($"[AdventurerDB] Раса '{race.Id}': неполное name");
                 errors++;
             }
         }
@@ -236,7 +288,7 @@ public static class AdventurerDatabase
         {
             if (string.IsNullOrEmpty(cls.Name.Ru) || string.IsNullOrEmpty(cls.Name.En))
             {
-                GD.PushError($"[AdventurerDB] Класс '{cls.Id}': неполное name");
+                Log.Error($"[AdventurerDB] Класс '{cls.Id}': неполное name");
                 errors++;
             }
         }
@@ -246,7 +298,7 @@ public static class AdventurerDatabase
         {
             if (string.IsNullOrEmpty(status.Name.Ru) || string.IsNullOrEmpty(status.Name.En))
             {
-                GD.PushError($"[AdventurerDB] Статус '{status.Id}': неполное name");
+                Log.Error($"[AdventurerDB] Статус '{status.Id}': неполное name");
                 errors++;
             }
         }
@@ -254,36 +306,36 @@ public static class AdventurerDatabase
         // === Имена авантюристов ===
         if (Names == null)
         {
-            GD.PushError("[AdventurerDB] Names не загружен");
+            Log.Error("[AdventurerDB] Names не загружен");
             return;
         }
 
         if (Names.FirstNamesMale == null || Names.FirstNamesMale.Count == 0)
         {
-            GD.PushError("[AdventurerDB] Пустой firstNamesMale");
+            Log.Error("[AdventurerDB] Пустой firstNamesMale");
             errors++;
         }
 
         if (Names.FirstNamesFemale == null || Names.FirstNamesFemale.Count == 0)
         {
-            GD.PushError("[AdventurerDB] Пустой firstNamesFemale");
+            Log.Error("[AdventurerDB] Пустой firstNamesFemale");
             errors++;
         }
 
         if (Names.Surnames == null || Names.Surnames.Count == 0)
         {
-            GD.PushError("[AdventurerDB] Пустой surnames");
+            Log.Error("[AdventurerDB] Пустой surnames");
             errors++;
         }
 
         // === Итог ===
         int total = Stats.Count + Races.Count + Classes.Count + Statuses.Count;
         if (errors == 0)
-            GD.Print($"[AdventurerDB] Валидация имён: ok ({total} сущностей, " +
+            Log.Info($"[AdventurerDB] Валидация имён: ok ({total} сущностей, " +
                      $"{Names.FirstNamesMale?.Count ?? 0}+{Names.FirstNamesFemale?.Count ?? 0} имён, " +
                      $"{Names.Surnames?.Count ?? 0} фамилий)");
         else
-            GD.PushError($"[AdventurerDB] Валидация имён: {errors} ошибок");
+            Log.Error($"[AdventurerDB] Валидация имён: {errors} ошибок");
     }
 
     // === Приватные хелперы ===
@@ -291,7 +343,7 @@ public static class AdventurerDatabase
     private static T Lookup<T>(IReadOnlyDictionary<string, T> dict, string id, string what) where T : class
     {
         if (dict != null && dict.TryGetValue(id, out var value)) return value;
-        GD.PushWarning($"[AdventurerDB] Не найден {what}: {id}");
+        Log.Warn($"[AdventurerDB] Не найден {what}: {id}");
         return null;
     }
 }
