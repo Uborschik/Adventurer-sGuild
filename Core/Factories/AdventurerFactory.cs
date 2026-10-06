@@ -1,11 +1,30 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public enum Gender { Male, Female }
 
 public class AdventurerFactory(int? seed = null)
 {
     private readonly Random rng = seed.HasValue ? new Random(seed.Value) : new Random();
+
+    public AdventurerModel Create(string raceId, string classId, int lvl)
+    {
+        var stats = StatGrowth.AtLevel(classId, raceId, lvl);
+
+        var gender = rng.Next(2) == 0 ? Gender.Male : Gender.Female;
+        var firstPool = gender == Gender.Male ? AdventurerDatabase.Names.FirstNamesMale : AdventurerDatabase.Names.FirstNamesFemale;
+
+        var first = Pick(firstPool).Get(Loc.Language);
+        var last = Pick(AdventurerDatabase.Names.Surnames).Get(Loc.Language);
+        var id = Guid.NewGuid().ToString("N");
+
+        var model = new AdventurerModel(id, first, last, classId, raceId, stats, lvl);
+
+        LogAdventurer(model, classId, raceId);
+
+        return model;
+    }
 
     public AdventurerModel Create(string templateId = "recruit")
     {
@@ -111,5 +130,13 @@ public class AdventurerFactory(int? seed = null)
         if (pool == null || pool.Count == 0)
             return default;
         return pool[rng.Next(pool.Count)];
+    }
+
+    private static void LogAdventurer(AdventurerModel a, string classId, string raceId)
+    {
+        var stats = string.Join(" ",
+            StatIds.All.Select(s => $"{s}={a.Stats[s]:F2}"));
+
+        Log.Info($"[Adv] \n {raceId}/{classId} \n {a.FullName} \n L{a.Level.Number}  {stats}");
     }
 }

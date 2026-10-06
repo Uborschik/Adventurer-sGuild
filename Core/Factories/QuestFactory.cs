@@ -15,14 +15,9 @@ public class QuestFactory
         templates = db.Templates;
     }
 
-    public QuestModel Create(GameTime now)
+    public QuestModel Create(GameTime now, int codeLevel)
     {
         var template = Pick(templates);
-
-        int min = template.LevelRange?.Min ?? 1;
-        int max = template.LevelRange?.Max ?? min;
-        if (max < min) max = min;
-        int level = rng.Next(min, max + 1);
 
         string creatureId = null;
         if (template.Creatures != null && template.Creatures.Count > 0)
@@ -49,25 +44,25 @@ public class QuestFactory
             template.Description.Get(lang), lang, nouns);
 
         var lifetimeDays = rng.Next(3, 8);
+        int narrativeLevel = (codeLevel - 1) / 10 + 1;
 
         return new QuestModel
         {
             Id = Guid.NewGuid().ToString("N"),
             Name = template.Name.Get(lang) ?? template.Id,
-            Level = level,
+            CodeLevel = codeLevel,
+            NarrativeLevel = narrativeLevel,
             Description = description,
             TypeId = template.Type,
-
+            LocationId = locationId,
+            CreatureId = creatureId,
             Tier = resolved.Tier,
-            Weights = resolved.Weights,
-            RecommendedPartySize = resolved.RecommendedPartySize,
-
-            DurationMinutes = template.DurationDays * GameTime.MinutesPerDay,
+            Phases = resolved.Phases,
             GoldReward = template.BaseGold,
             GloryReward = template.BaseGlory,
-
             CreatedAt = now,
             ExpiresAt = now + GameTime.FromDays(lifetimeDays),
+            Status = QuestStatus.Available,
         };
     }
 

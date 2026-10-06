@@ -5,18 +5,18 @@ public static class StatGrowth
 {
     private const double DefaultTertiaryWeight = 0.20;
 
-    public static Dictionary<string, int> AtLevel(string classId, string raceId, int level = 1)
+    public static Dictionary<string, double> AtLevel(string classId, string raceId, int level = 1)
     {
         var cls = AdventurerDatabase.GetClass(classId);
         var race = AdventurerDatabase.GetRace(raceId);
 
         if (cls == null || race == null)
-            return new Dictionary<string, int>();
+            return new Dictionary<string, double>();
 
         var p = AdventurerBalance.Active;
         int levelsAboveOne = Math.Max(0, level - 1);
 
-        var result = new Dictionary<string, int>();
+        var result = new Dictionary<string, double>();
 
         foreach (var statId in StatIds.All)
         {
@@ -26,7 +26,8 @@ public static class StatGrowth
                 && cls.GrowthWeights.TryGetValue(statId, out var w))
                 weight = w;
 
-            double value = p.StatBaseValue + (p.StatStartPool + levelsAboveOne * p.StatBaseSlope) * weight;
+            double value = p.StatBaseValue
+                         + (p.StatStartPool + levelsAboveOne * p.StatBaseSlope) * weight;
 
             if (race.StatBonuses != null
                 && race.StatBonuses.TryGetValue(statId, out int bonus))
@@ -36,7 +37,7 @@ public static class StatGrowth
                 && Math.Abs(race.ResilienceMultiplier - 1.0) > 1e-6)
                 value *= race.ResilienceMultiplier;
 
-            result[statId] = (int)Math.Round(value);
+            result[statId] = value;
         }
 
         return result;

@@ -5,7 +5,7 @@ public class AdventurerBalanceProfile
     public string ExpCapScaling { get; set; } = "polynomial";
     public double ExpCapAcceleration { get; set; } = 0.22;
 
-    public double StatBaseValue { get; set; } = 8.0;
+    public double StatBaseValue { get; set; } = 0.0;
     public double StatStartPool { get; set; } = 16.0;
     public double StatBaseSlope { get; set; } = 2.5;
 }

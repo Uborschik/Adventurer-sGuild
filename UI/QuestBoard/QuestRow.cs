@@ -21,7 +21,6 @@ public partial class QuestRow : SceneListRow
 
         icon.Texture = IconLoader.Get("Quests", model.TypeId);
         name.Text = model.Name;
-        difficulty.Text = model.Difficulty.ToString();
     }
 
     protected override void RefreshState()

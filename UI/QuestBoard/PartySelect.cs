@@ -95,12 +95,12 @@ public partial class PartySelect : Control
 
     private void RefreshChance()
     {
-        if (quest == null) return;
+        if (quest == null) { chance.Text = ""; return; }
 
         var list = party.BuildParty();
         var prediction = questResolver.Predict(quest, list);
 
-        chance.Text = prediction.SuccessOrBetter.ToString();
+        chance.Text = $"{prediction.PhasesPassed}/{prediction.PhasesTotal} фаз";
     }
 
     private void RefreshCanApply()

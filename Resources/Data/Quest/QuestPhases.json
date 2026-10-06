@@ -1,0 +1,146 @@
+{
+  "phases": [
+    {
+      "id": "tracking",
+      "name": { "ru": "Выследить", "en": "Track" },
+      "baseDurationMinutes": 480,
+      "critical": false,
+      "expReward": 25,
+      "solutions": [
+        { "skills": { "perception": 0.50, "athletics": 0.35 } },
+        { "skills": { "perception": 0.50, "endurance": 0.40 } },
+        { "skills": { "stealth": 0.60, "perception": 0.40 } }
+      ],
+      "onFail": { "durationDeltaMinutes": 240 }
+    },
+    {
+      "id": "exploration",
+      "name": { "ru": "Разведать", "en": "Explore" },
+      "baseDurationMinutes": 600,
+      "critical": true,
+      "expReward": 30,
+      "solutions": [
+        { "skills": { "investigation": 0.55, "perception": 0.45 } },
+        { "skills": { "investigation": 0.55, "endurance": 0.40 } },
+        { "skills": { "perception": 0.55, "endurance": 0.40 } }
+      ],
+      "onFail": { "durationDeltaMinutes": 240 }
+    },
+    {
+      "id": "stealth",
+      "name": { "ru": "Скрытно пройти", "en": "Sneak" },
+      "baseDurationMinutes": 240,
+      "critical": false,
+      "expReward": 20,
+      "solutions": [
+        { "skills": { "stealth": 0.55, "perception": 0.40 } },
+        { "skills": { "stealth": 0.55, "investigation": 0.40 } },
+        { "skills": { "stealth": 0.55, "deception": 0.30 } }
+      ],
+      "onFail": {
+        "targetPhase": "combat",
+        "dcDelta": 0.10,
+        "durationDeltaMinutes": 60
+      }
+    },
+    {
+      "id": "guard",
+      "name": { "ru": "Защитить", "en": "Guard" },
+      "baseDurationMinutes": 360,
+      "critical": true,
+      "expReward": 30,
+      "solutions": [
+        { "skills": { "athletics": 0.55, "endurance": 0.55 } },
+        { "skills": { "athletics": 0.55, "persuasion": 0.40 } },
+        { "skills": { "perception": 0.55, "endurance": 0.55 } }
+      ],
+      "onFail": { "durationDeltaMinutes": 180 }
+    },
+    {
+      "id": "social",
+      "name": { "ru": "Договориться", "en": "Negotiate" },
+      "baseDurationMinutes": 240,
+      "critical": true,
+      "expReward": 30,
+      "solutions": [
+        { "skills": { "persuasion": 0.55, "perception": 0.40 } },
+        { "skills": { "persuasion": 0.55, "investigation": 0.45 } },
+        { "skills": { "persuasion": 0.55, "intimidation": 0.40 } },
+        { "skills": { "deception": 0.55, "investigation": 0.45 } }
+      ],
+      "onFail": { "durationDeltaMinutes": 120 }
+    },
+    {
+      "id": "combat",
+      "name": { "ru": "Схватка", "en": "Combat" },
+      "baseDurationMinutes": 180,
+      "critical": true,
+      "expReward": 40,
+      "solutions": [
+        { "skills": { "athletics": 0.60, "endurance": 0.45 } },
+        { "skills": { "acrobatics": 0.60, "endurance": 0.45 } },
+        { "skills": { "arcana": 0.65, "perception": 0.40 } },
+        { "skills": { "perception": 0.55, "persuasion": 0.45 } },
+        { "skills": { "deception": 0.55, "acrobatics": 0.60 } }
+      ],
+      "onFail": { "durationDeltaMinutes": 120 }
+    },
+    {
+      "id": "puzzle",
+      "name": { "ru": "Разгадать", "en": "Puzzle" },
+      "baseDurationMinutes": 300,
+      "critical": false,
+      "expReward": 25,
+      "solutions": [
+        { "skills": { "investigation": 0.60, "perception": 0.45 } },
+        { "skills": { "investigation": 0.60, "acrobatics": 0.45 } },
+        { "skills": { "perception": 0.60, "acrobatics": 0.45 } }
+      ],
+      "onFail": { "durationDeltaMinutes": 180 }
+    },
+    {
+      "id": "lore",
+      "name": { "ru": "Древние знания", "en": "Lore" },
+      "baseDurationMinutes": 240,
+      "critical": false,
+      "expReward": 20,
+      "solutions": [
+        { "skills": { "arcana": 0.60, "perception": 0.45 } },
+        { "skills": { "arcana": 0.60, "persuasion": 0.45 } },
+        { "skills": { "investigation": 0.60, "persuasion": 0.45 } }
+      ],
+      "onFail": { "durationDeltaMinutes": 120 }
+    },
+    {
+      "id": "survival",
+      "name": { "ru": "Выжить", "en": "Survive" },
+      "baseDurationMinutes": 600,
+      "critical": false,
+      "expReward": 15,
+      "solutions": [
+        { "skills": { "endurance": 0.50, "perception": 0.40 } },
+        { "skills": { "athletics": 0.50, "endurance": 0.50 } },
+        { "skills": { "athletics": 0.50, "perception": 0.40 } }
+      ],
+      "onFail": { "durationDeltaMinutes": 180 }
+    },
+    {
+      "id": "short_rest",
+      "name": { "ru": "Короткий привал", "en": "Short Rest" },
+      "baseDurationMinutes": 60,
+      "critical": false,
+      "expReward": 0,
+      "solutions": []
+    },
+    {
+      "id": "long_rest",
+      "name": { "ru": "Ночлег", "en": "Long Rest" },
+      "baseDurationMinutes": 480,
+      "critical": false,
+      "expReward": 0,
+      "solutions": [
+        { "skills": { "perception": 0.50 } }
+      ]
+    }
+  ]
+}

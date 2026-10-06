@@ -1,31 +1,13 @@
-using System.Collections.Generic;
-
 public class QuestPrediction
 {
-    private readonly Dictionary<QuestGradeRole, float> probabilities = new();
+    public QuestGradeRole Role { get; set; } = QuestGradeRole.Disaster;
+    public int PhasesPassed { get; set; }
+    public int PhasesTotal { get; set; }
+    public int CriticalPassed { get; set; }
+    public int CriticalTotal { get; set; }
+    public int ExpTotal { get; set; }
+    public bool IsFailed { get; set; }
 
-    public IReadOnlyDictionary<QuestGradeRole, float> Probabilities => probabilities;
-
-    public void Set(QuestGradeRole role, float probability) => probabilities[role] = probability;
-
-    public float Get(QuestGradeRole role) => probabilities.TryGetValue(role, out var p) ? p : 0f;
-
-    public void Clear() => probabilities.Clear();
-
-    public float SuccessOrBetter
-    {
-        get
-        {
-            float sum = 0;
-
-            foreach (var kv in probabilities)
-            {
-                var grade = QuestDatabase.GetByRole(kv.Key);
-                if (grade != null && grade.CountsAsSuccess)
-                    sum += kv.Value;
-            }
-
-            return sum;
-        }
-    }
+    public float SuccessOrBetter =>
+        (Role == QuestGradeRole.Success || Role == QuestGradeRole.Triumph) ? 100f : 0f;
 }

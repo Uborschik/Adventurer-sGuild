@@ -48,23 +48,14 @@ public static class QuestBalance
 
     private static void Validate(QuestBalanceProfile p)
     {
-        if (p.ReferenceStatBase <= 0)
-            Log.Error($"[QuestBalance] '{p.Id}': referenceStatBase <= 0");
+        if (p.DurationFailPenaltyPerPhase < 0)
+            Log.Error($"[QuestBalance] '{p.Id}': durationFailPenaltyPerPhase < 0");
 
-        if (p.ReferenceStatSlope <= 0)
-            Log.Error($"[QuestBalance] '{p.Id}': referenceStatSlope <= 0");
+        if (p.EscapeStatK < 0)
+            Log.Error($"[QuestBalance] '{p.Id}': escapeStatK < 0");
 
-        if (p.CoverageThreshold < 0 || p.CoverageThreshold > 2)
-            Log.Error($"[QuestBalance] '{p.Id}': coverageThreshold вне [0, 2]");
-
-        if (p.MarginTriumph < p.MarginSuccess)
-            Log.Error($"[QuestBalance] '{p.Id}': marginTriumph < marginSuccess");
-
-        if (p.MarginSuccess < p.MarginFailure)
-            Log.Error($"[QuestBalance] '{p.Id}': marginSuccess < marginFailure");
-
-        if (p.TriumphCapPercent < 0 || p.TriumphCapPercent > 100)
-            Log.Error($"[QuestBalance] '{p.Id}': triumphCapPercent вне [0, 100]");
+        if (p.EscapeStatCap < 0 || p.EscapeStatCap > 100)
+            Log.Error($"[QuestBalance] '{p.Id}': escapeStatCap вне [0, 100]");
 
         if (p.EnduranceInjuryK <= 0)
             Log.Error($"[QuestBalance] '{p.Id}': enduranceInjuryK <= 0");
@@ -76,20 +67,7 @@ public static class QuestBalance
         if (p.EnduranceDeathCap < 0 || p.EnduranceDeathCap > 1)
             Log.Error($"[QuestBalance] '{p.Id}': enduranceDeathCap вне [0, 1]");
 
-        if (p.TierBonus.Easy > p.TierBonus.Normal || p.TierBonus.Normal > p.TierBonus.Hard)
-            Log.Error($"[QuestBalance] '{p.Id}': tierBonus не возрастает Easy→Normal→Hard");
-
         if (p.Experience == null)
-        {
             Log.Error($"[QuestBalance] '{p.Id}': нет блока experience");
-        }
-        else
-        {
-            if (p.Experience.ExpBonusLvl1 < 0)
-                Log.Error($"[QuestBalance] '{p.Id}': expBonusLvl1 < 0");
-
-            if (p.Experience.ContributionBaseScore < 0)
-                Log.Error($"[QuestBalance] '{p.Id}': contributionBaseScore < 0");
-        }
     }
 }

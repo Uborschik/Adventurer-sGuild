@@ -1,11 +1,12 @@
 using Godot;
+using System.Linq;
 
 public partial class QuestInfo : Control
 {
     private Label tierBadge;
     private Label name;
     private RichTextLabel description;
-    private Label partySize;
+    private Label phases;
     private Label duration;
     private Label expires;
     private Label reward;
@@ -15,7 +16,7 @@ public partial class QuestInfo : Control
         tierBadge = GetNode<Label>("VBox/Header/TierBadge");
         name = GetNode<Label>("VBox/Header/Name");
         description = GetNode<RichTextLabel>("VBox/Description");
-        partySize = GetNode<Label>("VBox/Stats/PartySize");
+        phases = GetNode<Label>("VBox/Stats/PartySize");
         duration = GetNode<Label>("VBox/Stats/Duration");
         expires = GetNode<Label>("VBox/Stats/Expires");
         reward = GetNode<Label>("VBox/Reward");
@@ -35,8 +36,14 @@ public partial class QuestInfo : Control
 
         description.Text = model.Description;
 
-        partySize.Text = $"{Loc.Get("quest.party_size")}: {model.RecommendedPartySize}";
-        duration.Text = $"{Loc.Get("quest.duration")}: {GameTime.MinutesToDays(model.DurationMinutes)} {Loc.Get("quest.days")}";
+        // Фазы
+        var lang = Loc.Language;
+        var phaseNames = model.Phases == null
+            ? "—"
+            : string.Join(", ", model.Phases.Select(p => p.Name.Get(lang) ?? p.Id));
+        phases.Text = $"Испытания: {phaseNames}";
+
+
         expires.Text = $"{Loc.Get("quest.expires")}: {Loc.FormatTime(model.ExpiresAt)}";
 
         var gold = $"{Loc.Get("quest.gold")}: {model.GoldReward}";
@@ -49,7 +56,7 @@ public partial class QuestInfo : Control
         name.Text = "—";
         tierBadge.Text = "";
         description.Text = Loc.Get("quest.select_hint");
-        partySize.Text = "";
+        phases.Text = "";
         duration.Text = "";
         expires.Text = "";
         reward.Text = "";

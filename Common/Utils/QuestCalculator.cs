@@ -1,148 +1,205 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public enum QuestTier { Easy, Normal, Hard }
+
+public struct PhaseResult
+{
+    public QuestPhaseTemplate Phase;
+    public bool Passed;
+    public bool EffectiveCritical;
+    public int ExpEarned;
+    public int DayCompleted;
+    public int Attempts;
+}
 
 public static class QuestCalculator
 {
     private static QuestBalanceProfile B => QuestBalance.Active;
 
-    public static double ReferenceMaxStat(AdventurerModel a)
-        => B.ReferenceStatBase + (a.Level.Number - 1) * B.ReferenceStatSlope;
+    public const double PrimarySkillBonus = 1.20;
+    public const double SecondarySkillBonus = 1.10;
 
-    public static double NormalizedStat(AdventurerModel a, string statId)
+    // === Базовая нормализация ===
+
+    public static double ReferenceMaxStatQuest(int codeLevel)
+        => 16 + (codeLevel - 1) * 2.5;
+
+    public static double EffectiveStat(AdventurerModel a, string statId)
     {
-        if (a == null || a.Level.Number <= 0 || a.Stats == null) return 0;
+        if (a?.Stats == null) return 0;
         if (!a.Stats.TryGetValue(statId, out var v)) return 0;
-
-        double maxStat = ReferenceMaxStat(a);
-        if (maxStat <= 0) return 0;
-
         double woundedFactor = a.HasStatus(StatusIds.Wounded) ? 0.5 : 1.0;
-        return woundedFactor * v / maxStat;
+        return woundedFactor * v;
     }
 
-    public static double Power(AdventurerModel a, IReadOnlyDictionary<string, double> weights)
+    public static double SkillValue(AdventurerModel a, string skillId)
     {
-        if (a == null || a.Level.Number <= 0) return 0;
-        if (a.Stats == null) return 0;
-        if (weights == null) return 0;
+        if (a?.Stats == null) return 0;
 
-        var woundedFactor = a.HasStatus(StatusIds.Wounded) ? 0.5 : 1.0;
-        var maxStat = ReferenceMaxStat(a);
+        string statId = AdventurerDatabase.StatForSkill(skillId);
+        if (statId == null) return 0;
 
-        if (maxStat <= 0) return 0;
+        double statValue = EffectiveStat(a, statId);
 
-        double statScore = 0;
-
-        foreach (var statId in StatIds.All)
+        var cls = AdventurerDatabase.GetClass(a.ClassId);
+        if (cls != null)
         {
-            if (!weights.TryGetValue(statId, out var w) || w <= 0) continue;
+            if (cls.PrimarySkill == skillId)
+                return statValue * PrimarySkillBonus;
 
-            int value = a.Stats.TryGetValue(statId, out var s) ? s : 0;
-            statScore += w * (value / maxStat);
+            if (cls.SecondarySkill == skillId)
+                return statValue * SecondarySkillBonus;
         }
 
-        return a.Level.Number * statScore * woundedFactor;
+        return statValue;
     }
 
-    public static double TeamPower(IEnumerable<AdventurerModel> party, IReadOnlyDictionary<string, double> weights)
+    // === Проверка фазы (командная) ===
+
+    public static bool PhasePassed(QuestPhaseTemplate phase,
+                                    IReadOnlyList<AdventurerModel> party,
+                                    int codeLevel,
+                                    double extraDc = 0)
     {
-        if (party == null || weights == null) return 0;
+        if (phase?.Solutions == null || party == null || party.Count == 0)
+            return false;
 
-        var list = party as IList<AdventurerModel> ?? new List<AdventurerModel>(party);
-        double sum = 0;
+        double refMax = ReferenceMaxStatQuest(codeLevel);
 
-        foreach (var a in list) sum += Power(a, weights);
-
-        if (list.Count == 0) return sum;
-
-        var covered = 0;
-
-        foreach (var statId in StatIds.All)
+        foreach (var sol in phase.Solutions)
         {
-            if (!weights.TryGetValue(statId, out var w) || w <= 0) continue;
+            if (sol.Skills == null || sol.Skills.Count == 0) continue;
 
-            foreach (var a in list)
+            bool allCovered = true;
+
+            foreach (var kv in sol.Skills)
             {
-                if (NormalizedStat(a, statId) >= B.CoverageThreshold)
+                double required = (kv.Value + extraDc) * refMax;
+
+                bool covered = false;
+                foreach (var a in party)
                 {
-                    covered++;
+                    if (a.HasStatus(StatusIds.Dead)) continue;
+
+                    if (SkillValue(a, kv.Key) >= required)
+                    {
+                        covered = true;
+                        break;
+                    }
+                }
+
+                if (!covered)
+                {
+                    allCovered = false;
                     break;
                 }
             }
+
+            if (allCovered) return true;
         }
 
-        return sum + covered * B.CoverageBonusPerStat;
+        return false;
     }
 
-    public static double Threshold(int needAdvCount, IEnumerable<AdventurerModel> party, IReadOnlyDictionary<string, double> weights, QuestTier tier)
+    public static double NightAttackChance(QuestModel quest)
     {
-        if (needAdvCount <= 0) return 0;
-
-        double teamPower = TeamPower(party, weights);
-
-        double missing = Math.Max(0, needAdvCount - teamPower);
-        double overflow = Math.Max(0, teamPower - needAdvCount);
-        double effectiveCount = Math.Min(teamPower, needAdvCount);
-
-        double effectivePenalty = Math.Max(0, B.BasePenalty - overflow * B.BasePenalty / needAdvCount);
-        double bonus = (100.0 - effectivePenalty) * effectiveCount / needAdvCount;
-        double penalty = 2.0 * missing * missing;
-
-        return 101.0 + B.TierBonus.Get(tier) + penalty - bonus;
+        var b = QuestBalance.Active;
+        return Math.Clamp(b.NightAttackChanceBase, 0, 100);
     }
 
-    public static double Margin(int needAdvCount, IEnumerable<AdventurerModel> party, IReadOnlyDictionary<string, double> weights, QuestTier tier, Random rng)
+    // === Роль ===
+
+    public static QuestGradeRole DetermineRole(List<PhaseResult> results)
     {
-        if (needAdvCount <= 0) return 100;
-        if (rng == null) throw new ArgumentNullException(nameof(rng));
+        if (results == null || results.Count == 0) return QuestGradeRole.Disaster;
 
-        double threshold = Threshold(needAdvCount, party, weights, tier);
-        int roll = rng.Next(1, 101);
+        int criticalTotal = 0, criticalPassed = 0;
+        int normalTotal = 0, normalPassed = 0;
 
-        return roll - threshold;
-    }
-
-    public static bool IsSuccess(int needAdvCount, IEnumerable<AdventurerModel> party, IReadOnlyDictionary<string, double> weights, QuestTier tier, Random rng)
-        => Margin(needAdvCount, party, weights, tier, rng) >= 0;
-
-    public static double ExpBonus(int questLevel, QuestTier tier)
-    {
-        var e = QuestBalance.Active.Experience;
-        if (e == null) return 0;
-
-        double tierMod = e.TierModifiers.Get(tier);
-        return questLevel * (e.ExpBonusLvl1 + tierMod);
-    }
-
-    public static double TotalExpPool(int questLevel, QuestTier tier, QuestGradeRole role)
-    {
-        var e = QuestBalance.Active.Experience;
-        if (e == null) return 0;
-
-        double roleMul = e.RoleMultipliers.Get(role);
-        return ExpBonus(questLevel, tier) * roleMul;
-    }
-
-    public static double Contribution(AdventurerModel a, IReadOnlyDictionary<string, double> weights)
-    {
-        if (a == null || weights == null) return 0;
-
-        var e = QuestBalance.Active.Experience;
-        double baseScore = e?.ContributionBaseScore ?? 0.2;
-
-        double score = 0;
-        foreach (var statId in StatIds.All)
+        foreach (var r in results)
         {
-            if (!weights.TryGetValue(statId, out var w) || w <= 0) continue;
-            score += w * NormalizedStat(a, statId);
+            if (r.EffectiveCritical)
+            {
+                criticalTotal++;
+                if (r.Passed) criticalPassed++;
+            }
+            else
+            {
+                normalTotal++;
+                if (r.Passed) normalPassed++;
+            }
         }
 
-        return baseScore + score;
+        if (criticalPassed == criticalTotal && normalPassed == normalTotal)
+            return QuestGradeRole.Triumph;
+
+        if (criticalPassed == criticalTotal)
+            return QuestGradeRole.Success;
+
+        if (criticalPassed == 0 && normalPassed == 0)
+            return QuestGradeRole.Disaster;
+
+        return QuestGradeRole.Failure;
     }
 
-    public static Dictionary<AdventurerModel, double> ContributionShares(IReadOnlyList<AdventurerModel> party, IReadOnlyDictionary<string, double> weights)
+    public static bool IsQuestFailed(List<PhaseResult> results)
+    {
+        if (results == null) return true;
+        foreach (var r in results)
+            if (r.EffectiveCritical && !r.Passed) return true;
+        return false;
+    }
+
+    public static int TotalExp(List<PhaseResult> results)
+    {
+        if (results == null) return 0;
+        int sum = 0;
+        foreach (var r in results) sum += r.ExpEarned;
+        return sum;
+    }
+
+    // === Contribution ===
+
+    public static double Contribution(AdventurerModel a, List<PhaseResult> results)
+    {
+        if (a == null || results == null || results.Count == 0) return 0;
+
+        double baseScore = B.Experience?.ContributionBaseScore ?? 0.2;
+        double score = 0;
+        int passedCount = 0;
+
+        foreach (var r in results)
+        {
+            if (!r.Passed) continue;
+            passedCount++;
+
+            double bestForPhase = 0;
+            foreach (var sol in r.Phase.Solutions)
+            {
+                if (sol.Skills == null || sol.Skills.Count == 0) continue;
+
+                double worstInSolution = double.MaxValue;
+                foreach (var kv in sol.Skills)
+                {
+                    if (kv.Value <= 0) { worstInSolution = 0; break; }
+                    double norm = SkillValue(a, kv.Key);
+                    double relative = norm / kv.Value;
+                    if (relative < worstInSolution) worstInSolution = relative;
+                }
+                if (worstInSolution > bestForPhase) bestForPhase = worstInSolution;
+            }
+            score += Math.Min(bestForPhase, 1.0);
+        }
+
+        double phaseScore = passedCount > 0 ? score / passedCount : 0;
+        return baseScore + phaseScore;
+    }
+
+    public static Dictionary<AdventurerModel, double> ContributionShares(
+        IReadOnlyList<AdventurerModel> party,
+        List<PhaseResult> results)
     {
         var result = new Dictionary<AdventurerModel, double>();
         if (party == null || party.Count == 0) return result;
@@ -152,13 +209,12 @@ public static class QuestCalculator
 
         for (int i = 0; i < party.Count; i++)
         {
-            scores[i] = Contribution(party[i], weights);
+            scores[i] = Contribution(party[i], results);
             total += scores[i];
         }
 
         if (total <= 0)
         {
-            // делим поровну
             double even = 1.0 / party.Count;
             foreach (var a in party) result[a] = even;
             return result;
@@ -168,5 +224,46 @@ public static class QuestCalculator
             result[party[i]] = scores[i] / total;
 
         return result;
+    }
+
+    // === Escape при провале combat ===
+
+    public static double ComputeEscapeChance(AdventurerModel a, CreatureInfo creature, int codeLevel)
+    {
+        var b = B;
+
+        double baseEscape = b.EscapeBaseByTier.Get(creature?.Tier);
+        double combatDcDelta = ExtractCombatDcDelta(creature);
+        double creatureMod = -combatDcDelta * 100;
+
+        double refMax = ReferenceMaxStatQuest(codeLevel);
+
+        double str = EffectiveStat(a, StatIds.Strength) / refMax;
+        double dex = EffectiveStat(a, StatIds.Dexterity) / refMax;
+        double end = EffectiveStat(a, StatIds.Endurance) / refMax;
+        double wis = EffectiveStat(a, StatIds.Wisdom) / refMax;
+
+        double best = Math.Max(Math.Max(str, dex), Math.Max(end * 0.8, wis * 0.5));
+        double statBonus = Math.Min(b.EscapeStatCap, best * b.EscapeStatK);
+
+        double final = baseEscape + creatureMod + statBonus;
+        return Math.Clamp(final, 0, b.EscapeStatCap);
+    }
+
+    private static double ExtractCombatDcDelta(CreatureInfo creature)
+    {
+        if (creature?.PhaseEffects?.Modifies == null) return 0;
+        if (!creature.PhaseEffects.Modifies.TryGetValue("combat", out var mod)) return 0;
+
+        if (mod.DcDelta.HasValue) return mod.DcDelta.Value;
+
+        if (mod.StatModifiers != null && mod.StatModifiers.Count > 0)
+        {
+            double sum = 0;
+            foreach (var kv in mod.StatModifiers) sum += kv.Value.DcDelta;
+            return sum / mod.StatModifiers.Count;
+        }
+
+        return 0;
     }
 }

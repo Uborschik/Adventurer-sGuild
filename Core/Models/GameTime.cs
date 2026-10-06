@@ -2,9 +2,16 @@ using System;
 
 public readonly struct GameTime : IEquatable<GameTime>, IComparable<GameTime>
 {
+    public const int MinutesPerDay = 1440;
+    public const int MinutesPerDaylight = 960;
+    public const int MinutesPerNight = 480;
     public const int MinutesPerHour = 60;
     public const int HoursPerDay = 24;
-    public const int MinutesPerDay = MinutesPerHour * HoursPerDay;
+
+    public const int DayStartHour = 6;
+    public const int DayEndHour = 22;
+
+    public bool IsDaytime => (TotalMinutes % MinutesPerDay) < (DayStartHour * MinutesPerHour + MinutesPerDaylight);
 
     public readonly int TotalMinutes;
 
@@ -27,6 +34,13 @@ public readonly struct GameTime : IEquatable<GameTime>, IComparable<GameTime>
 
     public static int MinutesToHours(int minutes) => minutes / MinutesPerHour;
     public static int HoursToMinutes(int hours) => hours * MinutesPerHour;
+
+    public static GameTime NextDayStart(GameTime now)
+    {
+        int todayStart = now.Day * MinutesPerDay + DayStartHour * MinutesPerHour;
+        if (now.TotalMinutes < todayStart) return new GameTime(todayStart);
+        return new GameTime(todayStart + MinutesPerDay);
+    }
 
     public static GameTime FromDays(int days) => new(days * MinutesPerDay);
     public static GameTime FromHours(int hours) => new(hours * MinutesPerHour);

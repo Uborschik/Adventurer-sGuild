@@ -1,41 +1,23 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public class QuestResolver
 {
-    private const double MarginSuccess = 0;
-
-    private static double MarginTriumph => QuestBalance.Active.MarginTriumph;
-    private static double MarginFailure => QuestBalance.Active.MarginFailure;
-    private static double TriumphCapPercent => QuestBalance.Active.TriumphCapPercent;
-
-    private readonly Random resolveRng;
-
-    public QuestResolver(int? seed = null)
-    {
-        resolveRng = seed.HasValue ? new Random(seed.Value) : new Random();
-    }
+    public QuestResolver(int? seed = null) { }
 
     public QuestResult Resolve(QuestModel quest)
     {
-        var party = quest.Party ?? new List<AdventurerModel>();
+        var phaseResults = quest.PhaseResults ?? new List<PhaseResult>();
 
-        var threshold = QuestCalculator.Threshold(
-            quest.RecommendedPartySize, party, quest.Weights, quest.Tier);
+        var role = QuestCalculator.DetermineRole(phaseResults);
+        bool failed = QuestCalculator.IsQuestFailed(phaseResults);
 
-        var margin = QuestCalculator.Margin(
-            quest.RecommendedPartySize, party, quest.Weights, quest.Tier, resolveRng);
+        int gold = failed ? 0 : quest.GoldReward;
+        int glory = failed ? 0 : quest.GloryReward;
+        int exp = QuestCalculator.TotalExp(phaseResults);
 
-        var effectiveTriumph = EffectiveMarginTriumph(threshold);
-        var role = RoleFromMargin(margin, effectiveTriumph);
-
-        var grade = QuestDatabase.GetByRole(role)
-            ?? throw new InvalidOperationException($"Нет градации для роли {role}");
-
-        var gold = (int)(quest.GoldReward * grade.GoldMultiplier);
-        var glory = (int)(quest.GloryReward * grade.GloryMultiplier);
-
-        return new QuestResult(role, gold, glory, "...");
+        return new QuestResult(role, gold, glory, exp, failed, "...");
     }
 
     public QuestPrediction Predict(QuestModel quest, IReadOnlyList<AdventurerModel> party)
@@ -44,56 +26,40 @@ public class QuestResolver
 
         if (quest == null || party == null || party.Count == 0)
         {
-            foreach (QuestGradeRole role in Enum.GetValues<QuestGradeRole>())
-                prediction.Set(role, 0f);
+            prediction.Role = QuestGradeRole.Disaster;
+            prediction.PhasesTotal = quest?.Phases?.Count ?? 0;
             return prediction;
         }
 
-        var threshold = QuestCalculator.Threshold(quest.RecommendedPartySize, party, quest.Weights, quest.Tier);
-        var effectiveTriumph = EffectiveMarginTriumph(threshold);
+        var results = new List<PhaseResult>();
 
-        double PAbove(double x)
+        foreach (var phase in quest.Phases)
         {
-            double needed = threshold + x;
-            int minRoll = (int)Math.Ceiling(needed);
-            if (minRoll <= 1) return 1.0;
-            if (minRoll > 100) return 0.0;
-            return (101 - minRoll) / 100.0;
+            // Rest-фазы пропускаем — они автоматические
+            if (phase.Id == "short_rest" || phase.Id == "long_rest") continue;
+
+            bool passed = QuestCalculator.PhasePassed(
+                phase, party, quest.CodeLevel);
+
+            results.Add(new PhaseResult
+            {
+                Phase = phase,
+                Passed = passed,
+                EffectiveCritical = phase.Critical,
+                ExpEarned = passed ? phase.ExpReward : 0,
+                DayCompleted = 0,
+                Attempts = 1,
+            });
         }
 
-        var pTriumph = PAbove(effectiveTriumph);
-        var pSuccess = PAbove(MarginSuccess) - pTriumph;
-        var pFailure = PAbove(MarginFailure) - PAbove(MarginSuccess);
-        var pDisaster = 1.0 - PAbove(MarginFailure);
-
-        SetGrade(prediction, QuestGradeRole.Triumph, pTriumph);
-        SetGrade(prediction, QuestGradeRole.Success, pSuccess);
-        SetGrade(prediction, QuestGradeRole.Failure, pFailure);
-        SetGrade(prediction, QuestGradeRole.Disaster, pDisaster);
+        prediction.Role = QuestCalculator.DetermineRole(results);
+        prediction.PhasesPassed = results.Count(r => r.Passed);
+        prediction.PhasesTotal = results.Count;
+        prediction.CriticalPassed = results.Count(r => r.EffectiveCritical && r.Passed);
+        prediction.CriticalTotal = results.Count(r => r.EffectiveCritical);
+        prediction.ExpTotal = QuestCalculator.TotalExp(results);
+        prediction.IsFailed = QuestCalculator.IsQuestFailed(results);
 
         return prediction;
-    }
-
-    private static void SetGrade(QuestPrediction prediction, QuestGradeRole role, double probability)
-    {
-        var info = QuestDatabase.GetByRole(role);
-
-        if (info == null) return;
-
-        prediction.Set(role, (float)Math.Max(0, probability * 100.0));
-    }
-
-    private static double EffectiveMarginTriumph(double threshold)
-    {
-        double floorValue = 101.0 - TriumphCapPercent - threshold;
-        return Math.Max(MarginTriumph, floorValue);
-    }
-
-    private static QuestGradeRole RoleFromMargin(double margin, double effectiveTriumph)
-    {
-        if (margin >= effectiveTriumph) return QuestGradeRole.Triumph;
-        if (margin >= MarginSuccess) return QuestGradeRole.Success;
-        if (margin >= MarginFailure) return QuestGradeRole.Failure;
-        return QuestGradeRole.Disaster;
     }
 }

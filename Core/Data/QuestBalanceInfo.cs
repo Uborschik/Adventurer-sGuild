@@ -1,45 +1,32 @@
 using System.Collections.Generic;
 
-public struct TierBonusMap
-{
-    public double Easy { get; set; }
-    public double Normal { get; set; }
-    public double Hard { get; set; }
-
-    public double Get(QuestTier tier) => tier switch
-    {
-        QuestTier.Easy => Easy,
-        QuestTier.Normal => Normal,
-        QuestTier.Hard => Hard,
-        _ => 0
-    };
-}
-
 public class QuestBalanceProfile
 {
     public string Id { get; set; }
 
-    public int BasePenalty { get; set; } = 20;
+    public TierMultiplierMap DurationTierMultiplier { get; set; } = new()
+    {
+        Easy = 1.0,
+        Normal = 1.2,
+        Hard = 1.5
+    };
+    public double DurationFailPenaltyPerPhase { get; set; } = 0.30;
+    public double DurationIntBonusCap { get; set; } = 0.30;
+    public double DurationIntBonusK { get; set; } = 0.15;
 
-    public double ReferenceStatBase { get; set; } = 8.0;
-    public double ReferenceStatSlope { get; set; } = 2.5;
+    public double EscapeStatK { get; set; } = 40;
+    public double EscapeStatCap { get; set; } = 95;
+    public EscapeBaseByTier EscapeBaseByTier { get; set; } = new();
 
-    public double CoverageThreshold { get; set; } = 0.75;
-    public double CoverageBonusPerStat { get; set; } = 0.25;
+    public WoundDaysByTier WoundFailDaysByTier { get; set; } = new();
+    public WoundSuccessByTier WoundSuccessByTier { get; set; } = new();
 
-    public TierBonusMap TierBonus { get; set; } = new();
+    public double NightAttackChanceBase { get; set; } = 25;
+    public int MaxQuestDays { get; set; } = 90;
+    public int NightCreatureLevelPenalty { get; set; } = 5;
 
-    public double MarginTriumph { get; set; } = 50;
-    public double MarginSuccess { get; set; } = 0;
-    public double MarginFailure { get; set; } = -40;
-
-    public double TriumphCapPercent { get; set; } = 10;
-
-    // Травмы: Endurance помогает сильно
     public double EnduranceInjuryK { get; set; } = 60;
     public double EnduranceInjuryCap { get; set; } = 0.75;
-
-    // Смерть: Endurance помогает умеренно
     public double EnduranceDeathK { get; set; } = 150;
     public double EnduranceDeathCap { get; set; } = 0.50;
 
@@ -53,13 +40,12 @@ public class QuestBalanceDatabase
 
 public class ExperienceBalance
 {
-    public int ExpBonusLvl1 { get; set; } = 5;
-    public TierModifierMap TierModifiers { get; set; } = new();
-    public RoleMultiplierMap RoleMultipliers { get; set; } = new();
     public double ContributionBaseScore { get; set; } = 0.2;
 }
 
-public class TierModifierMap
+// === Тир-множители длительности ===
+
+public class TierMultiplierMap
 {
     public double Easy { get; set; }
     public double Normal { get; set; }
@@ -70,23 +56,70 @@ public class TierModifierMap
         QuestTier.Easy => Easy,
         QuestTier.Normal => Normal,
         QuestTier.Hard => Hard,
-        _ => 0
+        _ => Normal
     };
 }
 
-public class RoleMultiplierMap
-{
-    public double Triumph { get; set; }
-    public double Success { get; set; }
-    public double Failure { get; set; }
-    public double Disaster { get; set; }
+// === Escape база ===
 
-    public double Get(QuestGradeRole role) => role switch
+public class EscapeBaseByTier
+{
+    public double Easy { get; set; } = 60;
+    public double Normal { get; set; } = 45;
+    public double Hard { get; set; } = 30;
+
+    public double Get(string tier) => tier?.ToLowerInvariant() switch
     {
-        QuestGradeRole.Triumph => Triumph,
-        QuestGradeRole.Success => Success,
-        QuestGradeRole.Failure => Failure,
-        QuestGradeRole.Disaster => Disaster,
-        _ => 1.0
+        "easy" => Easy,
+        "normal" => Normal,
+        "hard" => Hard,
+        _ => Normal
     };
+}
+
+// === Раны при провале ===
+
+public class WoundDaysByTier
+{
+    public WoundRange Easy { get; set; } = new() { Min = 2, Max = 4 };
+    public WoundRange Normal { get; set; } = new() { Min = 3, Max = 6 };
+    public WoundRange Hard { get; set; } = new() { Min = 5, Max = 10 };
+
+    public WoundRange Get(string tier) => tier?.ToLowerInvariant() switch
+    {
+        "easy" => Easy,
+        "normal" => Normal,
+        "hard" => Hard,
+        _ => Normal
+    };
+}
+
+public class WoundRange
+{
+    public int Min { get; set; }
+    public int Max { get; set; }
+}
+
+// === Раны при успехе ===
+
+public class WoundSuccessByTier
+{
+    public WoundSuccessRange Easy { get; set; } = new() { Chance = 5, Min = 1, Max = 2 };
+    public WoundSuccessRange Normal { get; set; } = new() { Chance = 15, Min = 1, Max = 3 };
+    public WoundSuccessRange Hard { get; set; } = new() { Chance = 30, Min = 2, Max = 4 };
+
+    public WoundSuccessRange Get(string tier) => tier?.ToLowerInvariant() switch
+    {
+        "easy" => Easy,
+        "normal" => Normal,
+        "hard" => Hard,
+        _ => Normal
+    };
+}
+
+public class WoundSuccessRange
+{
+    public int Chance { get; set; }
+    public int Min { get; set; }
+    public int Max { get; set; }
 }

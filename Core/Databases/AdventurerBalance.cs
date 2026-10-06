@@ -84,10 +84,10 @@ public static class AdventurerBalance
             p.ExpCapAcceleration = 0.22;
         }
 
-        if (p.StatBaseValue <= 0)
+        if (p.StatBaseValue < 0)
         {
-            Log.Error("[AdventurerBalance] statBaseValue <= 0, использую 8");
-            p.StatBaseValue = 8.0;
+            Log.Error("[AdventurerBalance] statBaseValue < 0, использую 0");
+            p.StatBaseValue = 0.0;
         }
 
         if (p.StatStartPool <= 0)

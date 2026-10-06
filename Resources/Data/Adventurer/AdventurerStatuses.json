@@ -25,6 +25,11 @@
       "blocksAssignment": true
     },
     {
+      "id": "waiting",
+      "name": { "ru": "В ожидании", "en": "Waiting" },
+      "blocksAssignment": true
+    },
+    {
       "id": "wounded",
       "name": {
         "ru": "Ранен",

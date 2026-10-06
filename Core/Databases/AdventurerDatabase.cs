@@ -14,6 +14,8 @@ public static class AdventurerDatabase
     public static IReadOnlyList<AdventurerTemplateInfo> Templates { get; private set; }
     public static NameDatabase Names { get; private set; }
 
+    private static Dictionary<string, string> skillToStat;
+
     // === Загрузка ===
 
     public static void Load()
@@ -25,8 +27,11 @@ public static class AdventurerDatabase
         LoadTemplates();
         LoadNames();
 
+        BuildSkillIndex();
+
         Validate();
         ValidateNames();
+        ValidateSkills();
     }
 
     private static void LoadClasses()
@@ -64,12 +69,53 @@ public static class AdventurerDatabase
         Names = JsonLoader.Load<NameDatabase>(DataPath + "AdventurerNames.json");
     }
 
+    private static void BuildSkillIndex()
+    {
+        skillToStat = new Dictionary<string, string>();
+
+        foreach (var stat in Stats.Values)
+        {
+            if (stat.Skills == null || stat.Skills.Count == 0)
+            {
+                Log.Warn($"[AdventurerDB] Стат '{stat.Id}': нет навыков");
+                continue;
+            }
+
+            foreach (var skillId in stat.Skills)
+            {
+                if (string.IsNullOrEmpty(skillId)) continue;
+
+                if (skillToStat.ContainsKey(skillId))
+                {
+                    Log.Warn($"[AdventurerDB] Навык '{skillId}' привязан к нескольким статам: " +
+                             $"'{skillToStat[skillId]}' и '{stat.Id}'");
+                    continue;
+                }
+
+                skillToStat[skillId] = stat.Id;
+            }
+        }
+    }
+
     // === Публичное API — геттеры ===
 
     public static AdventurerClassInfo GetClass(string id) => Lookup(Classes, id, "класс");
     public static AdventurerRaceInfo GetRace(string id) => Lookup(Races, id, "раса");
     public static AdventurerStatInfo GetStat(string id) => Lookup(Stats, id, "стат");
     public static AdventurerStatusInfo GetStatus(string id) => Lookup(Statuses, id, "статус");
+
+    public static string StatForSkill(string skillId)
+    {
+        if (string.IsNullOrEmpty(skillId)) return null;
+        return skillToStat != null && skillToStat.TryGetValue(skillId, out var s)
+            ? s
+            : null;
+    }
+
+    public static bool IsValidSkill(string skillId)
+        => !string.IsNullOrEmpty(skillId)
+        && skillToStat != null
+        && skillToStat.ContainsKey(skillId);
 
     // === Публичное API — локализованные имена ===
 
@@ -188,6 +234,18 @@ public static class AdventurerDatabase
                 errors++;
             }
 
+            if (string.IsNullOrEmpty(cls.PrimarySkill))
+            {
+                Log.Error($"[AdventurerDB] Класс '{cls.Id}': пустой primarySkill");
+                errors++;
+            }
+
+            if (string.IsNullOrEmpty(cls.SecondarySkill))
+            {
+                Log.Error($"[AdventurerDB] Класс '{cls.Id}': пустой secondarySkill");
+                errors++;
+            }
+
             if (cls.GrowthWeights == null || cls.GrowthWeights.Count == 0)
             {
                 Log.Error($"[AdventurerDB] Класс '{cls.Id}': пустой growthWeights");
@@ -215,7 +273,6 @@ public static class AdventurerDatabase
                     }
                 }
 
-                // Primary должен иметь максимальный вес, а не просто существовать
                 if (cls.GrowthWeights.TryGetValue(cls.PrimaryStat, out var pw))
                 {
                     foreach (var kv in cls.GrowthWeights)
@@ -223,7 +280,7 @@ public static class AdventurerDatabase
                         if (kv.Key != cls.PrimaryStat && kv.Value > pw)
                         {
                             Log.Warn($"[AdventurerDB] Класс '{cls.Id}': вес '{kv.Key}' ({kv.Value}) " +
-                                           $"больше primary '{cls.PrimaryStat}' ({pw})");
+                                     $"больше primary '{cls.PrimaryStat}' ({pw})");
                         }
                     }
                 }
@@ -254,11 +311,78 @@ public static class AdventurerDatabase
             Log.Error($"[AdventurerDB] Валидация: {errors} ошибок");
     }
 
+    // === Валидация навыков ===
+
+    private static void ValidateSkills()
+    {
+        int errors = 0;
+
+        // 1. Каждый стат должен иметь хотя бы один навык
+        foreach (var stat in Stats.Values)
+        {
+            if (stat.Skills == null || stat.Skills.Count == 0)
+            {
+                Log.Error($"[AdventurerDB] Стат '{stat.Id}': нет навыков");
+                errors++;
+            }
+        }
+
+        // 2. PrimarySkill должен принадлежать primaryStat, secondarySkill — secondaryStat
+        foreach (var cls in Classes.Values)
+        {
+            if (!string.IsNullOrEmpty(cls.PrimarySkill))
+            {
+                string statId = StatForSkill(cls.PrimarySkill);
+
+                if (statId == null)
+                {
+                    Log.Error($"[AdventurerDB] Класс '{cls.Id}': primarySkill '{cls.PrimarySkill}' не найден");
+                    errors++;
+                }
+                else if (statId != cls.PrimaryStat)
+                {
+                    Log.Error($"[AdventurerDB] Класс '{cls.Id}': primarySkill '{cls.PrimarySkill}' " +
+                             $"принадлежит '{statId}', а primaryStat = '{cls.PrimaryStat}'");
+                    errors++;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(cls.SecondarySkill))
+            {
+                string statId = StatForSkill(cls.SecondarySkill);
+
+                if (statId == null)
+                {
+                    Log.Error($"[AdventurerDB] Класс '{cls.Id}': secondarySkill '{cls.SecondarySkill}' не найден");
+                    errors++;
+                }
+                else if (statId != cls.SecondaryStat)
+                {
+                    Log.Error($"[AdventurerDB] Класс '{cls.Id}': secondarySkill '{cls.SecondarySkill}' " +
+                             $"принадлежит '{statId}', а secondaryStat = '{cls.SecondaryStat}'");
+                    errors++;
+                }
+            }
+
+            if (cls.PrimarySkill == cls.SecondarySkill
+                && !string.IsNullOrEmpty(cls.PrimarySkill))
+            {
+                Log.Error($"[AdventurerDB] Класс '{cls.Id}': primarySkill == secondarySkill");
+                errors++;
+            }
+        }
+
+        // 3. Итог
+        if (errors == 0)
+            Log.Info($"[AdventurerDB] Валидация навыков: ok ({skillToStat.Count} навыков)");
+        else
+            Log.Error($"[AdventurerDB] Валидация навыков: {errors} ошибок");
+    }
+
     private static void ValidateNames()
     {
         int errors = 0;
 
-        // === Статы ===
         foreach (var stat in Stats.Values)
         {
             if (string.IsNullOrEmpty(stat.Name.Ru) || string.IsNullOrEmpty(stat.Name.En))
@@ -273,7 +397,6 @@ public static class AdventurerDatabase
             }
         }
 
-        // === Расы ===
         foreach (var race in Races.Values)
         {
             if (string.IsNullOrEmpty(race.Name.Ru) || string.IsNullOrEmpty(race.Name.En))
@@ -283,7 +406,6 @@ public static class AdventurerDatabase
             }
         }
 
-        // === Классы ===
         foreach (var cls in Classes.Values)
         {
             if (string.IsNullOrEmpty(cls.Name.Ru) || string.IsNullOrEmpty(cls.Name.En))
@@ -293,7 +415,6 @@ public static class AdventurerDatabase
             }
         }
 
-        // === Статусы ===
         foreach (var status in Statuses.Values)
         {
             if (string.IsNullOrEmpty(status.Name.Ru) || string.IsNullOrEmpty(status.Name.En))
@@ -303,7 +424,6 @@ public static class AdventurerDatabase
             }
         }
 
-        // === Имена авантюристов ===
         if (Names == null)
         {
             Log.Error("[AdventurerDB] Names не загружен");
@@ -328,7 +448,6 @@ public static class AdventurerDatabase
             errors++;
         }
 
-        // === Итог ===
         int total = Stats.Count + Races.Count + Classes.Count + Statuses.Count;
         if (errors == 0)
             Log.Info($"[AdventurerDB] Валидация имён: ok ({total} сущностей, " +

@@ -21,16 +21,12 @@ public static class QuestDatabase
     public static IReadOnlyList<QuestTemplate> Templates { get; private set; }
     public static IReadOnlyDictionary<string, CreatureInfo> Creatures { get; private set; }
     public static IReadOnlyDictionary<string, LocationInfo> Locations { get; private set; }
-    public static IReadOnlyDictionary<string, QuestOutcomeInfo> Outcomes { get; private set; }
+    public static IReadOnlyDictionary<string, QuestPhaseTemplate> Phases { get; private set; }
 
-    private static Dictionary<string, QuestTagInfo> tagsById;
     private static Dictionary<(string templateId, string creatureId), ResolvedTemplate> resolvedCombos;
 
     public static IReadOnlyDictionary<(string templateId, string creatureId), ResolvedTemplate> AllResolved
-    => resolvedCombos;
-
-    public static IReadOnlyDictionary<string, QuestTagInfo> AllTags
-        => tagsById;
+        => resolvedCombos;
 
     public static void Load()
     {
@@ -38,308 +34,23 @@ public static class QuestDatabase
             .Types.ToDictionary(t => t.Id);
 
         LoadGrades();
-        LoadTags();
+        LoadPhases();
         LoadCreatures();
         LoadLocations();
         LoadTemplates();
-        LoadOutcomes();
 
         Validate();
         ValidateDeclensions();
     }
 
-    private static void Validate()
-    {
-        int errors = 0;
-
-        // === Типы ===
-        foreach (var t in Types.Values)
-        {
-            if (string.IsNullOrEmpty(t.Name.Ru) || string.IsNullOrEmpty(t.Name.En))
-            {
-                Log.Error($"[QuestDB] Тип '{t.Id}': неполное name");
-                errors++;
-            }
-        }
-
-        // === Градации ===
-        foreach (var g in Grades)
-        {
-            if (string.IsNullOrEmpty(g.Name.Ru) || string.IsNullOrEmpty(g.Name.En))
-            {
-                Log.Error($"[QuestDB] Градация '{g.Role}': неполное name");
-                errors++;
-            }
-        }
-
-        // === Шаблоны ===
-        foreach (var t in Templates)
-        {
-            if (string.IsNullOrEmpty(t.Name.Ru) || string.IsNullOrEmpty(t.Name.En))
-            {
-                Log.Error($"[QuestDB] Шаблон '{t.Id}': неполное name");
-                errors++;
-            }
-
-            if (t.LevelRange == null)
-            {
-                Log.Error($"[QuestDB] Шаблон '{t.Id}': нет levelRange");
-                errors++;
-            }
-            else
-            {
-                if (t.LevelRange.Min < 1)
-                {
-                    Log.Error($"[QuestDB] Шаблон '{t.Id}': levelRange.min < 1");
-                    errors++;
-                }
-                if (t.LevelRange.Max < t.LevelRange.Min)
-                {
-                    Log.Error($"[QuestDB] Шаблон '{t.Id}': levelRange.max < min");
-                    errors++;
-                }
-            }
-
-            if (string.IsNullOrEmpty(t.Description.Ru) || string.IsNullOrEmpty(t.Description.En))
-            {
-                Log.Error($"[QuestDB] Шаблон '{t.Id}': неполное description");
-                errors++;
-            }
-
-            if (string.IsNullOrEmpty(t.Type) || !Types.ContainsKey(t.Type))
-            {
-                Log.Error($"[QuestDB] Шаблон '{t.Id}': тип '{t.Type}' не найден");
-                errors++;
-            }
-
-            if (t.Creatures != null)
-            {
-                foreach (var c in t.Creatures)
-                {
-                    if (string.IsNullOrEmpty(c) || !Creatures.ContainsKey(c))
-                    {
-                        Log.Error($"[QuestDB] Шаблон '{t.Id}': creature '{c}' не найден");
-                        errors++;
-                    }
-                }
-            }
-
-            if (t.Locations != null)
-            {
-                foreach (var l in t.Locations)
-                {
-                    if (string.IsNullOrEmpty(l) || !Locations.ContainsKey(l))
-                    {
-                        Log.Error($"[QuestDB] Шаблон '{t.Id}': location '{l}' не найден");
-                        errors++;
-                    }
-                }
-            }
-
-            if (t.Tags != null)
-            {
-                foreach (var tag in t.Tags)
-                {
-                    if (string.IsNullOrEmpty(tag) || !tagsById.ContainsKey(tag))
-                    {
-                        Log.Error($"[QuestDB] Шаблон '{t.Id}': тег '{tag}' не найден");
-                        errors++;
-                    }
-                }
-            }
-        }
-
-        // === Существа ===
-        foreach (var c in Creatures.Values)
-        {
-            if (c.Tags != null)
-            {
-                foreach (var tag in c.Tags)
-                {
-                    if (string.IsNullOrEmpty(tag) || !tagsById.ContainsKey(tag))
-                    {
-                        Log.Error($"[QuestDB] Creature '{c.Id}': тег '{tag}' не найден");
-                        errors++;
-                    }
-                }
-            }
-
-            if (string.IsNullOrEmpty(c.Name?.Ru?.Nom))
-            {
-                Log.Error($"[QuestDB] Creature '{c.Id}': нет русского имени");
-                errors++;
-            }
-
-            if (string.IsNullOrEmpty(c.Name?.En))
-            {
-                Log.Error($"[QuestDB] Creature '{c.Id}': нет английского имени");
-                errors++;
-            }
-        }
-
-        // === Локации ===
-        foreach (var l in Locations.Values)
-        {
-            if (string.IsNullOrEmpty(l.Name?.Ru?.Nom))
-            {
-                Log.Error($"[QuestDB] Location '{l.Id}': нет русского имени");
-                errors++;
-            }
-            if (string.IsNullOrEmpty(l.Name?.En))
-            {
-                Log.Error($"[QuestDB] Location '{l.Id}': нет английского имени");
-                errors++;
-            }
-        }
-
-        // === Outcomes ===
-        if (Outcomes == null)
-        {
-            Log.Error("[QuestDB] Outcomes не загружены");
-            errors++;
-        }
-        else
-        {
-            foreach (QuestGradeRole role in Enum.GetValues<QuestGradeRole>())
-            {
-                string key = role.ToString().ToLowerInvariant();
-                if (!Outcomes.ContainsKey(key))
-                {
-                    Log.Error($"[QuestDB] Нет outcome для градации {role}");
-                    errors++;
-                }
-            }
-
-            foreach (var o in Outcomes.Values)
-            {
-                if (o.DeathChance < 0 || o.DeathChance > 100)
-                {
-                    Log.Error($"[QuestDB] Outcome '{o.GradeRole}': deathChance вне [0, 100]");
-                    errors++;
-                }
-
-                if (o.Statuses == null) continue;
-
-                foreach (var s in o.Statuses)
-                {
-                    if (string.IsNullOrEmpty(s.Id) || !AdventurerDatabase.Statuses.ContainsKey(s.Id))
-                    {
-                        Log.Error($"[QuestDB] Outcome '{o.GradeRole}': неизвестный статус '{s.Id}'");
-                        errors++;
-                    }
-                    if (s.Chance < 0 || s.Chance > 100)
-                    {
-                        Log.Error($"[QuestDB] Outcome '{o.GradeRole}': chance у '{s.Id}' вне [0, 100]");
-                        errors++;
-                    }
-                    if (s.DurationDaysMin < 1 || s.DurationDaysMax < s.DurationDaysMin)
-                    {
-                        Log.Error($"[QuestDB] Outcome '{o.GradeRole}': некорректная длительность '{s.Id}'");
-                        errors++;
-                    }
-                }
-            }
-        }
-
-        // === Итог ===
-        if (errors == 0)
-            Log.Info($"[QuestDB] Валидация: ok ({Types.Count} типов, {Grades.Count} градаций, " +
-                     $"{Templates.Count} шаблонов, {Creatures.Count} существ, {Locations.Count} локаций, " +
-                     $"{Outcomes.Count} исходов)");
-        else
-            Log.Error($"[QuestDB] Валидация: {errors} ошибок");
-
-        // === Неиспользуемые теги ===
-        var used = new HashSet<string>();
-
-        foreach (var t in Templates)
-            if (t.Tags != null) foreach (var tag in t.Tags) used.Add(tag);
-
-        foreach (var c in Creatures.Values)
-            if (c.Tags != null) foreach (var tag in c.Tags) used.Add(tag);
-
-        foreach (var tag in tagsById.Keys)
-            if (!used.Contains(tag))
-                Log.Warn($"[QuestDB] Тег '{tag}' не используется");
-    }
-
-    private static readonly HashSet<string> ValidCases = new()
-    {
-        "nom", "gen", "dat", "acc", "ins", "pre"
-    };
-
-    private static void ValidateDeclensions()
-    {
-        var neededCases = new HashSet<string>();
-        var pattern = new Regex(@"\{(\w+):(\w+)\}");
-
-        foreach (var t in Templates)
-        {
-            string ru = t.Description.Ru;
-            if (string.IsNullOrEmpty(ru)) continue;
-
-            foreach (Match m in pattern.Matches(ru))
-            {
-                string caseCode = m.Groups[2].Value;
-                if (!ValidCases.Contains(caseCode))
-                {
-                    Log.Error($"[QuestDB] Шаблон '{t.Id}': неизвестный падеж '{caseCode}'");
-                    continue;
-                }
-                neededCases.Add(caseCode);
-            }
-        }
-
-        if (neededCases.Count == 0)
-        {
-            Log.Info("[QuestDB] Валидация падежей: падежи не используются");
-            return;
-        }
-
-        int errors = 0;
-
-        foreach (var c in Creatures.Values)
-        {
-            foreach (var caseCode in neededCases)
-            {
-                if (string.IsNullOrEmpty(c.Name?.Ru?.Get(caseCode)))
-                {
-                    Log.Error($"[QuestDB] Creature '{c.Id}': нет формы '{caseCode}'");
-                    errors++;
-                }
-            }
-        }
-
-        foreach (var l in Locations.Values)
-        {
-            foreach (var caseCode in neededCases)
-            {
-                if (string.IsNullOrEmpty(l.Name?.Ru?.Get(caseCode)))
-                {
-                    Log.Error($"[QuestDB] Location '{l.Id}': нет формы '{caseCode}'");
-                    errors++;
-                }
-            }
-        }
-
-        if (errors == 0)
-            Log.Info($"[QuestDB] Валидация падежей: ok ({neededCases.Count} падежей, " +
-                     $"{Creatures.Count + Locations.Count} сущностей)");
-        else
-            Log.Error($"[QuestDB] Валидация падежей: {errors} ошибок");
-    }
-
-    // === Загрузка отдельных секций ===
+    // === Загрузка ===
 
     private static void LoadGrades()
     {
-        var gradeList = JsonLoader.Load<QuestGradeDatabase>(
-            DataPath + "QuestGrades.json").Grades;
-
+        var gradeList = JsonLoader.Load<QuestGradeDatabase>(DataPath + "QuestGrades.json").Grades;
         Grades = gradeList;
 
         var byRole = new Dictionary<QuestGradeRole, QuestGradeInfo>();
-
         foreach (var grade in gradeList)
         {
             if (!Enum.TryParse<QuestGradeRole>(grade.Role, ignoreCase: true, out var role))
@@ -362,13 +73,10 @@ public static class QuestDatabase
         GradesByRole = byRole;
     }
 
-    private static void LoadTags()
+    private static void LoadPhases()
     {
-        var tagList = JsonLoader.Load<QuestTagDatabase>(DataPath + "QuestTags.json").Tags;
-        tagsById = tagList.ToDictionary(t => t.Id);
-
-        if (tagsById.Count == 0)
-            Log.Warn("[QuestDB] QuestTags.json пуст — все теги будут неизвестны");
+        var db = JsonLoader.Load<QuestPhaseDatabase>(DataPath + "QuestPhases.json");
+        Phases = db.Phases.ToDictionary(p => p.Id);
     }
 
     private static void LoadCreatures()
@@ -394,7 +102,6 @@ public static class QuestDatabase
         {
             if (t.Creatures == null || t.Creatures.Count == 0)
             {
-                // Шаблон без creature — резолвим один раз с пустым creatureId
                 var resolved = ResolveTemplate(t, null);
                 if (resolved != null)
                     resolvedCombos[(t.Id, "")] = resolved;
@@ -410,143 +117,367 @@ public static class QuestDatabase
         }
     }
 
-    private static void LoadOutcomes()
-    {
-        Outcomes = JsonLoader.Load<QuestOutcomeDatabase>(DataPath + "QuestOutcomes.json")
-            .Outcomes.ToDictionary(o => o.GradeRole);
-    }
-
     // === Резолв ===
 
-    private static ResolvedTemplate ResolveTemplate(QuestTemplate t, string creatureId)
+    private static QuestTier ParseTier(string tier)
     {
-        var weights = new Dictionary<string, double>();
-        QuestTier? tierFromTags = null;
+        if (string.IsNullOrEmpty(tier)) return QuestTier.Normal;
+        if (Enum.TryParse<QuestTier>(tier, ignoreCase: true, out var parsed))
+            return parsed;
+        Log.Error($"[QuestDB] Неизвестный tier '{tier}', использую Normal");
+        return QuestTier.Normal;
+    }
 
-        // 1. Теги шаблона
-        MergeTags(t.Tags, weights, ref tierFromTags, $"шаблон '{t.Id}'");
-
-        // 2. Теги creature
-        CreatureInfo creature = null;
-        if (!string.IsNullOrEmpty(creatureId) && Creatures != null)
-            Creatures.TryGetValue(creatureId, out creature);
-
-        if (creature != null)
-            MergeTags(creature.Tags, weights, ref tierFromTags, $"creature '{creatureId}'");
-
-        // 3. Override из creature
-        if (creature != null)
+    private static QuestPhaseTemplate ClonePhase(QuestPhaseTemplate original)
+    {
+        return new QuestPhaseTemplate
         {
-            ApplyOverride(
-                creature.Weights,
-                creature.Tier,
-                weights,
-                ref tierFromTags,
-                $"creature '{creatureId}'");
-        }
-
-        // 4. Override из шаблона — поверх всего
-        ApplyOverride(
-            t.Weights,
-            t.Tier,
-            weights,
-            ref tierFromTags,
-            $"шаблон '{t.Id}'");
-
-        // 5. Нормировка
-        double sum = weights.Values.Sum();
-        if (sum <= 0)
-        {
-            Log.Warn($"[QuestDB] '{t.Id}'+'{creatureId}': нет валидных весов, использую mixed");
-            weights = new Dictionary<string, double>
-            {
-                [StatIds.Strength] = 0.20,
-                [StatIds.Dexterity] = 0.20,
-                [StatIds.Intelligence] = 0.20,
-                [StatIds.Wisdom] = 0.20,
-                [StatIds.Charisma] = 0.20,
-            };
-        }
-        else
-        {
-            foreach (var k in weights.Keys.ToList())
-                weights[k] /= sum;
-        }
-
-        var tier = tierFromTags ?? QuestTier.Normal;
-
-        return new ResolvedTemplate
-        {
-            Weights = weights,
-            Tier = tier,
-            RecommendedPartySize = t.RecommendedPartySize,
+            Id = original.Id,
+            Name = original.Name,
+            BaseDurationMinutes = original.BaseDurationMinutes,
+            Critical = original.Critical,
+            ExpReward = original.ExpReward,
+            Solutions = original.Solutions
+                .Select(s => new PhaseSolution
+                {
+                    Skills = new Dictionary<string, double>(s.Skills)
+                })
+                .ToList()
         };
     }
 
-    private static void MergeTags(
-        List<string> tagIds,
-        Dictionary<string, double> weights,
-        ref QuestTier? tierFromTags,
-        string context)
+    private static void ApplyModifier(QuestPhaseTemplate phase, PhaseModifier mod)
     {
-        if (tagIds == null || tagsById == null) return;
+        if (mod == null) return;
 
-        foreach (var tagId in tagIds)
+        if (mod.DurationDeltaMinutes.HasValue)
+            phase.BaseDurationMinutes += mod.DurationDeltaMinutes.Value;
+
+        foreach (var sol in phase.Solutions)
         {
-            if (string.IsNullOrEmpty(tagId)) continue;
-
-            if (!tagsById.TryGetValue(tagId, out var tag))
+            var keys = new List<string>(sol.Skills.Keys);
+            foreach (var skillId in keys)
             {
-                Log.Error($"[QuestDB] {context}: неизвестный тег '{tagId}'");
-                continue;
-            }
+                if (mod.DcDelta.HasValue)
+                    sol.Skills[skillId] += mod.DcDelta.Value;
 
-            if (tag.Weights != null)
-            {
-                foreach (var kv in tag.Weights)
+                if (mod.StatModifiers != null)
                 {
-                    if (!StatIds.All.Contains(kv.Key))
+                    string statId = AdventurerDatabase.StatForSkill(skillId);
+                    if (statId != null
+                        && mod.StatModifiers.TryGetValue(statId, out var statMod))
                     {
-                        Log.Error($"[QuestDB] Тег '{tagId}': неизвестный стат '{kv.Key}'");
-                        continue;
+                        sol.Skills[skillId] += statMod.DcDelta;
                     }
-                    weights[kv.Key] = weights.GetValueOrDefault(kv.Key, 0) + kv.Value;
                 }
-            }
-
-            if (tierFromTags == null && !string.IsNullOrEmpty(tag.Tier))
-            {
-                if (Enum.TryParse<QuestTier>(tag.Tier, ignoreCase: true, out var parsed))
-                    tierFromTags = parsed;
-                else
-                    Log.Error($"[QuestDB] Тег '{tagId}': неизвестный tier '{tag.Tier}'");
             }
         }
     }
 
-    private static void ApplyOverride(Dictionary<string, double> overrideWeights, string overrideTier, Dictionary<string, double> weights, ref QuestTier? tierFromTags, string context)
+    private static void InsertPhase(List<QuestPhaseTemplate> phases,
+                                     QuestPhaseTemplate newPhase,
+                                     string before)
     {
-        if (overrideWeights != null && overrideWeights.Count > 0)
+        if (!string.IsNullOrEmpty(before))
         {
-            weights.Clear();
-            foreach (var kv in overrideWeights)
+            int idx = phases.FindIndex(p => p.Id == before);
+            if (idx >= 0)
             {
-                if (!StatIds.All.Contains(kv.Key))
+                phases.Insert(idx, newPhase);
+                return;
+            }
+
+            Log.Warn($"[QuestDB] Фаза '{newPhase.Id}': 'before' = '{before}' не найдена, дефолт");
+        }
+
+        int criticalIdx = phases.FindIndex(p => p.Critical);
+        if (criticalIdx >= 0)
+        {
+            phases.Insert(criticalIdx, newPhase);
+            return;
+        }
+
+        phases.Add(newPhase);
+    }
+
+    private static ResolvedTemplate ResolveTemplate(QuestTemplate t, string creatureId)
+    {
+        var phases = new List<QuestPhaseTemplate>();
+
+        if (t.Phases != null)
+        {
+            foreach (var phaseId in t.Phases)
+            {
+                if (!Phases.TryGetValue(phaseId, out var original))
                 {
-                    Log.Error($"[QuestDB] {context}: неизвестный стат '{kv.Key}'");
+                    Log.Error($"[QuestDB] Шаблон '{t.Id}': неизвестная фаза '{phaseId}'");
                     continue;
                 }
-                weights[kv.Key] = kv.Value;
+                phases.Add(ClonePhase(original));
             }
         }
 
-        if (!string.IsNullOrEmpty(overrideTier))
+        CreatureInfo creature = null;
+        if (!string.IsNullOrEmpty(creatureId))
+            Creatures.TryGetValue(creatureId, out creature);
+
+        if (creature?.PhaseEffects != null)
         {
-            if (Enum.TryParse<QuestTier>(overrideTier, ignoreCase: true, out var parsed))
-                tierFromTags = parsed;
-            else
-                Log.Error($"[QuestDB] {context}: неизвестный tier '{overrideTier}'");
+            // Модификаторы
+            if (creature.PhaseEffects.Modifies != null)
+            {
+                foreach (var kv in creature.PhaseEffects.Modifies)
+                {
+                    var phase = phases.FirstOrDefault(p => p.Id == kv.Key);
+                    if (phase == null)
+                    {
+                        Log.Warn($"[QuestDB] '{t.Id}'+'{creatureId}': модификатор для отсутствующей фазы '{kv.Key}'");
+                        continue;
+                    }
+                    ApplyModifier(phase, kv.Value);
+                }
+            }
+
+            // Добавленные фазы
+            if (creature.PhaseEffects.Adds != null)
+            {
+                foreach (var added in creature.PhaseEffects.Adds)
+                {
+                    if (phases.Any(p => p.Id == added.Phase)) continue;
+
+                    Phases.TryGetValue(added.Phase, out var orig);
+
+                    var newPhase = new QuestPhaseTemplate
+                    {
+                        Id = added.Phase,
+                        Name = orig.Name,
+                        BaseDurationMinutes = orig?.BaseDurationMinutes ?? 240,
+                        Critical = orig?.Critical ?? false,
+                        ExpReward = orig?.ExpReward ?? 20,
+                        Solutions = added.Solutions
+                            .Select(s => new PhaseSolution
+                            {
+                                Skills = new Dictionary<string, double>(s.Skills)
+                            })
+                            .ToList()
+                    };
+
+                    InsertPhase(phases, newPhase, added.Before);
+                }
+            }
         }
+
+        return new ResolvedTemplate
+        {
+            Phases = phases,
+            Tier = ParseTier(t.Tier),
+        };
+    }
+
+    // === Валидация ===
+
+    private static void Validate()
+    {
+        int errors = 0;
+
+        foreach (var t in Types.Values)
+        {
+            if (string.IsNullOrEmpty(t.Name.Ru) || string.IsNullOrEmpty(t.Name.En))
+            {
+                Log.Error($"[QuestDB] Тип '{t.Id}': неполное name");
+                errors++;
+            }
+        }
+
+        foreach (var g in Grades)
+        {
+            if (string.IsNullOrEmpty(g.Name.Ru) || string.IsNullOrEmpty(g.Name.En))
+            {
+                Log.Error($"[QuestDB] Градация '{g.Role}': неполное name");
+                errors++;
+            }
+        }
+
+        foreach (var p in Phases.Values)
+        {
+            if (string.IsNullOrEmpty(p.Id))
+            {
+                Log.Error("[QuestDB] Фаза без id");
+                errors++;
+                continue;
+            }
+            if (p.ExpReward < 0)
+            {
+                Log.Error($"[QuestDB] Фаза '{p.Id}': expReward < 0");
+                errors++;
+            }
+            if (p.Solutions == null || p.Solutions.Count == 0)
+            {
+                if (p.Id != "short_rest")
+                {
+                    Log.Error($"[QuestDB] Фаза '{p.Id}': пустой solutions");
+                    errors++;
+                }
+                continue;
+            }
+            foreach (var sol in p.Solutions)
+            {
+                if (sol.Skills == null || sol.Skills.Count == 0)
+                {
+                    Log.Error($"[QuestDB] Фаза '{p.Id}': пустое решение");
+                    errors++;
+                    continue;
+                }
+                foreach (var kv in sol.Skills)
+                {
+                    if (!AdventurerDatabase.IsValidSkill(kv.Key))
+                    {
+                        Log.Error($"[QuestDB] Фаза '{p.Id}': неизвестный навык '{kv.Key}'");
+                        errors++;
+                    }
+                    if (kv.Value <= 0)
+                    {
+                        Log.Error($"[QuestDB] Фаза '{p.Id}': DC <= 0 у '{kv.Key}'");
+                        errors++;
+                    }
+                }
+            }
+        }
+
+        foreach (var t in Templates)
+        {
+            if (string.IsNullOrEmpty(t.Name.Ru) || string.IsNullOrEmpty(t.Name.En))
+            {
+                Log.Error($"[QuestDB] Шаблон '{t.Id}': неполное name");
+                errors++;
+            }
+            if (t.LevelRange == null)
+            {
+                Log.Error($"[QuestDB] Шаблон '{t.Id}': нет levelRange");
+                errors++;
+            }
+            if (string.IsNullOrEmpty(t.Description.Ru) || string.IsNullOrEmpty(t.Description.En))
+            {
+                Log.Error($"[QuestDB] Шаблон '{t.Id}': неполное description");
+                errors++;
+            }
+            if (string.IsNullOrEmpty(t.Type) || !Types.ContainsKey(t.Type))
+            {
+                Log.Error($"[QuestDB] Шаблон '{t.Id}': тип '{t.Type}' не найден");
+                errors++;
+            }
+            if (t.Phases == null || t.Phases.Count == 0)
+            {
+                Log.Error($"[QuestDB] Шаблон '{t.Id}': пустой phases");
+                errors++;
+            }
+            else
+            {
+                foreach (var pid in t.Phases)
+                {
+                    if (!Phases.ContainsKey(pid))
+                    {
+                        Log.Error($"[QuestDB] Шаблон '{t.Id}': фаза '{pid}' не найдена");
+                        errors++;
+                    }
+                }
+            }
+            if (t.Creatures != null)
+                foreach (var c in t.Creatures)
+                    if (string.IsNullOrEmpty(c) || !Creatures.ContainsKey(c))
+                    {
+                        Log.Error($"[QuestDB] Шаблон '{t.Id}': creature '{c}' не найден");
+                        errors++;
+                    }
+            if (t.Locations != null)
+                foreach (var l in t.Locations)
+                    if (string.IsNullOrEmpty(l) || !Locations.ContainsKey(l))
+                    {
+                        Log.Error($"[QuestDB] Шаблон '{t.Id}': location '{l}' не найден");
+                        errors++;
+                    }
+        }
+
+        foreach (var c in Creatures.Values)
+        {
+            if (string.IsNullOrEmpty(c.Name?.Ru?.Nom))
+            {
+                Log.Error($"[QuestDB] Creature '{c.Id}': нет русского имени");
+                errors++;
+            }
+            if (string.IsNullOrEmpty(c.Name?.En))
+            {
+                Log.Error($"[QuestDB] Creature '{c.Id}': нет английского имени");
+                errors++;
+            }
+        }
+
+        foreach (var l in Locations.Values)
+        {
+            if (string.IsNullOrEmpty(l.Name?.Ru?.Nom))
+            {
+                Log.Error($"[QuestDB] Location '{l.Id}': нет русского имени");
+                errors++;
+            }
+            if (string.IsNullOrEmpty(l.Name?.En))
+            {
+                Log.Error($"[QuestDB] Location '{l.Id}': нет английского имени");
+                errors++;
+            }
+        }
+
+        if (errors == 0)
+            Log.Info($"[QuestDB] Валидация: ok ({Types.Count} типов, {Grades.Count} градаций, " +
+                     $"{Phases.Count} фаз, {Templates.Count} шаблонов, " +
+                     $"{Creatures.Count} существ, {Locations.Count} локаций)");
+        else
+            Log.Error($"[QuestDB] Валидация: {errors} ошибок");
+    }
+
+    private static readonly HashSet<string> ValidCases = new() { "nom", "gen", "dat", "acc", "ins", "pre" };
+
+    private static void ValidateDeclensions()
+    {
+        var neededCases = new HashSet<string>();
+        var pattern = new Regex(@"\{(\w+):(\w+)\}");
+
+        foreach (var t in Templates)
+        {
+            string ru = t.Description.Ru;
+            if (string.IsNullOrEmpty(ru)) continue;
+
+            foreach (Match m in pattern.Matches(ru))
+            {
+                string caseCode = m.Groups[2].Value;
+                if (!ValidCases.Contains(caseCode))
+                {
+                    Log.Error($"[QuestDB] Шаблон '{t.Id}': неизвестный падеж '{caseCode}'");
+                    continue;
+                }
+                neededCases.Add(caseCode);
+            }
+        }
+
+        if (neededCases.Count == 0) return;
+
+        int errors = 0;
+        foreach (var c in Creatures.Values)
+            foreach (var caseCode in neededCases)
+                if (string.IsNullOrEmpty(c.Name?.Ru?.Get(caseCode)))
+                {
+                    Log.Error($"[QuestDB] Creature '{c.Id}': нет формы '{caseCode}'");
+                    errors++;
+                }
+        foreach (var l in Locations.Values)
+            foreach (var caseCode in neededCases)
+                if (string.IsNullOrEmpty(l.Name?.Ru?.Get(caseCode)))
+                {
+                    Log.Error($"[QuestDB] Location '{l.Id}': нет формы '{caseCode}'");
+                    errors++;
+                }
+
+        if (errors == 0)
+            Log.Info($"[QuestDB] Валидация падежей: ok");
     }
 
     // === Публичное API ===
@@ -575,11 +506,8 @@ public static class QuestDatabase
     public static ResolvedTemplate GetResolved(string templateId, string creatureId)
     {
         creatureId ??= "";
-
-        if (resolvedCombos != null &&
-            resolvedCombos.TryGetValue((templateId, creatureId), out var r))
+        if (resolvedCombos != null && resolvedCombos.TryGetValue((templateId, creatureId), out var r))
             return r;
-
         Log.Error($"[QuestDB] Нет resolved: template='{templateId}', creature='{creatureId}'");
         return null;
     }
@@ -598,14 +526,6 @@ public static class QuestDatabase
         return null;
     }
 
-    public static QuestOutcomeInfo GetOutcome(QuestGradeRole role)
-    {
-        string key = role.ToString().ToLowerInvariant();
-        if (Outcomes != null && Outcomes.TryGetValue(key, out var o)) return o;
-        Log.Warn($"[QuestDB] Нет outcome для роли {role}");
-        return null;
-    }
-
     private static T Lookup<T>(IReadOnlyDictionary<string, T> dict, string id, string what) where T : class
     {
         if (dict != null && dict.TryGetValue(id, out var value)) return value;
@@ -616,7 +536,6 @@ public static class QuestDatabase
 
 public class ResolvedTemplate
 {
-    public IReadOnlyDictionary<string, double> Weights { get; set; }
+    public List<QuestPhaseTemplate> Phases { get; set; }
     public QuestTier Tier { get; set; }
-    public int RecommendedPartySize { get; set; }
 }

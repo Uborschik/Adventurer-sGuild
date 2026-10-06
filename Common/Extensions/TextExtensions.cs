@@ -1,6 +1,5 @@
 public static class TextExtensions
 {
-    // Adventurer
     public static string ClassName(this AdventurerModel model)
         => AdventurerDatabase.ClassName(model.ClassId);
 
@@ -10,11 +9,11 @@ public static class TextExtensions
     public static string StatName(this AdventurerModel model, string id)
         => AdventurerDatabase.StatName(id);
 
-    public static int StatValue(this AdventurerModel model, string id)
+    public static double StatValue(this AdventurerModel model, string id)
         => model.Stats.TryGetValue(id, out var v) ? v : 0;
 
     public static string StatLine(this AdventurerModel model, string id)
-        => $"{model.StatName(id)}: {model.StatValue(id)}";
+        => $"{model.StatName(id)}: {model.StatValue(id):F0}";
 
     public static string StatusName(this AdventurerModel model, string id)
         => AdventurerDatabase.StatusName(id);

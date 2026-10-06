@@ -11,14 +11,16 @@ public class AdventurerModel
     public string LastName { get; }
     public string ClassId { get; }
     public string RaceId { get; }
-    public Dictionary<string, int> Stats { get; private set; }
+    public Dictionary<string, double> Stats { get; private set; }
     public Level Level { get; private set; }
     public string StatusId { get; private set; } = StatusIds.Free;
     public GameTime? StatusExpiresAt { get; private set; }
 
     public string FullName => $"{FirstName} {LastName}";
 
-    public AdventurerModel(string id, string firstName, string lastName, string classId, string raceId, Dictionary<string, int> stats, int level)
+    public AdventurerModel(string id, string firstName, string lastName,
+                           string classId, string raceId,
+                           Dictionary<string, double> stats, int level)
     {
         Id = id;
         FirstName = firstName;
@@ -29,7 +31,7 @@ public class AdventurerModel
         Level = Level.New(level);
     }
 
-    // === Статусы ===
+    // === Статусы (без изменений) ===
 
     public bool HasStatus(string statusId) => StatusId == statusId;
 
@@ -64,5 +66,6 @@ public class AdventurerModel
         Level = newLevel;
         ProgressChanged?.Invoke();
     }
-    public void SetStats(Dictionary<string, int> newStats) => Stats = newStats;
+
+    public void SetStats(Dictionary<string, double> newStats) => Stats = newStats;
 }

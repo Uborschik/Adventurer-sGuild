@@ -3,39 +3,43 @@
     {
       "id": "default",
 
-      "basePenalty": 20,
-      "referenceStatBase": 18.0,
-      "referenceStatSlope": 2.5,
-      "coverageThreshold": 0.75,
-      "coverageBonusPerStat": 0.25,
+      "durationTierMultiplier": {
+        "easy": 1.0, "normal": 1.2, "hard": 1.5
+      },
+      "durationFailPenaltyPerPhase": 0.30,
+      "durationIntBonusCap": 0.30,
+      "durationIntBonusK": 0.15,
 
-      "tierBonus": {
-        "easy": 0,
-        "normal": 25,
-        "hard": 50
+      "escapeStatK": 40,
+      "escapeStatCap": 95,
+      "escapeBaseByTier": {
+        "easy":   60,
+        "normal": 45,
+        "hard":   30
       },
 
-      "marginTriumph": 50,
-      "marginFailure": -40,
-      "triumphCapPercent": 10,
+      "woundFailDaysByTier": {
+        "easy":   { "min": 2, "max": 4 },
+        "normal": { "min": 3, "max": 6 },
+        "hard":   { "min": 5, "max": 10 }
+      },
+
+      "woundSuccessByTier": {
+        "easy":   { "chance": 5,  "min": 1, "max": 2 },
+        "normal": { "chance": 15, "min": 1, "max": 3 },
+        "hard":   { "chance": 30, "min": 2, "max": 4 }
+      },
+
+      "nightAttackChanceBase": 25,
+      "maxQuestDays": 90,
+      "nightCreatureLevelPenalty": 5,
 
       "enduranceInjuryK": 60,
       "enduranceInjuryCap": 0.75,
-
       "enduranceDeathK": 150,
       "enduranceDeathCap": 0.50,
 
       "experience": {
-        "expBonusLvl1": 5,
-        "tierModifiers": {
-          "easy": 0, "normal": 5, "hard": 10
-        },
-        "roleMultipliers": {
-          "triumph": 2.0,
-          "success": 1.0,
-          "failure": 0.25,
-          "disaster": 0.1
-        },
         "contributionBaseScore": 0.2
       }
     }

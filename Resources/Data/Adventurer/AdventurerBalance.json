@@ -4,7 +4,7 @@
   "expCapScaling": "polynomial",
   "expCapAcceleration": 0.22,
 
-  "statBaseValue": 2.0,
-  "statStartPool": 16.0,
+  "statBaseValue": 0.0,
+  "statStartPool": 10.0,
   "statBaseSlope": 2.5
 }

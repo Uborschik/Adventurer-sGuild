@@ -1,135 +1,114 @@
-using Godot;
-using System.Collections.Generic;
-using System.Linq;
+// using Godot;
+// using System.Collections.Generic;
+// using System.Linq;
 
-public partial class DebugResolvedTable : Control
-{
-    private GridContainer tagsGrid;
-    private GridContainer templatesGrid;
-    private GridContainer activeGrid;
+// public partial class DebugResolvedTable : Control
+// {
+//     private GridContainer tagsGrid;
+//     private GridContainer templatesGrid;
+//     private GridContainer activeGrid;
 
-    private QuestRegistry questRegistry;
+//     private QuestRegistry questRegistry;
 
-    public override void _Ready()
-    {
-        tagsGrid = GetNode<GridContainer>("Margin/VBox/TagsGrid");
-        templatesGrid = GetNode<GridContainer>("Margin/VBox/TemplatesScroll/TemplatesGrid");
-        activeGrid = GetNode<GridContainer>("Margin/VBox/ActiveScroll/ActiveGrid");
-    }
+//     public override void _Ready()
+//     {
+//         tagsGrid = GetNode<GridContainer>("Margin/VBox/TagsGrid");
+//         templatesGrid = GetNode<GridContainer>("Margin/VBox/TemplatesScroll/TemplatesGrid");
+//         activeGrid = GetNode<GridContainer>("Margin/VBox/ActiveScroll/ActiveGrid");
+//     }
 
-    public void Bind(QuestRegistry registry)
-    {
-        questRegistry = registry;
-    }
+//     public void Bind(QuestRegistry registry)
+//     {
+//         questRegistry = registry;
+//     }
 
-    public void Toggle()
-    {
-        Visible = !Visible;
-        if (Visible) Rebuild();
-    }
+//     public void Toggle()
+//     {
+//         Visible = !Visible;
+//         if (Visible) Rebuild();
+//     }
 
-    private void Rebuild()
-    {
-        ClearChildren(tagsGrid);
-        ClearChildren(templatesGrid);
-        ClearChildren(activeGrid);
+//     private void Rebuild()
+//     {
+//         ClearChildren(tagsGrid);
+//         ClearChildren(templatesGrid);
+//         ClearChildren(activeGrid);
 
-        BuildTags();
-        BuildTemplates();
-        BuildActiveQuests();
-    }
+//         BuildTemplates();
+//         BuildActiveQuests();
+//     }
 
-    private void BuildTags()
-    {
-        AddRow(tagsGrid, "Tag", "Weights", "Tier");
+//     private void BuildTemplates()
+//     {
+//         AddRow(templatesGrid, "Template", "Creature", "Tier", "Need", "Weights");
 
-        var tags = QuestDatabase.AllTags;
-        if (tags == null) return;
+//         var resolved = QuestDatabase.AllResolved;
+//         if (resolved == null) return;
 
-        foreach (var tag in tags.Values.OrderBy(t => t.Id))
-        {
-            string weights = tag.Weights != null && tag.Weights.Count > 0
-                ? string.Join(", ", tag.Weights
-                    .Where(kv => kv.Value > 0)
-                    .Select(kv => $"{kv.Key}={kv.Value:F2}"))
-                : "";
-            string tier = string.IsNullOrEmpty(tag.Tier) ? "" : tag.Tier;
+//         var sorted = resolved
+//             .OrderBy(kv => kv.Key.templateId)
+//             .ThenBy(kv => kv.Key.creatureId);
 
-            AddRow(tagsGrid, tag.Id, weights, tier);
-        }
-    }
+//         foreach (var kv in sorted)
+//         {
+//             var (templateId, creatureId) = kv.Key;
+//             var r = kv.Value;
 
-    private void BuildTemplates()
-    {
-        AddRow(templatesGrid, "Template", "Creature", "Tier", "Need", "Weights");
+//             string weights = SerializeWeights(r.Weights);   // ← r.Weights
 
-        var resolved = QuestDatabase.AllResolved;
-        if (resolved == null) return;
+//             AddRow(templatesGrid,
+//                 templateId,
+//                 creatureId,
+//                 r.Tier.ToString(),
+//                 r.RecommendedPartySize.ToString(),
+//                 weights);
+//         }
+//     }
 
-        var sorted = resolved
-            .OrderBy(kv => kv.Key.templateId)
-            .ThenBy(kv => kv.Key.creatureId);
+//     private void BuildActiveQuests()
+//     {
+//         AddRow(activeGrid, "Name", "Tier", "Need", "Weights");
 
-        foreach (var kv in sorted)
-        {
-            var (templateId, creatureId) = kv.Key;
-            var r = kv.Value;
+//         if (questRegistry == null) return;
 
-            string weights = SerializeWeights(r.Weights);   // ← r.Weights
+//         var sorted = questRegistry.All
+//             .Where(q => q.Status == QuestStatus.Available)
+//             .OrderBy(q => q.Name);
 
-            AddRow(templatesGrid,
-                templateId,
-                creatureId,
-                r.Tier.ToString(),
-                r.RecommendedPartySize.ToString(),
-                weights);
-        }
-    }
+//         foreach (var quest in sorted)
+//         {
+//             string weights = SerializeWeights(quest.Weights);
 
-    private void BuildActiveQuests()
-    {
-        AddRow(activeGrid, "Name", "Tier", "Need", "Weights");
+//             AddRow(activeGrid,
+//                 quest.Name,
+//                 quest.Tier.ToString(),
+//                 quest.RecommendedPartySize.ToString(),
+//                 weights);
+//         }
+//     }
 
-        if (questRegistry == null) return;
+//     private static void AddRow(GridContainer grid, params string[] values)
+//     {
+//         foreach (var v in values)
+//         {
+//             var label = new Label { Text = v };
+//             grid.AddChild(label);
+//         }
+//     }
 
-        var sorted = questRegistry.All
-            .Where(q => q.Status == QuestStatus.Available)
-            .OrderBy(q => q.Name);
+//     private static void ClearChildren(Node node)
+//     {
+//         foreach (var child in node.GetChildren())
+//             child.QueueFree();
+//     }
 
-        foreach (var quest in sorted)
-        {
-            string weights = SerializeWeights(quest.Weights);
+//     private static string SerializeWeights(IReadOnlyDictionary<string, double> weights)
+//     {
+//         if (weights == null || weights.Count == 0) return "";
 
-            AddRow(activeGrid,
-                quest.Name,
-                quest.Tier.ToString(),
-                quest.RecommendedPartySize.ToString(),
-                weights);
-        }
-    }
-
-    private static void AddRow(GridContainer grid, params string[] values)
-    {
-        foreach (var v in values)
-        {
-            var label = new Label { Text = v };
-            grid.AddChild(label);
-        }
-    }
-
-    private static void ClearChildren(Node node)
-    {
-        foreach (var child in node.GetChildren())
-            child.QueueFree();
-    }
-
-    private static string SerializeWeights(IReadOnlyDictionary<string, double> weights)
-    {
-        if (weights == null || weights.Count == 0) return "";
-
-        return string.Join(", ",
-            weights.Where(kv => kv.Value > 0)
-                   .OrderBy(kv => kv.Key)
-                   .Select(kv => $"{kv.Key}={kv.Value:F2}"));
-    }
-}
+//         return string.Join(", ",
+//             weights.Where(kv => kv.Value > 0)
+//                    .OrderBy(kv => kv.Key)
+//                    .Select(kv => $"{kv.Key}={kv.Value:F2}"));
+//     }
+// }

@@ -4,88 +4,80 @@
       "id": "warrior",
       "name": { "ru": "Воин", "en": "Warrior" },
       "primaryStat": "str",
+      "primarySkill": "athletics",
       "secondaryStat": "end",
-      "growthWeights": {
-        "str": 1.00, "dex": 0.30, "end": 0.80,
-        "int": 0.15, "wis": 0.25, "cha": 0.20
-      },
+      "secondarySkill": "endurance",
+      "growthWeights": { "str": 1.00, "dex": 0.50, "end": 0.80, "int": 0.30, "wis": 0.40, "cha": 0.40 },
       "weight": 5
     },
     {
       "id": "barbarian",
       "name": { "ru": "Варвар", "en": "Barbarian" },
       "primaryStat": "str",
+      "primarySkill": "athletics",
       "secondaryStat": "end",
-      "growthWeights": {
-        "str": 1.20, "dex": 0.40, "end": 0.50,
-        "int": 0.10, "wis": 0.20, "cha": 0.05
-      },
+      "secondarySkill": "fortitude",
+      "growthWeights": { "str": 1.20, "dex": 0.55, "end": 0.55, "int": 0.25, "wis": 0.35, "cha": 0.30 },
       "weight": 2
     },
     {
       "id": "paladin",
       "name": { "ru": "Паладин", "en": "Paladin" },
       "primaryStat": "str",
+      "primarySkill": "athletics",
       "secondaryStat": "cha",
-      "growthWeights": {
-        "str": 0.85, "dex": 0.25, "end": 0.65,
-        "int": 0.20, "wis": 0.40, "cha": 0.80
-      },
+      "secondarySkill": "persuasion",
+      "growthWeights": { "str": 0.90, "dex": 0.40, "end": 0.65, "int": 0.40, "wis": 0.55, "cha": 0.70 },
       "weight": 1
     },
     {
       "id": "rogue",
       "name": { "ru": "Плут", "en": "Rogue" },
       "primaryStat": "dex",
+      "primarySkill": "stealth",
       "secondaryStat": "int",
-      "growthWeights": {
-        "str": 0.35, "dex": 1.00, "end": 0.45,
-        "int": 0.55, "wis": 0.30, "cha": 0.30
-      },
+      "secondarySkill": "investigation",
+      "growthWeights": { "str": 0.35, "dex": 1.00, "end": 0.45, "int": 0.50, "wis": 0.40, "cha": 0.30 },
       "weight": 4
     },
     {
       "id": "ranger",
       "name": { "ru": "Рейнджер", "en": "Ranger" },
       "primaryStat": "dex",
+      "primarySkill": "stealth",
       "secondaryStat": "wis",
-      "growthWeights": {
-        "str": 0.45, "dex": 1.00, "end": 0.45,
-        "int": 0.30, "wis": 0.65, "cha": 0.30
-      },
+      "secondarySkill": "perception",
+      "growthWeights": { "str": 0.60, "dex": 0.80, "end": 0.55, "int": 0.40, "wis": 0.65, "cha": 0.40 },
       "weight": 3
     },
     {
       "id": "mage",
       "name": { "ru": "Маг", "en": "Mage" },
       "primaryStat": "int",
+      "primarySkill": "arcana",
       "secondaryStat": "wis",
-      "growthWeights": {
-        "str": 0.10, "dex": 0.30, "end": 0.20,
-        "int": 1.10, "wis": 0.60, "cha": 0.30
-      },
+      "secondarySkill": "perception",
+      "growthWeights": { "str": 0.20, "dex": 0.30, "end": 0.20, "int": 1.00, "wis": 0.60, "cha": 0.50 },
       "weight": 3
     },
     {
       "id": "cleric",
       "name": { "ru": "Клирик", "en": "Cleric" },
       "primaryStat": "wis",
+      "primarySkill": "perception",
       "secondaryStat": "cha",
-      "growthWeights": {
-        "str": 0.30, "dex": 0.25, "end": 0.30,
-        "int": 0.40, "wis": 1.10, "cha": 0.65
-      },
+      "secondarySkill": "persuasion",
+      "growthWeights": { "str": 0.30, "dex": 0.25, "end": 0.30, "int": 0.50, "wis": 1.00, "cha": 0.65 },
       "weight": 3
     },
     {
       "id": "bard",
       "name": { "ru": "Бард", "en": "Bard" },
       "primaryStat": "cha",
+      "primarySkill": "persuasion",
       "secondaryStat": "dex",
-      "growthWeights": {
-        "str": 0.20, "dex": 0.65, "end": 0.40,
-        "int": 0.50, "wis": 0.45, "cha": 1.00
-      },
+      "secondarySkill": "acrobatics",
+      "growthWeights": { "str": 0.30, "dex": 0.55, "end": 0.40, "int": 0.45, "wis": 0.35, "cha": 1.00 },
       "weight": 2
     }
   ]

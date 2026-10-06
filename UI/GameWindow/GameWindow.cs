@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 public partial class GameWindow : Control
 {
 #if DEBUG
-    private DebugResolvedTable debugTable;
+    // private DebugResolvedTable debugTable;
 #endif
     // === Models ===
     private AdventurerRegistry adventurerRegistry;
@@ -49,17 +50,17 @@ public partial class GameWindow : Control
         navigation.Setup();
 
 #if DEBUG
-        if (debugTable == null)
-        {
-            var scene = GD.Load<PackedScene>("res://UI/Debug/DebugResolvedTable.tscn");
-            debugTable = scene.Instantiate<DebugResolvedTable>();
-            AddChild(debugTable);
-        }
+        // if (debugTable == null)
+        // {
+        //     var scene = GD.Load<PackedScene>("res://UI/Debug/DebugResolvedTable.tscn");
+        //     debugTable = scene.Instantiate<DebugResolvedTable>();
+        //     AddChild(debugTable);
+        // }
 
-        debugTable?.Bind(questRegistry);
+        // debugTable?.Bind(questRegistry);
 #endif
 
-        SeedTestData();
+        TestAllRacesAndClasses();
         StartWindows();
 
         clock.TimeAdvanced += adventurerRegistry.Tick;
@@ -166,10 +167,19 @@ public partial class GameWindow : Control
 
     // === Стартовые действия ===
 
-    private void SeedTestData()
+    private void TestAllRacesAndClasses()
     {
-        for (int i = 0; i < 20; i++)
-            adventurerBoard.TryAdd(adventurerFactory.Create());
+        var raceIds = AdventurerDatabase.Races.Keys.ToList();
+        var classIds = AdventurerDatabase.Classes.Keys.ToList();
+
+        foreach (var raceId in raceIds)
+        {
+            Log.Info($"--- {raceId} ---");
+            foreach (var classId in classIds)
+            {
+                adventurerBoard.TryAdd(adventurerFactory.Create(raceId, classId, 1));
+            }
+        }
     }
 
     private void StartWindows()
@@ -211,7 +221,7 @@ public partial class GameWindow : Control
                 break;
 
             case Key.F12:
-                debugTable?.Toggle();
+                // debugTable?.Toggle();
                 break;
         }
     }
