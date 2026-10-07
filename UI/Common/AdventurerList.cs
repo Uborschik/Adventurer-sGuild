@@ -3,14 +3,23 @@ using Godot;
 
 public partial class AdventurerList : SceneListBase
 {
-    [Export] public PackedScene AdventurerRowPrefab { get; set; }
+    [Export] public PackedScene RowPrefab { get; set; }
 
-    protected override PackedScene RowScene => AdventurerRowPrefab;
+    protected override PackedScene RowScene => RowPrefab;
 
     public void Add(AdventurerModel model)
     {
-        var row = (AdventurerRow)CreateRow();
-        row.Bind(model);
+        var row = CreateRow();
+
+        if (row is IAdventurerRow adventurerRow)
+        {
+            adventurerRow.Bind(model);
+            return;
+        }
+
+        GD.PushError($"{nameof(AdventurerList)}: префаб {row.GetType().Name} " + $"не реализует {nameof(IAdventurerRow)}");
+
+        row.QueueFree();
     }
 
     public void Remove(string id)
@@ -18,14 +27,15 @@ public partial class AdventurerList : SceneListBase
         var row = FindRow(id);
         if (row == null) return;
 
-        row.QueueFree();
         RemoveRow(row);
+
+        row.QueueFree();
     }
 
-    public void Refresh(IReadOnlyList<AdventurerModel> hired)
+    public void Refresh(IReadOnlyList<AdventurerModel> items)
     {
         Clear();
-        foreach (var h in hired)
-            Add(h);
+        foreach (var m in items)
+            Add(m);
     }
 }

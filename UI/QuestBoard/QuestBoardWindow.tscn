@@ -7,140 +7,84 @@
 [ext_resource type="Script" uid="uid://dym61i6a1addu" path="res://UI/QuestBoard/PartySelect.cs" id="4_pwi1r"]
 [ext_resource type="Script" uid="uid://c7nhq5ca8s7a7" path="res://UI/QuestBoard/Party.cs" id="5_78krd"]
 [ext_resource type="Script" uid="uid://bs87e2hk4ugc6" path="res://UI/Common/Slot.cs" id="5_qnstr"]
+[ext_resource type="PackedScene" uid="uid://bh25hj6wv1tra" path="res://UI/AdventurerBoard/AdventurerBoard.tscn" id="6_cdytu"]
 [ext_resource type="Texture2D" uid="uid://pkaqpk3xpxye" path="res://Resources/Sprites/Panels/Panel_2.tres" id="6_yb61p"]
 [ext_resource type="Texture2D" uid="uid://dsm4o6y37rmpb" path="res://Resources/Sprites/Other/frame.tres" id="7_jrtrj"]
-[ext_resource type="Texture2D" uid="uid://ct254n8ximunf" path="res://Resources/Sprites/Buttons/Btn_DefaultNormal.tres" id="10_snk3f"]
-[ext_resource type="Texture2D" uid="uid://8uri3m0powyw" path="res://Resources/Sprites/Buttons/Btn_DefaultPress.tres" id="11_g162t"]
-[ext_resource type="Texture2D" uid="uid://6mvu28qmpjxa" path="res://Resources/Sprites/Buttons/Btn_DefaultHover.tres" id="12_cdytu"]
+[ext_resource type="PackedScene" uid="uid://b3w57jddr281i" path="res://UI/AdventurerInfo/AdventurerInfo.tscn" id="7_pqlqr"]
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_2w4ib"]
-content_margin_left = 2.0
-content_margin_top = 2.0
-content_margin_right = 2.0
-content_margin_bottom = 2.0
-texture = ExtResource("10_snk3f")
-texture_margin_left = 2.0
-texture_margin_top = 2.0
-texture_margin_right = 2.0
-texture_margin_bottom = 2.0
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0apej"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.1764706, 0.1764706, 0.1764706, 1)
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_pqlqr"]
-content_margin_left = 2.0
-content_margin_top = 2.0
-content_margin_right = 2.0
-content_margin_bottom = 2.0
-texture = ExtResource("11_g162t")
-texture_margin_left = 2.0
-texture_margin_top = 2.0
-texture_margin_right = 2.0
-texture_margin_bottom = 2.0
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_he242"]
-content_margin_left = 2.0
-content_margin_top = 2.0
-content_margin_right = 2.0
-content_margin_bottom = 2.0
-texture = ExtResource("12_cdytu")
-texture_margin_left = 2.0
-texture_margin_top = 2.0
-texture_margin_right = 2.0
-texture_margin_bottom = 2.0
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_f2pg4"]
-content_margin_left = 2.0
-content_margin_top = 2.0
-content_margin_right = 2.0
-content_margin_bottom = 2.0
-texture = ExtResource("11_g162t")
-texture_margin_left = 2.0
-texture_margin_top = 2.0
-texture_margin_right = 2.0
-texture_margin_bottom = 2.0
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_4id7k"]
-content_margin_left = 2.0
-content_margin_top = 2.0
-content_margin_right = 2.0
-content_margin_bottom = 2.0
-texture = ExtResource("12_cdytu")
-texture_margin_left = 2.0
-texture_margin_top = 2.0
-texture_margin_right = 2.0
-texture_margin_bottom = 2.0
-
-[node name="QuestBoardWindow" type="Control" unique_id=1726383960]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-script = ExtResource("1_irqai")
-
-[node name="VBox" type="VBoxContainer" parent="." unique_id=2049415493]
-layout_mode = 1
+[node name="QuestBoardWindow" type="HBoxContainer" unique_id=1639338207]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -230.0
-offset_top = -120.0
-offset_right = 230.0
-offset_bottom = 120.0
+offset_left = -180.5
+offset_top = -142.0
+offset_right = 180.5
+offset_bottom = 142.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_irqai")
 
-[node name="HBox" type="HBoxContainer" parent="VBox" unique_id=396363628]
-custom_minimum_size = Vector2(0, 154)
-custom_maximum_size = Vector2(-1, 154)
+[node name="Quests" type="VBoxContainer" parent="." unique_id=1274043057]
 layout_mode = 2
-theme_override_constants/separation = 8
+size_flags_horizontal = 4
+size_flags_vertical = 4
 
-[node name="QuestList" type="PanelContainer" parent="VBox/HBox" unique_id=656686803]
+[node name="QuestList" type="PanelContainer" parent="Quests" unique_id=656686803]
+custom_minimum_size = Vector2(160, 140)
+custom_maximum_size = Vector2(160, 140)
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.6
+size_flags_vertical = 4
 script = ExtResource("2_pwi1r")
 QuestRowPrefab = ExtResource("3_pli3t")
 
-[node name="Scroll" type="ScrollContainer" parent="VBox/HBox/QuestList" unique_id=875618945]
+[node name="Scroll" type="ScrollContainer" parent="Quests/QuestList" unique_id=875618945]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="VBox" type="VBoxContainer" parent="VBox/HBox/QuestList/Scroll" unique_id=1045758615]
+[node name="VBox" type="VBoxContainer" parent="Quests/QuestList/Scroll" unique_id=1045758615]
 custom_maximum_size = Vector2(138, -1)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="QuestInfo" type="PanelContainer" parent="VBox/HBox" unique_id=1774368456]
+[node name="QuestInfo" type="PanelContainer" parent="Quests" unique_id=1774368456]
+custom_minimum_size = Vector2(160, 140)
+custom_maximum_size = Vector2(160, 140)
 layout_mode = 2
 size_flags_horizontal = 3
 script = ExtResource("3_qnstr")
 
-[node name="VBox" type="VBoxContainer" parent="VBox/HBox/QuestInfo" unique_id=137179913]
+[node name="VBox" type="VBoxContainer" parent="Quests/QuestInfo" unique_id=137179913]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Header" type="HBoxContainer" parent="VBox/HBox/QuestInfo/VBox" unique_id=573381304]
+[node name="Header" type="HBoxContainer" parent="Quests/QuestInfo/VBox" unique_id=573381304]
 layout_mode = 2
 alignment = 1
 
-[node name="TierBadge" type="Label" parent="VBox/HBox/QuestInfo/VBox/Header" unique_id=2065355647]
+[node name="TierBadge" type="Label" parent="Quests/QuestInfo/VBox/Header" unique_id=2065355647]
 layout_mode = 2
 size_flags_horizontal = 4
 text = "1111111"
 
-[node name="Name" type="Label" parent="VBox/HBox/QuestInfo/VBox/Header" unique_id=2024041235]
+[node name="Name" type="Label" parent="Quests/QuestInfo/VBox/Header" unique_id=2024041235]
 layout_mode = 2
 size_flags_horizontal = 4
 text = "0000000"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Description" type="RichTextLabel" parent="VBox/HBox/QuestInfo/VBox" unique_id=1707471523]
+[node name="Description" type="RichTextLabel" parent="Quests/QuestInfo/VBox" unique_id=1707471523]
 custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 size_flags_stretch_ratio = 0.4
@@ -148,23 +92,23 @@ localize_numeral_system = false
 theme_override_constants/line_separation = 4
 fit_content = true
 
-[node name="Stats" type="VBoxContainer" parent="VBox/HBox/QuestInfo/VBox" unique_id=668172547]
+[node name="Stats" type="VBoxContainer" parent="Quests/QuestInfo/VBox" unique_id=668172547]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="PartySize" type="Label" parent="VBox/HBox/QuestInfo/VBox/Stats" unique_id=848579311]
+[node name="PartySize" type="Label" parent="Quests/QuestInfo/VBox/Stats" unique_id=848579311]
 layout_mode = 2
 size_flags_vertical = 1
 
-[node name="Duration" type="Label" parent="VBox/HBox/QuestInfo/VBox/Stats" unique_id=1182363726]
+[node name="Duration" type="Label" parent="Quests/QuestInfo/VBox/Stats" unique_id=1182363726]
 layout_mode = 2
 size_flags_vertical = 1
 
-[node name="Expires" type="Label" parent="VBox/HBox/QuestInfo/VBox/Stats" unique_id=100195762]
+[node name="Expires" type="Label" parent="Quests/QuestInfo/VBox/Stats" unique_id=100195762]
 layout_mode = 2
 size_flags_vertical = 1
 
-[node name="Reward" type="Label" parent="VBox/HBox/QuestInfo/VBox" unique_id=1381790996]
+[node name="Reward" type="Label" parent="Quests/QuestInfo/VBox" unique_id=1381790996]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 1
@@ -172,67 +116,29 @@ theme_override_constants/line_spacing = 6
 vertical_alignment = 1
 clip_text = true
 
-[node name="PartySelect" type="Control" parent="VBox" unique_id=1271801254]
-custom_minimum_size = Vector2(460, 82)
-custom_maximum_size = Vector2(460, 82)
+[node name="PartySelect" type="PanelContainer" parent="." unique_id=586829998]
+custom_minimum_size = Vector2(152, 0)
+custom_maximum_size = Vector2(152, -1)
 layout_mode = 2
-size_flags_horizontal = 0
-size_flags_vertical = 10
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_0apej")
 script = ExtResource("4_pwi1r")
 
-[node name="HBox" type="HBoxContainer" parent="VBox/PartySelect" unique_id=2081531640]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -152.0
-offset_top = -41.0
-offset_right = 152.0
-offset_bottom = 41.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Chance" type="Panel" parent="VBox/PartySelect/HBox" unique_id=1026644128]
-custom_minimum_size = Vector2(82, 82)
-custom_maximum_size = Vector2(82, 82)
+[node name="VBox" type="VBoxContainer" parent="PartySelect" unique_id=617209634]
 layout_mode = 2
-size_flags_horizontal = 8
-size_flags_vertical = 4
-
-[node name="Label" type="Label" parent="VBox/PartySelect/HBox/Chance" unique_id=1570678795]
-layout_mode = 0
-offset_right = 82.0
-offset_bottom = 82.0
-size_flags_vertical = 1
-theme_override_font_sizes/font_size = 16
-text = "100%"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Party" type="Panel" parent="VBox/PartySelect/HBox" unique_id=116788741]
-custom_minimum_size = Vector2(132, 64)
-custom_maximum_size = Vector2(132, 64)
-layout_mode = 2
-size_flags_horizontal = 8
-size_flags_vertical = 4
-script = ExtResource("5_78krd")
-
-[node name="Slots" type="HBoxContainer" parent="VBox/PartySelect/HBox/Party" unique_id=152417540]
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -66.0
-offset_right = 66.0
-offset_bottom = 24.0
-grow_horizontal = 2
 size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="Slots" type="HBoxContainer" parent="PartySelect/VBox" unique_id=351370235]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
 theme_override_constants/separation = 12
 alignment = 1
+script = ExtResource("5_78krd")
 
-[node name="Slot_0" type="Control" parent="VBox/PartySelect/HBox/Party/Slots" unique_id=1773669540]
+[node name="Slot_0" type="Control" parent="PartySelect/VBox/Slots" unique_id=1773669540]
 custom_minimum_size = Vector2(24, 24)
 custom_maximum_size = Vector2(24, 24)
 layout_mode = 2
@@ -240,7 +146,7 @@ size_flags_horizontal = 10
 size_flags_vertical = 4
 script = ExtResource("5_qnstr")
 
-[node name="Background" type="NinePatchRect" parent="VBox/PartySelect/HBox/Party/Slots/Slot_0" unique_id=924180357]
+[node name="Background" type="NinePatchRect" parent="PartySelect/VBox/Slots/Slot_0" unique_id=924180357]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -255,7 +161,7 @@ patch_margin_top = 4
 patch_margin_right = 4
 patch_margin_bottom = 4
 
-[node name="Icon" type="TextureRect" parent="VBox/PartySelect/HBox/Party/Slots/Slot_0" unique_id=264608552]
+[node name="Icon" type="TextureRect" parent="PartySelect/VBox/Slots/Slot_0" unique_id=264608552]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -268,7 +174,7 @@ size_flags_horizontal = 6
 size_flags_vertical = 4
 stretch_mode = 2
 
-[node name="Frame" type="NinePatchRect" parent="VBox/PartySelect/HBox/Party/Slots/Slot_0" unique_id=324049239]
+[node name="Frame" type="NinePatchRect" parent="PartySelect/VBox/Slots/Slot_0" unique_id=324049239]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -287,7 +193,7 @@ patch_margin_top = 5
 patch_margin_right = 5
 patch_margin_bottom = 5
 
-[node name="Slot_1" type="Control" parent="VBox/PartySelect/HBox/Party/Slots" unique_id=2036715015]
+[node name="Slot_1" type="Control" parent="PartySelect/VBox/Slots" unique_id=2036715015]
 custom_minimum_size = Vector2(24, 24)
 custom_maximum_size = Vector2(24, 24)
 layout_mode = 2
@@ -295,7 +201,7 @@ size_flags_horizontal = 10
 size_flags_vertical = 4
 script = ExtResource("5_qnstr")
 
-[node name="Background" type="NinePatchRect" parent="VBox/PartySelect/HBox/Party/Slots/Slot_1" unique_id=1824109358]
+[node name="Background" type="NinePatchRect" parent="PartySelect/VBox/Slots/Slot_1" unique_id=1824109358]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -310,7 +216,7 @@ patch_margin_top = 4
 patch_margin_right = 4
 patch_margin_bottom = 4
 
-[node name="Icon" type="TextureRect" parent="VBox/PartySelect/HBox/Party/Slots/Slot_1" unique_id=584939746]
+[node name="Icon" type="TextureRect" parent="PartySelect/VBox/Slots/Slot_1" unique_id=584939746]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -323,7 +229,7 @@ size_flags_horizontal = 6
 size_flags_vertical = 4
 stretch_mode = 2
 
-[node name="Frame" type="NinePatchRect" parent="VBox/PartySelect/HBox/Party/Slots/Slot_1" unique_id=411304907]
+[node name="Frame" type="NinePatchRect" parent="PartySelect/VBox/Slots/Slot_1" unique_id=411304907]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -342,7 +248,7 @@ patch_margin_top = 5
 patch_margin_right = 5
 patch_margin_bottom = 5
 
-[node name="Slot_2" type="Control" parent="VBox/PartySelect/HBox/Party/Slots" unique_id=817540744]
+[node name="Slot_2" type="Control" parent="PartySelect/VBox/Slots" unique_id=817540744]
 custom_minimum_size = Vector2(24, 24)
 custom_maximum_size = Vector2(24, 24)
 layout_mode = 2
@@ -350,7 +256,7 @@ size_flags_horizontal = 10
 size_flags_vertical = 4
 script = ExtResource("5_qnstr")
 
-[node name="Background" type="NinePatchRect" parent="VBox/PartySelect/HBox/Party/Slots/Slot_2" unique_id=825619032]
+[node name="Background" type="NinePatchRect" parent="PartySelect/VBox/Slots/Slot_2" unique_id=825619032]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -365,7 +271,7 @@ patch_margin_top = 4
 patch_margin_right = 4
 patch_margin_bottom = 4
 
-[node name="Icon" type="TextureRect" parent="VBox/PartySelect/HBox/Party/Slots/Slot_2" unique_id=602726015]
+[node name="Icon" type="TextureRect" parent="PartySelect/VBox/Slots/Slot_2" unique_id=602726015]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -378,7 +284,7 @@ size_flags_horizontal = 6
 size_flags_vertical = 4
 stretch_mode = 2
 
-[node name="Frame" type="NinePatchRect" parent="VBox/PartySelect/HBox/Party/Slots/Slot_2" unique_id=534236690]
+[node name="Frame" type="NinePatchRect" parent="PartySelect/VBox/Slots/Slot_2" unique_id=534236690]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -397,7 +303,7 @@ patch_margin_top = 5
 patch_margin_right = 5
 patch_margin_bottom = 5
 
-[node name="Slot_3" type="Control" parent="VBox/PartySelect/HBox/Party/Slots" unique_id=555946893]
+[node name="Slot_3" type="Control" parent="PartySelect/VBox/Slots" unique_id=555946893]
 custom_minimum_size = Vector2(24, 24)
 custom_maximum_size = Vector2(24, 24)
 layout_mode = 2
@@ -405,7 +311,7 @@ size_flags_horizontal = 10
 size_flags_vertical = 4
 script = ExtResource("5_qnstr")
 
-[node name="Background" type="NinePatchRect" parent="VBox/PartySelect/HBox/Party/Slots/Slot_3" unique_id=344414134]
+[node name="Background" type="NinePatchRect" parent="PartySelect/VBox/Slots/Slot_3" unique_id=344414134]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -420,7 +326,7 @@ patch_margin_top = 4
 patch_margin_right = 4
 patch_margin_bottom = 4
 
-[node name="Icon" type="TextureRect" parent="VBox/PartySelect/HBox/Party/Slots/Slot_3" unique_id=2076464290]
+[node name="Icon" type="TextureRect" parent="PartySelect/VBox/Slots/Slot_3" unique_id=2076464290]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -433,7 +339,7 @@ size_flags_horizontal = 6
 size_flags_vertical = 4
 stretch_mode = 2
 
-[node name="Frame" type="NinePatchRect" parent="VBox/PartySelect/HBox/Party/Slots/Slot_3" unique_id=254547539]
+[node name="Frame" type="NinePatchRect" parent="PartySelect/VBox/Slots/Slot_3" unique_id=254547539]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -452,72 +358,34 @@ patch_margin_top = 5
 patch_margin_right = 5
 patch_margin_bottom = 5
 
-[node name="Buttons" type="HBoxContainer" parent="VBox/PartySelect/HBox/Party" unique_id=2120291212]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -44.5
-offset_top = -18.0
-offset_right = 44.5
-grow_horizontal = 2
-grow_vertical = 0
+[node name="Buttons" type="HBoxContainer" parent="PartySelect/VBox" unique_id=919262128]
+layout_mode = 2
 size_flags_horizontal = 4
-size_flags_vertical = 6
-theme_override_constants/separation = 8
-
-[node name="MoveLeft" type="Button" parent="VBox/PartySelect/HBox/Party/Buttons" unique_id=1623717339]
-custom_minimum_size = Vector2(18, 18)
-custom_maximum_size = Vector2(18, 18)
-layout_mode = 2
-size_flags_horizontal = 6
 size_flags_vertical = 4
-theme_override_styles/normal = SubResource("StyleBoxTexture_2w4ib")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_pqlqr")
-theme_override_styles/hover = SubResource("StyleBoxTexture_he242")
-theme_override_styles/disabled = SubResource("StyleBoxTexture_f2pg4")
-theme_override_styles/focus = SubResource("StyleBoxTexture_4id7k")
-text = "<<"
 
-[node name="Add" type="Button" parent="VBox/PartySelect/HBox/Party/Buttons" unique_id=195985185]
-custom_minimum_size = Vector2(30, 24)
-custom_maximum_size = Vector2(30, 24)
+[node name="Add" type="Button" parent="PartySelect/VBox/Buttons" unique_id=177279516]
+custom_minimum_size = Vector2(36, 24)
+custom_maximum_size = Vector2(36, 24)
 layout_mode = 2
-size_flags_horizontal = 6
-size_flags_vertical = 4
-theme_override_styles/normal = SubResource("StyleBoxTexture_2w4ib")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_pqlqr")
-theme_override_styles/hover = SubResource("StyleBoxTexture_he242")
-theme_override_styles/disabled = SubResource("StyleBoxTexture_f2pg4")
-theme_override_styles/focus = SubResource("StyleBoxTexture_4id7k")
 text = "Add"
 
-[node name="MoveRight" type="Button" parent="VBox/PartySelect/HBox/Party/Buttons" unique_id=625472742]
-custom_minimum_size = Vector2(18, 18)
-custom_maximum_size = Vector2(18, 18)
+[node name="Apply" type="Button" parent="PartySelect/VBox/Buttons" unique_id=151814447]
+custom_minimum_size = Vector2(36, 24)
+custom_maximum_size = Vector2(36, 24)
 layout_mode = 2
-size_flags_horizontal = 6
-size_flags_vertical = 4
-theme_override_styles/normal = SubResource("StyleBoxTexture_2w4ib")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_pqlqr")
-theme_override_styles/hover = SubResource("StyleBoxTexture_he242")
-theme_override_styles/disabled = SubResource("StyleBoxTexture_f2pg4")
-theme_override_styles/focus = SubResource("StyleBoxTexture_4id7k")
-text = ">>"
+text = "Apply"
 
-[node name="Apply" type="Panel" parent="VBox/PartySelect/HBox" unique_id=1145880960]
-custom_minimum_size = Vector2(82, 82)
-custom_maximum_size = Vector2(82, 82)
+[node name="Adventurers" type="VBoxContainer" parent="." unique_id=515375348]
 layout_mode = 2
-size_flags_horizontal = 8
 size_flags_vertical = 4
 
-[node name="Button" type="Button" parent="VBox/PartySelect/HBox/Apply" unique_id=2027614733]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="AdventurerBoard" parent="Adventurers" unique_id=1011375650 instance=ExtResource("6_cdytu")]
+custom_minimum_size = Vector2(160, 140)
+custom_maximum_size = Vector2(160, 140)
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="AdventurerInfo" parent="Adventurers" unique_id=1707344281 instance=ExtResource("7_pqlqr")]
+custom_minimum_size = Vector2(160, 140)
+custom_maximum_size = Vector2(160, 140)
+layout_mode = 2

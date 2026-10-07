@@ -1,13 +1,5 @@
 [gd_scene format=3 uid="uid://cfshp3jpfjndn"]
 
-[ext_resource type="Script" uid="uid://cbo755o48r5vk" path="res://UI/TopBar/Navigation/Navigation.cs" id="1_2g78a"]
-[ext_resource type="Script" uid="uid://cpg4m8ishtu5y" path="res://UI/TopBar/Navigation/NavigationButton.cs" id="2_5uvc4"]
-[ext_resource type="Texture2D" uid="uid://cqomvakl20fyu" path="res://Resources/Sprites/Icons/Interface/adventurers.tres" id="3_71q0v"]
-[ext_resource type="Texture2D" uid="uid://luwsssfklyxy" path="res://Resources/Sprites/Icons/Interface/quests.tres" id="4_1gqae"]
-[ext_resource type="Texture2D" uid="uid://bn4ots3ms6o8u" path="res://Resources/Sprites/Icons/Interface/tavern.tres" id="5_6q5hh"]
-[ext_resource type="Texture2D" uid="uid://38t4ydpvep2y" path="res://Resources/Sprites/Icons/Interface/storage.tres" id="6_xs8ut"]
-[ext_resource type="Texture2D" uid="uid://bf4bfbw1u880j" path="res://Resources/Sprites/Icons/Interface/reports.tres" id="7_xh0q5"]
-[ext_resource type="Texture2D" uid="uid://dtk55l2g2otx" path="res://Resources/Sprites/Icons/Interface/actions.tres" id="8_iobuf"]
 [ext_resource type="Script" uid="uid://cxuxti4hqx5q4" path="res://UI/TopBar/Status.cs" id="9_2g78a"]
 [ext_resource type="Texture2D" uid="uid://cgpryj8bhcrjb" path="res://Resources/Sprites/Icons/Interface/gold.tres" id="10_i8ydx"]
 [ext_resource type="Texture2D" uid="uid://cn8hd5mc47hfn" path="res://Resources/Sprites/Icons/Interface/glory.tres" id="11_k3wmv"]
@@ -19,173 +11,18 @@ anchors_preset = 10
 anchor_right = 1.0
 offset_bottom = 16.0
 grow_horizontal = 2
+size_flags_horizontal = 3
+size_flags_vertical = 2
 
-[node name="HBox" type="HBoxContainer" parent="." unique_id=2009390284]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="Navigation" type="HBoxContainer" parent="HBox" unique_id=882557184]
-layout_mode = 2
-size_flags_horizontal = 2
-theme_override_constants/separation = 8
-script = ExtResource("1_2g78a")
-
-[node name="Adventurers" type="Button" parent="HBox/Navigation" unique_id=1143260912]
-layout_mode = 2
-size_flags_vertical = 4
-tooltip_text = "Adventurers"
-script = ExtResource("2_5uvc4")
-Window = 7
-
-[node name="Icon" type="TextureRect" parent="HBox/Navigation/Adventurers" unique_id=513984357]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -8.0
-offset_top = -8.0
-offset_right = 8.0
-offset_bottom = 8.0
-grow_horizontal = 2
-grow_vertical = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-mouse_filter = 2
-texture = ExtResource("3_71q0v")
-stretch_mode = 2
-
-[node name="Quests" type="Button" parent="HBox/Navigation" unique_id=1055196471]
-layout_mode = 2
-size_flags_vertical = 4
-tooltip_text = "Quests"
-script = ExtResource("2_5uvc4")
-Window = 2
-
-[node name="Icon" type="TextureRect" parent="HBox/Navigation/Quests" unique_id=958072911]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -8.0
-offset_top = -8.0
-offset_right = 8.0
-offset_bottom = 8.0
-grow_horizontal = 2
-grow_vertical = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-mouse_filter = 2
-texture = ExtResource("4_1gqae")
-stretch_mode = 2
-
-[node name="Tavern" type="Button" parent="HBox/Navigation" unique_id=1438843541]
-layout_mode = 2
-size_flags_vertical = 4
-tooltip_text = "Tavern"
-script = ExtResource("2_5uvc4")
-
-[node name="Icon" type="TextureRect" parent="HBox/Navigation/Tavern" unique_id=1870873173]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -8.0
-offset_top = -8.0
-offset_right = 8.0
-offset_bottom = 8.0
-grow_horizontal = 2
-grow_vertical = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-mouse_filter = 2
-texture = ExtResource("5_6q5hh")
-stretch_mode = 2
-
-[node name="Storage" type="Button" parent="HBox/Navigation" unique_id=653700387]
-layout_mode = 2
-size_flags_vertical = 4
-tooltip_text = "Storage"
-script = ExtResource("2_5uvc4")
-
-[node name="Icon" type="TextureRect" parent="HBox/Navigation/Storage" unique_id=1408427810]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -8.0
-offset_top = -8.0
-offset_right = 8.0
-offset_bottom = 8.0
-grow_horizontal = 2
-grow_vertical = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-mouse_filter = 2
-texture = ExtResource("6_xs8ut")
-stretch_mode = 2
-
-[node name="Reports" type="Button" parent="HBox/Navigation" unique_id=148813664]
-layout_mode = 2
-size_flags_vertical = 4
-tooltip_text = "Reports"
-script = ExtResource("2_5uvc4")
-
-[node name="Icon" type="TextureRect" parent="HBox/Navigation/Reports" unique_id=1859250775]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -8.0
-offset_top = -8.0
-offset_right = 8.0
-offset_bottom = 8.0
-grow_horizontal = 2
-grow_vertical = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-mouse_filter = 2
-texture = ExtResource("7_xh0q5")
-stretch_mode = 2
-
-[node name="Actions" type="Button" parent="HBox/Navigation" unique_id=626073565]
-layout_mode = 2
-size_flags_vertical = 4
-tooltip_text = "Actions"
-script = ExtResource("2_5uvc4")
-
-[node name="Icon" type="TextureRect" parent="HBox/Navigation/Actions" unique_id=1624477468]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -8.0
-offset_top = -8.0
-offset_right = 8.0
-offset_bottom = 8.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("8_iobuf")
-
-[node name="Status" type="HBoxContainer" parent="HBox" unique_id=838958993]
+[node name="Status" type="HBoxContainer" parent="." unique_id=838958993]
 custom_minimum_size = Vector2(0, 16)
 layout_mode = 2
-size_flags_horizontal = 10
+size_flags_horizontal = 6
+size_flags_vertical = 4
 theme_override_constants/separation = 0
 script = ExtResource("9_2g78a")
 
-[node name="Gold" type="HBoxContainer" parent="HBox/Status" unique_id=1927105028]
+[node name="Gold" type="HBoxContainer" parent="Status" unique_id=1927105028]
 custom_minimum_size = Vector2(40, 16)
 custom_maximum_size = Vector2(40, 16)
 layout_mode = 2
@@ -194,7 +31,7 @@ tooltip_text = "Gold"
 theme_override_constants/separation = 2
 alignment = 1
 
-[node name="Icon" type="TextureRect" parent="HBox/Status/Gold" unique_id=145259613]
+[node name="Icon" type="TextureRect" parent="Status/Gold" unique_id=145259613]
 texture_filter = 1
 texture_repeat = 1
 layout_mode = 2
@@ -202,14 +39,14 @@ size_flags_vertical = 4
 texture = ExtResource("10_i8ydx")
 stretch_mode = 2
 
-[node name="Count" type="Label" parent="HBox/Status/Gold" unique_id=715536022]
+[node name="Count" type="Label" parent="Status/Gold" unique_id=715536022]
 layout_mode = 2
 size_flags_horizontal = 6
 text = "000"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Glory" type="HBoxContainer" parent="HBox/Status" unique_id=1080185854]
+[node name="Glory" type="HBoxContainer" parent="Status" unique_id=1080185854]
 custom_minimum_size = Vector2(40, 16)
 custom_maximum_size = Vector2(40, 16)
 layout_mode = 2
@@ -218,7 +55,7 @@ tooltip_text = "Reputation"
 theme_override_constants/separation = 2
 alignment = 1
 
-[node name="Icon" type="TextureRect" parent="HBox/Status/Glory" unique_id=1823440308]
+[node name="Icon" type="TextureRect" parent="Status/Glory" unique_id=1823440308]
 texture_filter = 1
 texture_repeat = 1
 layout_mode = 2
@@ -226,7 +63,7 @@ size_flags_vertical = 4
 texture = ExtResource("11_k3wmv")
 stretch_mode = 2
 
-[node name="Count" type="Label" parent="HBox/Status/Glory" unique_id=2031605385]
+[node name="Count" type="Label" parent="Status/Glory" unique_id=2031605385]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 1
@@ -234,7 +71,7 @@ text = "000"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Day" type="HBoxContainer" parent="HBox/Status" unique_id=1921967599]
+[node name="Day" type="HBoxContainer" parent="Status" unique_id=1921967599]
 custom_minimum_size = Vector2(40, 16)
 custom_maximum_size = Vector2(40, 16)
 layout_mode = 2
@@ -243,7 +80,7 @@ tooltip_text = "Day"
 theme_override_constants/separation = 2
 alignment = 1
 
-[node name="Icon" type="TextureRect" parent="HBox/Status/Day" unique_id=1971542088]
+[node name="Icon" type="TextureRect" parent="Status/Day" unique_id=1971542088]
 texture_filter = 1
 texture_repeat = 1
 layout_mode = 2
@@ -251,7 +88,7 @@ size_flags_vertical = 4
 texture = ExtResource("12_jphqr")
 stretch_mode = 2
 
-[node name="Count" type="Label" parent="HBox/Status/Day" unique_id=578259187]
+[node name="Count" type="Label" parent="Status/Day" unique_id=578259187]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 1
@@ -259,14 +96,14 @@ text = "000"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Time" type="HBoxContainer" parent="HBox/Status" unique_id=1833060615]
+[node name="Time" type="HBoxContainer" parent="Status" unique_id=1833060615]
 custom_minimum_size = Vector2(48, 16)
 custom_maximum_size = Vector2(48, 16)
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_constants/separation = 2
 
-[node name="Icon" type="TextureRect" parent="HBox/Status/Time" unique_id=523209430]
+[node name="Icon" type="TextureRect" parent="Status/Time" unique_id=523209430]
 texture_filter = 1
 texture_repeat = 1
 layout_mode = 2
@@ -274,7 +111,7 @@ size_flags_vertical = 4
 texture = ExtResource("13_rdba7")
 stretch_mode = 2
 
-[node name="Count" type="Label" parent="HBox/Status/Time" unique_id=1118118380]
+[node name="Count" type="Label" parent="Status/Time" unique_id=1118118380]
 layout_mode = 2
 text = "00:00"
 horizontal_alignment = 1

@@ -1,16 +1,20 @@
 using Godot;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public partial class RegisterWindow : InteractableWindow
 {
     private const int CandidateCount = 4;
 
-    private readonly List<AdventurerModel> candidates = [];
-
-    private AdventurerList adventurerList;
+    private AvailableBoard availableBoard;
+    private AdventurerInfo adventurerInfo;
     private AdventurerBoard adventurerBoard;
-    private AdventurerFactory factory;
+    private Control control;
 
+    private readonly List<AdventurerModel> candidates = [];
+    private AdventurerRegistry adventurerRegistry;
+    private AdventurerFactory adventurerFactory;
     private Button hire;
     private Button reject;
 
@@ -18,10 +22,17 @@ public partial class RegisterWindow : InteractableWindow
 
     public override void _Ready()
     {
-        if (!this.TryGetInstance(out adventurerList)) return;
+        if (!this.TryGetInstance(out availableBoard)) return;
+        if (!this.TryGetInstance(out adventurerInfo)) return;
+        if (!this.TryGetInstance(out adventurerBoard)) return;
 
-        hire = GetNode<Button>("Control/Buttons/HBox/Hire");
-        reject = GetNode<Button>("Control/Buttons/HBox/Reject");
+        control = GetNode<Control>("VBox/Control");
+
+        hire = control.GetNode<Button>("Hire");
+        reject = control.GetNode<Button>("Reject");
+
+        availableBoard.AdventurerList.SelectedIdChanged += OnAvailableSelected;
+        adventurerBoard.AdventurerList.SelectedIdChanged += OnAdventurerSelected;
 
         hire.Pressed += OnHire;
         reject.Pressed += OnReject;
@@ -37,39 +48,56 @@ public partial class RegisterWindow : InteractableWindow
 
     protected override void OnOpen()
     {
-        if (adventurerList == null) return;
-
-        adventurerList.Deselect();
-        adventurerBoard.AdventurerList.Deselect();
-        adventurerList.SelectedIdChanged += OnSelectedIdChanged;
+        availableBoard?.AdventurerList?.Deselect();
+        adventurerBoard?.AdventurerList?.Deselect();
     }
 
     protected override void OnClose()
     {
-        if (adventurerList == null) return;
-
-        adventurerList.Deselect();
-        adventurerBoard.AdventurerList.Deselect();
-        adventurerList.SelectedIdChanged -= OnSelectedIdChanged;
+        availableBoard?.AdventurerList?.Deselect();
+        adventurerBoard?.AdventurerList?.Deselect();
     }
 
-    public void Bind(AdventurerBoard adventurerBoard, AdventurerFactory factory)
+    public void Bind(AdventurerRegistry adventurerRegistry, AdventurerFactory adventurerFactory)
     {
-        this.adventurerBoard = adventurerBoard;
-        this.factory = factory;
+        this.adventurerFactory = adventurerFactory;
+        this.adventurerRegistry = adventurerRegistry;
+
+        adventurerBoard.Bind(this.adventurerRegistry);
     }
 
     public void Start()
     {
+        TestAllRacesAndClasses();
         GenerateCandidates();
+
+        adventurerBoard.Refresh();
     }
 
-    private void OnSelectedIdChanged(string id)
+    private void OnAvailableSelected(string id)
     {
+        adventurerBoard?.AdventurerList?.Deselect();
+
         selectedId = id;
 
         var model = FindModel(id);
-        adventurerBoard.AdventurerInfo.SetAdventurer(model);
+        adventurerInfo.SetAdventurer(model);
+    }
+
+
+    private void OnAdventurerSelected(string id)
+    {
+        availableBoard?.AdventurerList?.Deselect();
+
+        selectedId = null;
+
+        var model = adventurerRegistry.GetById(id);
+        adventurerInfo.SetAdventurer(model);
+    }
+
+    private void OnRemove(AdventurerModel model)
+    {
+        adventurerBoard.AdventurerList.Remove(model.Id);
     }
 
     private void OnHire()
@@ -77,35 +105,35 @@ public partial class RegisterWindow : InteractableWindow
         if (selectedId == null) return;
 
         var model = FindModel(selectedId);
+
         if (model == null) return;
 
-        if (!adventurerBoard.TryAdd(model)) return;
+        if (adventurerRegistry.TryAdd(model))
+        {
+            adventurerBoard.AdventurerList.Add(model);
+            availableBoard.AdventurerList.Remove(selectedId);
 
-        adventurerList.Remove(selectedId);
-        candidates.Remove(model);
-        selectedId = null;
-        adventurerBoard.AdventurerInfo.Clear();
+            candidates.Remove(model);
+
+            selectedId = null;
+            adventurerInfo.Clear();
+        }
     }
 
     private void OnReject()
     {
+        if (selectedId == null) return;
+
         var model = FindModel(selectedId);
-        if (model != null) candidates.Remove(model);
 
-        adventurerList.Remove(selectedId);
+        if (model == null) return;
+
+        availableBoard.AdventurerList.Remove(selectedId);
+
+        candidates.Remove(model);
+
         selectedId = null;
-        adventurerBoard.AdventurerInfo.Clear();
-    }
-
-    private void GenerateCandidates()
-    {
-        candidates.Clear();
-        for (int i = 0; i < CandidateCount; i++)
-        {
-            var model = factory.Create();
-            candidates.Add(model);
-            adventurerList.Add(model);
-        }
+        adventurerInfo.Clear();
     }
 
     private AdventurerModel FindModel(string id)
@@ -113,5 +141,29 @@ public partial class RegisterWindow : InteractableWindow
         foreach (var c in candidates)
             if (c.Id == id) return c;
         return null;
+    }
+
+    private void GenerateCandidates()
+    {
+        candidates.Clear();
+
+        for (int i = 0; i < CandidateCount; i++)
+        {
+            var model = adventurerFactory.Create();
+            candidates.Add(model);
+            availableBoard.AdventurerList.Add(model);
+        }
+    }
+
+    private void TestAllRacesAndClasses()
+    {
+        var classIds = AdventurerDatabase.Classes.Keys.ToList();
+
+        foreach (var classId in classIds)
+        {
+            var model = adventurerFactory.Create("human", classId, 1);
+
+            if (!adventurerRegistry.TryAdd(model)) continue;
+        }
     }
 }

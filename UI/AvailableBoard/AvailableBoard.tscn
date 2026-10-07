@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://dlpqc2bjjx5lt"]
+
+[ext_resource type="Script" uid="uid://wcjxoaewvev2" path="res://UI/AvailableBoard/AvailableBoard.cs" id="1_6xg8j"]
+[ext_resource type="Script" uid="uid://dkw120agxembb" path="res://UI/Common/AdventurerList.cs" id="2_g1qke"]
+[ext_resource type="PackedScene" uid="uid://c4nc4fcpwmdii" path="res://UI/AvailableBoard/AvailableBoardRow.tscn" id="3_6xg8j"]
+
+[node name="AvailableBoard" type="PanelContainer" unique_id=2096333078]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_6xg8j")
+
+[node name="AvailableList" type="PanelContainer" parent="." unique_id=1167759381]
+layout_mode = 2
+script = ExtResource("2_g1qke")
+RowPrefab = ExtResource("3_6xg8j")
+
+[node name="Scroll" type="ScrollContainer" parent="AvailableList" unique_id=769440403]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="VBox" type="VBoxContainer" parent="AvailableList/Scroll" unique_id=1108005029]
+custom_maximum_size = Vector2(138, -1)
+layout_mode = 2
+size_flags_vertical = 3

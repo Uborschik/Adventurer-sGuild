@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://b3w57jddr281i"]
+
+[ext_resource type="Script" uid="uid://chqb43jghwtn5" path="res://UI/AdventurerInfo/AdventurerInfo.cs" id="1_q0oln"]
+
+[node name="AdventurerInfo" type="PanelContainer" unique_id=1707344281]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_q0oln")
+
+[node name="VBox" type="VBoxContainer" parent="." unique_id=609573927]
+layout_mode = 2
+
+[node name="Name" type="Label" parent="VBox" unique_id=692669823]
+layout_mode = 2
+size_flags_vertical = 1
+horizontal_alignment = 1
+vertical_alignment = 1
+uppercase = true
+metadata/_edit_use_anchors_ = true
+
+[node name="Class" type="Label" parent="VBox" unique_id=1271538071]
+custom_minimum_size = Vector2(0, 18)
+custom_maximum_size = Vector2(-1, 18)
+layout_mode = 2
+size_flags_vertical = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true

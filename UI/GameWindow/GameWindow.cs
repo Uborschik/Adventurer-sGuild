@@ -4,9 +4,6 @@ using Godot;
 
 public partial class GameWindow : Control
 {
-#if DEBUG
-    // private DebugResolvedTable debugTable;
-#endif
     // === Models ===
     private AdventurerRegistry adventurerRegistry;
     private GuildBank bank;
@@ -18,11 +15,9 @@ public partial class GameWindow : Control
 
     // === Views ===
     private Status statusBar;
-    private AdventurerBoard adventurerBoard;
     private Navigation navigation;
     private RegisterWindow registerWindow;
     private QuestBoardWindow questBoardWindow;
-    private PartySelect partySelect;
 
     public GameWindow()
     {
@@ -49,18 +44,6 @@ public partial class GameWindow : Control
 
         navigation.Setup();
 
-#if DEBUG
-        // if (debugTable == null)
-        // {
-        //     var scene = GD.Load<PackedScene>("res://UI/Debug/DebugResolvedTable.tscn");
-        //     debugTable = scene.Instantiate<DebugResolvedTable>();
-        //     AddChild(debugTable);
-        // }
-
-        // debugTable?.Bind(questRegistry);
-#endif
-
-        TestAllRacesAndClasses();
         StartWindows();
 
         clock.TimeAdvanced += adventurerRegistry.Tick;
@@ -93,19 +76,16 @@ public partial class GameWindow : Control
     private bool CollectViews()
     {
         if (!this.TryGetInstance(out statusBar)) return Fail("Status");
-        if (!this.TryGetInstance(out adventurerBoard)) return Fail("AdventurerBoard");
         if (!this.TryGetInstance(out navigation)) return Fail("Navigation");
 
-        // Опциональные — не критичны для запуска
-        this.TryGetInstance(out registerWindow);
-        this.TryGetInstance(out questBoardWindow);
-        this.TryGetInstance(out partySelect);
+        if (!this.TryGetInstance(out registerWindow)) return Fail("Register");
+        if (!this.TryGetInstance(out questBoardWindow)) return Fail("Quests");
         return true;
     }
 
     private static bool Fail(string what)
     {
-        GD.PushError($"GameWindow: не найден {what}.");
+        GD.PushError($"[GameWindow] не найден {what}.");
         return false;
     }
 
@@ -115,12 +95,8 @@ public partial class GameWindow : Control
     {
         statusBar.Bind(bank, clock);
 
-        adventurerBoard.Bind(adventurerRegistry);
-        registerWindow?.Bind(adventurerBoard, adventurerFactory);
-        questBoardWindow?.Bind(adventurerBoard, questRegistry, questFlow);
-
-        partySelect?.Bind(
-            adventurerRegistry, questFlow, questResolver);
+        registerWindow?.Bind(adventurerRegistry, adventurerFactory);
+        questBoardWindow?.Bind(adventurerRegistry, questRegistry, questFlow, questResolver);
 
         BindNavigationButtons();
     }
@@ -154,7 +130,7 @@ public partial class GameWindow : Control
 
     private List<InteractableWindow> GetInteractableWindows()
     {
-        var root = GetNodeOrNull<Control>("Windows");
+        var root = GetNodeOrNull<Control>("VBox/Windows");
         return root == null ? [] : root.GetAllInstances<InteractableWindow>();
     }
 
@@ -166,21 +142,6 @@ public partial class GameWindow : Control
     }
 
     // === Стартовые действия ===
-
-    private void TestAllRacesAndClasses()
-    {
-        var raceIds = AdventurerDatabase.Races.Keys.ToList();
-        var classIds = AdventurerDatabase.Classes.Keys.ToList();
-
-        foreach (var raceId in raceIds)
-        {
-            Log.Info($"--- {raceId} ---");
-            foreach (var classId in classIds)
-            {
-                adventurerBoard.TryAdd(adventurerFactory.Create(raceId, classId, 1));
-            }
-        }
-    }
 
     private void StartWindows()
     {
@@ -218,10 +179,6 @@ public partial class GameWindow : Control
                 int drawCalls = (int)Performance.GetMonitor(
                     Performance.Monitor.RenderTotalDrawCallsInFrame);
                 GD.Print($"Draw Calls: {drawCalls}");
-                break;
-
-            case Key.F12:
-                // debugTable?.Toggle();
                 break;
         }
     }

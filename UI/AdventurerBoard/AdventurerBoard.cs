@@ -1,64 +1,52 @@
+// AdventurerBoard.cs
+using System.Collections.Generic;
 using Godot;
 
 public partial class AdventurerBoard : Control
 {
     private AdventurerList adventurerList;
-    private Context context;
-    private AdventurerInfo adventurerInfo;
-
     private AdventurerRegistry adventurerRegistry;
 
     public AdventurerList AdventurerList => adventurerList;
-    public Context Context => context;
-    public AdventurerInfo AdventurerInfo => adventurerInfo;
 
     public override void _Ready()
     {
-        if (!this.TryGetInstance(out adventurerList)) return;
-        if (!this.TryGetInstance(out context)) return;
-        if (!this.TryGetInstance(out adventurerInfo)) return;
-
-        adventurerList.SelectedIdChanged += OnSelectedIdChanged;
+        if (!this.TryGetInstance(out adventurerList))
+        {
+            GD.PushError($"{nameof(AdventurerBoard)}: AdventurerList не найден");
+            return;
+        }
 
         adventurerList.Clear();
     }
 
     public override void _ExitTree()
     {
-        if (adventurerList != null)
-            adventurerList.SelectedIdChanged -= OnSelectedIdChanged;
-
         if (adventurerRegistry != null)
-            adventurerRegistry.Removed -= OnRemove;
+            adventurerRegistry.Removed += adventurerList.Remove;
     }
 
     public void Bind(AdventurerRegistry adventurerRegistry)
     {
         this.adventurerRegistry = adventurerRegistry;
-        adventurerRegistry.Removed += OnRemove;
+
+        adventurerRegistry.Removed += adventurerList.Remove;
     }
 
-    private void OnRemove(AdventurerModel model) => Remove(model.Id);
-
-    public void OnSelectedIdChanged(string id)
+    public void Add(AdventurerModel model)
     {
-        var model = adventurerRegistry.GetById(id);
-
-        adventurerInfo.SetAdventurer(model);
+        if (adventurerRegistry.TryAdd(model))
+        {
+            adventurerList.Add(model);
+        }
     }
-
-    public bool TryAdd(AdventurerModel model)
-    {
-        if (!adventurerRegistry.TryAdd(model)) return false;
-
-        adventurerList.Add(model);
-
-        return true;
-    }
-
     public void Remove(string id)
     {
-        adventurerList.Remove(id);
-        adventurerInfo.Clear();
+        if (adventurerRegistry.TryRemove(id))
+        {
+            adventurerList?.Remove(id);
+        }
     }
+    public void Refresh() => adventurerList.Refresh(adventurerRegistry.All);
+    public void Refresh(IReadOnlyList<AdventurerModel> hired) => adventurerList.Refresh(hired);
 }

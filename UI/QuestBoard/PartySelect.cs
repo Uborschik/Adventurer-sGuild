@@ -8,8 +8,8 @@ public partial class PartySelect : Control
 
     private QuestModel quest;
 
-    private Label chance;
     private Party party;
+    private Button add;
     private Button apply;
 
     public Party Party => party;
@@ -18,21 +18,21 @@ public partial class PartySelect : Control
 
     public override void _Ready()
     {
-        chance = GetNode<Label>("HBox/Chance/Label");
         if (!this.TryGetInstance(out party)) return;
-        apply = GetNode<Button>("HBox/Apply/Button");
+        add = GetNode<Button>("VBox/Buttons/Add");
+        apply = GetNode<Button>("VBox/Buttons/Apply");
 
-        party.PartyChanged += RefreshAll;
-        party.AddBtn.Pressed += OnAddClicked;
+        party.PartyChanged += RefreshCanApply;
+        add.Pressed += OnAdd;
         apply.Pressed += OnApply;
 
-        RefreshAll();
+        RefreshCanApply();
     }
 
     public override void _ExitTree()
     {
-        party.PartyChanged -= RefreshAll;
-        party.AddBtn.Pressed -= OnAddClicked;
+        party.PartyChanged -= RefreshCanApply;
+        add.Pressed -= OnAdd;
         apply.Pressed -= OnApply;
 
         if (questFlow != null)
@@ -53,12 +53,12 @@ public partial class PartySelect : Control
     {
         quest = newQuest;
 
-        RefreshAll();
+        RefreshCanApply();
     }
 
     public void HandleAdventurerClick(string id) => selectedId = id;
 
-    private void OnAddClicked()
+    private void OnAdd()
     {
         var model = adventurerRegistry.GetById(selectedId);
         if (model == null) return;
@@ -75,7 +75,6 @@ public partial class PartySelect : Control
 
         if (!questFlow.StartQuest(quest, list)) return;
 
-        RefreshChance();
         party.ClearParty();
         quest = null;
     }
@@ -85,22 +84,6 @@ public partial class PartySelect : Control
         string gradeName = QuestDatabase.GradeName(model.Result.Role);
         GD.Print($"[Quest] {model.Name}: {gradeName}, " +
                  $"+{model.Result.GoldEarned}g, +{model.Result.GloryEarned}glory");
-    }
-
-    private void RefreshAll()
-    {
-        RefreshChance();
-        RefreshCanApply();
-    }
-
-    private void RefreshChance()
-    {
-        if (quest == null) { chance.Text = ""; return; }
-
-        var list = party.BuildParty();
-        var prediction = questResolver.Predict(quest, list);
-
-        chance.Text = $"{prediction.PhasesPassed}/{prediction.PhasesTotal} фаз";
     }
 
     private void RefreshCanApply()

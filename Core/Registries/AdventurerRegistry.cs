@@ -3,7 +3,8 @@ using System.Collections.Generic;
 
 public class AdventurerRegistry
 {
-    public event Action<AdventurerModel> Removed;
+    public event Action<string> Added;
+    public event Action<string> Removed;
 
     private readonly List<AdventurerModel> data = [];
 
@@ -14,16 +15,16 @@ public class AdventurerRegistry
     {
         for (int i = data.Count - 1; i >= 0; i--)
         {
-            var a = data[i];
+            var model = data[i];
 
-            if (a.ShouldBeRemoved(now))
+            if (model.ShouldBeRemoved(now))
             {
                 data.RemoveAt(i);
-                Removed?.Invoke(a);
+                Removed?.Invoke(model.Id);
                 continue;
             }
 
-            a.Tick(now);
+            model.Tick(now);
         }
     }
 
@@ -33,6 +34,7 @@ public class AdventurerRegistry
         if (Contains(model.Id)) return false;
 
         data.Add(model);
+        Added?.Invoke(model.Id);
         return true;
     }
 
@@ -42,6 +44,7 @@ public class AdventurerRegistry
         if (index < 0) return false;
 
         data.RemoveAt(index);
+        Removed?.Invoke(id);
         return true;
     }
 

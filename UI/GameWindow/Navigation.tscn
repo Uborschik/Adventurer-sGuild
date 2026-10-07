@@ -1,0 +1,178 @@
+[gd_scene format=3 uid="uid://daigvagevjny4"]
+
+[ext_resource type="Script" uid="uid://cbo755o48r5vk" path="res://UI/TopBar/Navigation/Navigation.cs" id="1_jepo4"]
+[ext_resource type="Script" uid="uid://cpg4m8ishtu5y" path="res://UI/TopBar/Navigation/NavigationButton.cs" id="2_4uhut"]
+[ext_resource type="Texture2D" uid="uid://cqomvakl20fyu" path="res://Resources/Sprites/Icons/Interface/adventurers.tres" id="3_7i1q3"]
+[ext_resource type="Texture2D" uid="uid://luwsssfklyxy" path="res://Resources/Sprites/Icons/Interface/quests.tres" id="4_hiow0"]
+[ext_resource type="Texture2D" uid="uid://bn4ots3ms6o8u" path="res://Resources/Sprites/Icons/Interface/tavern.tres" id="5_wwjp3"]
+[ext_resource type="Texture2D" uid="uid://38t4ydpvep2y" path="res://Resources/Sprites/Icons/Interface/storage.tres" id="6_ovvu5"]
+[ext_resource type="Texture2D" uid="uid://bf4bfbw1u880j" path="res://Resources/Sprites/Icons/Interface/reports.tres" id="7_2jh62"]
+[ext_resource type="Texture2D" uid="uid://dtk55l2g2otx" path="res://Resources/Sprites/Icons/Interface/actions.tres" id="8_x6lph"]
+
+[node name="BotBar" type="PanelContainer" unique_id=199968847]
+custom_minimum_size = Vector2(200, 24)
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -24.0
+offset_right = 100.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Navigation" type="HBoxContainer" parent="." unique_id=1097038778]
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 4
+theme_override_constants/separation = 8
+script = ExtResource("1_jepo4")
+
+[node name="Adventurers" type="Button" parent="Navigation" unique_id=1771128472]
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Adventurers"
+script = ExtResource("2_4uhut")
+Window = 7
+
+[node name="Icon" type="TextureRect" parent="Navigation/Adventurers" unique_id=1527778967]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -8.0
+offset_top = -8.0
+offset_right = 8.0
+offset_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("3_7i1q3")
+stretch_mode = 2
+
+[node name="Quests" type="Button" parent="Navigation" unique_id=2053965395]
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Quests"
+script = ExtResource("2_4uhut")
+Window = 2
+
+[node name="Icon" type="TextureRect" parent="Navigation/Quests" unique_id=518190023]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -8.0
+offset_top = -8.0
+offset_right = 8.0
+offset_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("4_hiow0")
+stretch_mode = 2
+
+[node name="Tavern" type="Button" parent="Navigation" unique_id=63454294]
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Tavern"
+script = ExtResource("2_4uhut")
+
+[node name="Icon" type="TextureRect" parent="Navigation/Tavern" unique_id=1562098746]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -8.0
+offset_top = -8.0
+offset_right = 8.0
+offset_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("5_wwjp3")
+stretch_mode = 2
+
+[node name="Storage" type="Button" parent="Navigation" unique_id=78515317]
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Storage"
+script = ExtResource("2_4uhut")
+
+[node name="Icon" type="TextureRect" parent="Navigation/Storage" unique_id=1957649581]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -8.0
+offset_top = -8.0
+offset_right = 8.0
+offset_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("6_ovvu5")
+stretch_mode = 2
+
+[node name="Reports" type="Button" parent="Navigation" unique_id=1635244087]
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Reports"
+script = ExtResource("2_4uhut")
+
+[node name="Icon" type="TextureRect" parent="Navigation/Reports" unique_id=847902569]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -8.0
+offset_top = -8.0
+offset_right = 8.0
+offset_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("7_2jh62")
+stretch_mode = 2
+
+[node name="Actions" type="Button" parent="Navigation" unique_id=1362385626]
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Actions"
+script = ExtResource("2_4uhut")
+
+[node name="Icon" type="TextureRect" parent="Navigation/Actions" unique_id=1834178223]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -8.0
+offset_top = -8.0
+offset_right = 8.0
+offset_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("8_x6lph")

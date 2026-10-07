@@ -10,15 +10,11 @@ public partial class Party : Control
     public event Action<AdventurerModel> SelectedAdventurer;
     public event Action PartyChanged;
 
-    private Button moveLeftBtn;
-    private Button addBtn;
-    private Button moveRightBtn;
     private Slot[] slots;
 
     private readonly AdventurerModel[] party = new AdventurerModel[MaxPartySize];
     private int selectedSlot = -1;
 
-    public Button AddBtn => addBtn;
     public int Count
     {
         get
@@ -31,10 +27,6 @@ public partial class Party : Control
 
     public override void _Ready()
     {
-        moveLeftBtn = GetNode<Button>("Buttons/MoveLeft");
-        addBtn = GetNode<Button>("Buttons/Add");
-        moveRightBtn = GetNode<Button>("Buttons/MoveRight");
-
         slots = [.. this.GetAllInstances<Slot>()];
 
         for (int i = 0; i < slots.Length; i++)
@@ -45,9 +37,6 @@ public partial class Party : Control
             slot.LeftClicked += OnSlotLeftClicked;
             slot.RightClicked += OnSlotRightClicked;
         }
-
-        moveLeftBtn.Pressed += OnMoveLeftPressed;
-        moveRightBtn.Pressed += OnMoveRightPressed;
     }
 
     public override void _ExitTree()
@@ -62,9 +51,6 @@ public partial class Party : Control
                 slot.RightClicked -= OnSlotRightClicked;
             }
         }
-
-        if (moveLeftBtn != null) moveLeftBtn.Pressed -= OnMoveLeftPressed;
-        if (moveRightBtn != null) moveRightBtn.Pressed -= OnMoveRightPressed;
     }
 
     public void Add(AdventurerModel model)
@@ -108,7 +94,6 @@ public partial class Party : Control
         if (selectedSlot >= 0 && party[selectedSlot] == null) selectedSlot = -1;
 
         RefreshHighlight();
-        RefreshArrows();
 
         if (changed) NotifyChanged();
     }
@@ -127,7 +112,6 @@ public partial class Party : Control
         selectedSlot = -1;
 
         RefreshHighlight();
-        RefreshArrows();
 
         NotifyChanged();
     }
@@ -142,7 +126,6 @@ public partial class Party : Control
         SelectedAdventurer?.Invoke(model);
 
         RefreshHighlight();
-        RefreshArrows();
 
         NotifyChanged();
     }
@@ -163,7 +146,6 @@ public partial class Party : Control
         SelectedAdventurer?.Invoke(null);
 
         RefreshHighlight();
-        RefreshArrows();
 
         NotifyChanged();
     }
@@ -187,7 +169,6 @@ public partial class Party : Control
         selectedSlot = target;
 
         RefreshHighlight();
-        RefreshArrows();
 
         NotifyChanged();
     }
@@ -205,16 +186,7 @@ public partial class Party : Control
     {
         for (int i = 0; i < slots.Length; i++)
             slots[i].SetFrameState(i != selectedSlot);
-
-        RefreshArrows();
     }
-
-    private void RefreshArrows()
-    {
-        moveLeftBtn.Disabled = selectedSlot <= 0;
-        moveRightBtn.Disabled = selectedSlot < 0 || selectedSlot >= MaxPartySize - 1;
-    }
-
 
     private int FirstFreeSlot()
     {

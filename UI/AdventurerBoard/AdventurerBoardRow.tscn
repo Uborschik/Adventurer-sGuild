@@ -1,11 +1,11 @@
 [gd_scene format=3 uid="uid://71rvwg3j2430"]
 
-[ext_resource type="Script" uid="uid://fe0ssvuxydms" path="res://UI/Common/AdventurerRow.cs" id="1_il56r"]
-[ext_resource type="Texture2D" uid="uid://loplff3644kt" path="res://Resources/Sprites/Icons/Classes/bard.tres" id="2_n8uxd"]
-[ext_resource type="Texture2D" uid="uid://drj5lrfubq08l" path="res://Resources/Sprites/Icons/Classes/rogue.tres" id="3_wy38n"]
-[ext_resource type="Texture2D" uid="uid://chf3nwo5wtb5a" path="res://Resources/Sprites/Icons/Classes/barbarian.tres" id="4_y0mx8"]
+[ext_resource type="Script" uid="uid://fe0ssvuxydms" path="res://UI/AdventurerBoard/AdventurerBoardRow.cs" id="1_m666w"]
+[ext_resource type="Texture2D" uid="uid://loplff3644kt" path="res://Resources/Sprites/Icons/Classes/bard.tres" id="2_18j1u"]
+[ext_resource type="Texture2D" uid="uid://drj5lrfubq08l" path="res://Resources/Sprites/Icons/Classes/rogue.tres" id="3_cgdni"]
+[ext_resource type="Texture2D" uid="uid://chf3nwo5wtb5a" path="res://Resources/Sprites/Icons/Classes/barbarian.tres" id="4_p30xm"]
 
-[node name="AdventurerRow" type="Button" unique_id=1564354113]
+[node name="AdventurerBoardRow" type="Button" unique_id=1564354113]
 custom_minimum_size = Vector2(120, 24)
 custom_maximum_size = Vector2(120, 24)
 anchors_preset = 8
@@ -13,13 +13,13 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -64.0
+offset_left = -60.0
 offset_top = -12.0
-offset_right = 56.0
+offset_right = 60.0
 offset_bottom = 12.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_il56r")
+script = ExtResource("1_m666w")
 
 [node name="HBox" type="HBoxContainer" parent="." unique_id=2095942163]
 layout_mode = 1
@@ -35,7 +35,7 @@ theme_override_constants/separation = 2
 layout_mode = 2
 size_flags_horizontal = 6
 size_flags_vertical = 4
-texture = ExtResource("2_n8uxd")
+texture = ExtResource("2_18j1u")
 
 [node name="Race" type="TextureRect" parent="HBox" unique_id=514118135]
 custom_minimum_size = Vector2(16, 16)
@@ -43,7 +43,7 @@ custom_maximum_size = Vector2(16, 16)
 layout_mode = 2
 size_flags_horizontal = 6
 size_flags_vertical = 4
-texture = ExtResource("3_wy38n")
+texture = ExtResource("3_cgdni")
 
 [node name="Name" type="Label" parent="HBox" unique_id=2133142045]
 custom_minimum_size = Vector2(46, 20)
@@ -69,4 +69,4 @@ custom_maximum_size = Vector2(16, 16)
 layout_mode = 2
 size_flags_horizontal = 6
 size_flags_vertical = 4
-texture = ExtResource("4_y0mx8")
+texture = ExtResource("4_p30xm")

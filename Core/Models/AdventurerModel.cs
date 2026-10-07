@@ -18,9 +18,7 @@ public class AdventurerModel
 
     public string FullName => $"{FirstName} {LastName}";
 
-    public AdventurerModel(string id, string firstName, string lastName,
-                           string classId, string raceId,
-                           Dictionary<string, double> stats, int level)
+    public AdventurerModel(string id, string firstName, string lastName, string classId, string raceId, Dictionary<string, double> stats, int level)
     {
         Id = id;
         FirstName = firstName;

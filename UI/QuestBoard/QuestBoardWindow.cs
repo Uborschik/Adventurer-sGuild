@@ -1,27 +1,46 @@
+using System;
+
 public partial class QuestBoardWindow : InteractableWindow
 {
-    private AdventurerBoard adventurerBoard;
+    private AdventurerRegistry adventurerRegistry;
     private QuestRegistry questRegistry;
     private QuestFlow questFlow;
 
     private QuestList questList;
     private QuestInfo questInfo;
+    private AdventurerBoard adventurerBoard;
+    private AdventurerInfo adventurerInfo;
     private PartySelect partySelect;
 
     public override void _Ready()
     {
         if (!this.TryGetInstance(out questList)) return;
         if (!this.TryGetInstance(out questInfo)) return;
+        if (!this.TryGetInstance(out adventurerBoard)) return;
+        if (!this.TryGetInstance(out adventurerInfo)) return;
         if (!this.TryGetInstance(out partySelect)) return;
 
-        questList.SelectedIdChanged += OnQuestClicked;
+        questList.SelectedIdChanged += OnQuestSelected;
+        adventurerBoard.AdventurerList.SelectedIdChanged += OnAdventurerSelected;
+
+        var partyControl = partySelect?.Party;
+
+        if (partyControl != null)
+            partyControl.SelectedAdventurer += OnSelectAdventure;
 
         questInfo.Clear();
     }
 
     public override void _ExitTree()
     {
-        if (questList != null) questList.SelectedIdChanged -= OnQuestClicked;
+        if (questList != null) questList.SelectedIdChanged -= OnQuestSelected;
+        if (adventurerBoard?.AdventurerList != null)
+            adventurerBoard.AdventurerList.SelectedIdChanged -= OnAdventurerSelected;
+
+        var partyControl = partySelect?.Party;
+
+        if (partyControl != null)
+            partyControl.SelectedAdventurer -= OnSelectAdventure;
 
         if (questFlow != null)
         {
@@ -30,55 +49,26 @@ public partial class QuestBoardWindow : InteractableWindow
         }
     }
 
+    public void Bind(AdventurerRegistry adventurerRegistry, QuestRegistry questRegistry, QuestFlow questFlow, QuestResolver questResolver)
+    {
+        this.adventurerRegistry = adventurerRegistry;
+        this.questRegistry = questRegistry;
+        this.questFlow = questFlow;
+
+        adventurerBoard.Bind(adventurerRegistry);
+        partySelect.Bind(adventurerRegistry, questFlow, questResolver);
+    }
+
     public void Start()
     {
-
         if (questFlow == null) return;
 
         questFlow.Added += OnQuestAdded;
         questFlow.Expired += OnQuestExpired;
         questFlow.Started += OnQuestStarted;
 
-        RefreshList();
-    }
-
-    protected override void OnOpen()
-    {
-        var list = adventurerBoard?.AdventurerList;
-
-        if (list != null)
-        {
-            list.Deselect();
-            list.SelectedIdChanged += partySelect.HandleAdventurerClick;
-        }
-
-        var partyControl = partySelect?.Party;
-
-        if (partyControl != null)
-            partyControl.SelectedAdventurer += OnSelectAdventure;
-    }
-
-    protected override void OnClose()
-    {
-        var list = adventurerBoard?.AdventurerList;
-
-        if (list != null)
-        {
-            list.Deselect();
-            list.SelectedIdChanged -= partySelect.HandleAdventurerClick;
-        }
-
-        var partyControl = partySelect?.Party;
-
-        if (partyControl != null)
-            partyControl.SelectedAdventurer -= OnSelectAdventure;
-    }
-
-    public void Bind(AdventurerBoard adventurerBoard, QuestRegistry questRegistry, QuestFlow questFlow)
-    {
-        this.adventurerBoard = adventurerBoard;
-        this.questRegistry = questRegistry;
-        this.questFlow = questFlow;
+        adventurerBoard.Refresh();
+        RefreshQuestList();
     }
 
     private void OnQuestAdded(QuestModel quest) => questList.Add(quest);
@@ -93,7 +83,7 @@ public partial class QuestBoardWindow : InteractableWindow
             questInfo.Clear();
     }
 
-    private void OnQuestClicked(string id)
+    private void OnQuestSelected(string id)
     {
         var quest = questRegistry.GetById(id);
         if (quest == null) return;
@@ -102,12 +92,20 @@ public partial class QuestBoardWindow : InteractableWindow
         partySelect.SetQuest(quest);
     }
 
-    private void OnSelectAdventure(AdventurerModel model)
+    private void OnAdventurerSelected(string id)
     {
-        adventurerBoard.AdventurerInfo.SetAdventurer(model);
+        var model = adventurerRegistry.GetById(id);
+
+        adventurerInfo.SetAdventurer(model);
+        partySelect.HandleAdventurerClick(id);
     }
 
-    private void RefreshList()
+    private void OnSelectAdventure(AdventurerModel model)
+    {
+        adventurerInfo.SetAdventurer(model);
+    }
+
+    private void RefreshQuestList()
     {
         questList.Clear();
         foreach (var q in questRegistry.Available)
