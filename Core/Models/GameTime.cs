@@ -11,7 +11,16 @@ public readonly struct GameTime : IEquatable<GameTime>, IComparable<GameTime>
     public const int DayStartHour = 6;
     public const int DayEndHour = 22;
 
-    public bool IsDaytime => (TotalMinutes % MinutesPerDay) < (DayStartHour * MinutesPerHour + MinutesPerDaylight);
+    public bool IsDaytime
+    {
+        get
+        {
+            int t = TotalMinutes % MinutesPerDay;
+            int start = DayStartHour * MinutesPerHour;
+            int end = start + MinutesPerDaylight;
+            return t >= start && t < end;
+        }
+    }
 
     public readonly int TotalMinutes;
 

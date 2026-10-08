@@ -6,6 +6,6 @@ public class AdventurerBalanceProfile
     public double ExpCapAcceleration { get; set; } = 0.22;
 
     public double StatBaseValue { get; set; } = 0.0;
-    public double StatStartPool { get; set; } = 16.0;
+    public double StatStartPool { get; set; } = 10.0;
     public double StatBaseSlope { get; set; } = 2.5;
 }

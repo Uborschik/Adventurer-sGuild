@@ -10,6 +10,13 @@
       "durationIntBonusCap": 0.30,
       "durationIntBonusK": 0.15,
 
+      "skillRoll": {
+        "base": 50,
+        "perRatio": 50,
+        "min": 5,
+        "max": 80
+      },
+
       "escapeStatK": 40,
       "escapeStatCap": 95,
       "escapeBaseByTier": {
@@ -17,6 +24,8 @@
         "normal": 45,
         "hard":   30
       },
+      "escapeEndWeight": 0.8,
+      "escapeWisWeight": 0.5,
 
       "woundFailDaysByTier": {
         "easy":   { "min": 2, "max": 4 },

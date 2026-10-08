@@ -53,6 +53,7 @@ public class QuestFlow
         if (party == null || party.Count == 0) return false;
 
         var seen = new HashSet<string>();
+
         foreach (var a in party)
         {
             if (a == null) return false;
@@ -61,6 +62,7 @@ public class QuestFlow
         }
 
         quest.Status = QuestStatus.Pending;
+        registry.TakeFromBoard(quest);
         quest.Party = new List<AdventurerModel>(party);
         quest.StartTime = GameTime.NextDayStart(clock.Now);
         quest.LastProcessedAt = quest.StartTime;
@@ -87,26 +89,35 @@ public class QuestFlow
         ExpireOld(now);
         ProcessInProgress(now);
         RefreshBoard();
+
+        // Раз в сутки чистим историю
+        if (now.Minute == 0 && now.Hour == 0)
+            registry.TrimHistory(now, maxAgeDays: 30);
     }
 
     private void ExpireOld(GameTime now)
     {
-        foreach (var quest in registry.Available.ToList())
+        var snapshot = new List<QuestModel>(registry.Board);
+
+        foreach (var quest in snapshot)
         {
             if (now < quest.ExpiresAt) continue;
 
             quest.Status = QuestStatus.Expired;
+            registry.ExpireToHistory(quest);
             Expired?.Invoke(quest);
         }
     }
 
     private void ProcessInProgress(GameTime now)
     {
-        foreach (var quest in registry.All
-            .Where(q => q.Status == QuestStatus.Pending || q.Status == QuestStatus.InProgress)
-            .ToList())
+        for (int i = 0; i < registry.Active.Count; i++)
         {
+            var quest = registry.Active[i];
             ProcessQuest(quest, now);
+
+            if (i >= registry.Active.Count) break;
+            if (registry.Active[i] != quest) i--;
         }
     }
 
@@ -153,6 +164,7 @@ public class QuestFlow
             if (quest.IsResting)
             {
                 if (quest.RestEndTime.Value > now) break;
+
                 at = quest.RestEndTime.Value;
                 ProcessNightResult(quest, at);
                 quest.IsResting = false;
@@ -202,8 +214,10 @@ public class QuestFlow
     {
         var phase = quest.Phases[quest.CurrentPhaseIndex];
 
-        bool passed = QuestCalculator.PhasePassed(
-            phase, quest.Party, quest.CodeLevel);
+        var outcome = QuestCalculator.EvaluatePhase(
+            phase, quest.Party, quest.CodeLevel, woundRng);
+
+        bool passed = outcome.Passed;
 
         quest.PhaseResults.Add(new PhaseResult
         {
@@ -213,6 +227,7 @@ public class QuestFlow
             ExpEarned = passed ? phase.ExpReward : 0,
             DayCompleted = quest.DaysSpent,
             Attempts = 1,
+            Rolls = outcome.Rolls,
         });
 
         quest.MinutesUsedToday += phase.BaseDurationMinutes;
@@ -225,11 +240,13 @@ public class QuestFlow
         {
             Log.Info($"    DAY {quest.DaysSpent + 1} | '{phase.Id}' OK   " +
                      $"+{phase.ExpReward}xp{creatureTag} | used={quest.MinutesUsedToday}/{GameTime.MinutesPerDaylight}m");
+            LogRolls(outcome.Rolls);
             quest.CurrentPhaseIndex++;
         }
         else if (phase.Critical)
         {
             Log.Info($"    DAY {quest.DaysSpent + 1} | '{phase.Id}' CRIT FAIL{creatureTag} | quest ends");
+            LogRolls(outcome.Rolls);
             ApplyCombatOutcome(quest, at);
             quest.CurrentPhaseIndex = quest.Phases.Count;
         }
@@ -237,6 +254,7 @@ public class QuestFlow
         {
             Log.Info($"    DAY {quest.DaysSpent + 1} | '{phase.Id}' FAIL | " +
                      $"used={quest.MinutesUsedToday}/{GameTime.MinutesPerDaylight}m");
+            LogRolls(outcome.Rolls);
             quest.CurrentPhaseIndex++;
 
             if (phase.BaseDurationMinutes >= 240)
@@ -244,6 +262,24 @@ public class QuestFlow
                 quest.MinutesUsedToday += 60;
                 Log.Info($"      +short_rest 60m");
             }
+        }
+    }
+
+    private static void LogRolls(List<SkillRollResult> rolls)
+    {
+        if (rolls == null || rolls.Count == 0) return;
+
+        foreach (var r in rolls)
+        {
+            string mark;
+            if (!r.Passed) mark = "✗";
+            else if (r.Ratio >= 1.0) mark = "✓";
+            else mark = "!";
+
+            Log.Info($"      {mark} [s{r.SolutionIndex + 1}] {r.SkillId,-12} " +
+                     $"{r.SkillValue,6:F1}/{r.Required,6:F1} " +
+                     $"ratio={r.Ratio:F2} chance={r.Chance:F0}% roll={r.Roll:F1} " +
+                     $"({r.BestAdvName})");
         }
     }
 
@@ -262,10 +298,10 @@ public class QuestFlow
         Log.Info($"    NIGHT {quest.DaysSpent + 1} → attacked");
 
         var longRest = QuestDatabase.Phases["long_rest"];
-        bool defended = QuestCalculator.PhasePassed(
-            longRest, quest.Party, quest.CodeLevel);
+        var defendOutcome = QuestCalculator.EvaluatePhase(
+            longRest, quest.Party, quest.CodeLevel, woundRng);
 
-        if (defended)
+        if (defendOutcome.Passed)
         {
             Log.Info($"    NIGHT {quest.DaysSpent + 1} → defended (WIS ok)");
             return;
@@ -277,14 +313,13 @@ public class QuestFlow
             ? QuestDatabase.GetCreature(quest.CreatureId)
             : null;
 
-        int nightLevel = Math.Max(1,
-            quest.CodeLevel - QuestBalance.Active.NightCreatureLevelPenalty);
+        int nightLevel = Math.Max(1, quest.CodeLevel - QuestBalance.Active.NightCreatureLevelPenalty);
 
         var combatPhase = QuestDatabase.Phases["combat"];
-        bool combatPassed = QuestCalculator.PhasePassed(
-            combatPhase, quest.Party, nightLevel);
+        var combatOutcome = QuestCalculator.EvaluatePhase(
+            combatPhase, quest.Party, nightLevel, woundRng);
 
-        if (combatPassed)
+        if (combatOutcome.Passed)
         {
             Log.Info($"    NIGHT {quest.DaysSpent + 1} → survived");
             ApplyLightWounds(quest, creature, at);
@@ -380,6 +415,8 @@ public class QuestFlow
         quest.Result = resolver.Resolve(quest);
         quest.Status = QuestStatus.Completed;
 
+        registry.CompleteToHistory(quest);
+
         int totalXpGiven = DistributeExperience(quest);
         LogCompletion(quest, totalXpGiven);
 
@@ -414,7 +451,7 @@ public class QuestFlow
             return 0;
         }
 
-        var shares = QuestCalculator.ContributionShares(aliveParty, phaseResults);
+        var shares = QuestCalculator.ContributionShares(aliveParty, phaseResults, quest.CodeLevel);
 
         var exact = new List<(AdventurerModel a, int xp, double frac)>();
         int distributed = 0;
@@ -563,16 +600,15 @@ public class QuestFlow
 
     private void RefreshBoard()
     {
-        var available = registry.CountAvailable();
-        while (available < BoardCapacity)
+        while (registry.CountAvailable() < BoardCapacity)
         {
             int codeLevel = RollQuestLevel();
             var quest = factory.Create(clock.Now, codeLevel);
             if (quest == null) break;
 
+            quest.Status = QuestStatus.Available;
             registry.Add(quest);
             Added?.Invoke(quest);
-            available++;
         }
     }
 

@@ -3,22 +3,41 @@
     {
       "id": "wolf",
       "name": {
-        "ru": { "nom": "волк", "gen": "волка", "acc": "волка", "ins": "волком", "pre": "волке" },
+        "ru": {
+          "nom": "волк",
+          "gen": "волка",
+          "dat": "волку",
+          "acc": "волка",
+          "ins": "волком",
+          "pre": "волке"
+        },
         "en": "wolf"
       },
       "tier": "easy",
       "phaseEffects": {
         "modifies": {
-          "tracking": { "dcDelta": 0.05, "durationDeltaMinutes": 60 },
-          "combat":   { "dcDelta": 0.10, "durationDeltaMinutes": 30 }
+          "tracking": {
+            "dcDelta": 0.25,
+            "durationDeltaMinutes": 60
+          },
+          "combat": {
+            "dcDelta": 0.25,
+            "durationDeltaMinutes": 5
+          }
         }
       }
     },
-
     {
       "id": "goblin",
       "name": {
-        "ru": { "nom": "гоблин", "gen": "гоблина", "acc": "гоблина", "ins": "гоблином", "pre": "гоблине" },
+        "ru": {
+          "nom": "гоблин",
+          "gen": "гоблина",
+          "dat": "гоблину",
+          "acc": "гоблина",
+          "ins": "гоблином",
+          "pre": "гоблине"
+        },
         "en": "goblin"
       },
       "tier": "easy",
@@ -28,53 +47,112 @@
             "phase": "stealth",
             "before": "combat",
             "solutions": [
-              { "stats": { "dex": 0.55, "wis": 0.40 } },
-              { "stats": { "dex": 0.55, "int": 0.40 } },
-              { "stats": { "dex": 0.55, "cha": 0.30 } }
+              {
+                "skills": {
+                  "stealth": 0.55,
+                  "perception": 0.4
+                }
+              },
+              {
+                "skills": {
+                  "stealth": 0.55,
+                  "investigation": 0.4
+                }
+              },
+              {
+                "skills": {
+                  "stealth": 0.55,
+                  "deception": 0.3
+                }
+              }
             ]
           }
         ],
         "modifies": {
-          "tracking": { "dcDelta": 0.10, "durationDeltaMinutes": 60 },
-          "combat":   { "dcDelta": -0.05, "durationDeltaMinutes": -30 }
+          "tracking": {
+            "dcDelta": 0.35,
+            "durationDeltaMinutes": 60
+          },
+          "combat": {
+            "dcDelta": 0.25,
+            "durationDeltaMinutes": -30
+          }
         }
       }
     },
-
     {
       "id": "bear",
       "name": {
-        "ru": { "nom": "медведь", "gen": "медведя", "acc": "медведя", "ins": "медведем", "pre": "медведе" },
+        "ru": {
+          "nom": "медведь",
+          "gen": "медведя",
+          "dat": "медведю",
+          "acc": "медведя",
+          "ins": "медведем",
+          "pre": "медведе"
+        },
         "en": "bear"
       },
       "tier": "normal",
       "phaseEffects": {
         "modifies": {
-          "tracking": { "dcDelta": -0.05, "durationDeltaMinutes": -30 },
-          "combat":   { "dcDelta": 0.15, "durationDeltaMinutes": 60 },
-          "survival": { "dcDelta": 0.05, "durationDeltaMinutes": 120 }
+          "tracking": {
+            "dcDelta": 0.15,
+            "durationDeltaMinutes": -30
+          },
+          "combat": {
+            "dcDelta": 0.45,
+            "durationDeltaMinutes": 60
+          },
+          "survival": {
+            "dcDelta": 0.25,
+            "durationDeltaMinutes": 120
+          }
         }
       }
     },
-
     {
       "id": "boar",
       "name": {
-        "ru": { "nom": "кабан", "gen": "кабана", "acc": "кабана", "ins": "кабаном", "pre": "кабане" },
+        "ru": {
+          "nom": "кабан",
+          "gen": "кабана",
+          "dat": "кабану",
+          "acc": "кабана",
+          "ins": "кабаном",
+          "pre": "кабане"
+        },
         "en": "boar"
       },
       "tier": "easy",
       "phaseEffects": {
         "modifies": {
-          "combat": { "dcDelta": 0.05 }
+          "tracking": {
+            "dcDelta": 0.20,
+            "durationDeltaMinutes": -30
+          },
+          "combat": {
+            "dcDelta": 0.25,
+            "durationDeltaMinutes": 60
+          },
+          "survival": {
+            "dcDelta": 0.15,
+            "durationDeltaMinutes": 120
+          }
         }
       }
     },
-
     {
       "id": "undead",
       "name": {
-        "ru": { "nom": "нежить", "gen": "нежити", "acc": "нежить", "ins": "нежитью", "pre": "нежити" },
+        "ru": {
+          "nom": "нежить",
+          "gen": "нежити",
+          "dat": "нежити",
+          "acc": "нежить",
+          "ins": "нежитью",
+          "pre": "нежити"
+        },
         "en": "undead"
       },
       "tier": "hard",
@@ -84,44 +162,84 @@
             "phase": "lore",
             "before": "combat",
             "solutions": [
-              { "stats": { "int": 0.60, "wis": 0.45 } },
-              { "stats": { "int": 0.60, "cha": 0.45 } },
-              { "stats": { "wis": 0.60, "cha": 0.45 } }
+              {
+                "skills": {
+                  "arcana": 0.6,
+                  "perception": 0.45
+                }
+              },
+              {
+                "skills": {
+                  "arcana": 0.6,
+                  "persuasion": 0.45
+                }
+              },
+              {
+                "skills": {
+                  "investigation": 0.6,
+                  "persuasion": 0.45
+                }
+              }
             ]
           }
         ],
         "modifies": {
           "combat": {
             "statModifiers": {
-              "str": { "dcDelta": 0.10 },
-              "dex": { "dcDelta": 0.10 },
-              "wis": { "dcDelta": -0.10 },
-              "int": { "dcDelta": -0.15 },
-              "cha": { "dcDelta": 0.30 }
+              "str": {
+                "dcDelta": 0.1
+              },
+              "dex": {
+                "dcDelta": 0.1
+              },
+              "wis": {
+                "dcDelta": -0.1
+              },
+              "int": {
+                "dcDelta": -0.15
+              },
+              "cha": {
+                "dcDelta": 0.30
+              }
             }
           }
         }
       }
     },
-
     {
       "id": "traps",
       "name": {
-        "ru": { "nom": "ловушки", "gen": "ловушек", "acc": "ловушки", "ins": "ловушками", "pre": "ловушках" },
+        "ru": {
+          "nom": "ловушки",
+          "gen": "ловушек",
+          "dat": "ловушке",
+          "acc": "ловушки",
+          "ins": "ловушками",
+          "pre": "ловушках"
+        },
         "en": "traps"
       },
       "tier": "hard",
       "phaseEffects": {
         "modifies": {
-          "puzzle": { "dcDelta": 0.10, "durationDeltaMinutes": 120 }
+          "puzzle": {
+            "dcDelta": 0.1,
+            "durationDeltaMinutes": 120
+          }
         }
       }
     },
-
     {
       "id": "ancient_machines",
       "name": {
-        "ru": { "nom": "древние механизмы", "gen": "древних механизмов", "acc": "древние механизмы", "ins": "древними механизмами", "pre": "древних механизмах" },
+        "ru": {
+          "nom": "древние механизмы",
+          "gen": "древних механизмов",
+          "dat": "древнему механизму",
+          "acc": "древние механизмы",
+          "ins": "древними механизмами",
+          "pre": "древних механизмах"
+        },
         "en": "ancient machines"
       },
       "tier": "hard",
@@ -131,64 +249,101 @@
             "phase": "lore",
             "before": "puzzle",
             "solutions": [
-              { "stats": { "int": 0.60, "wis": 0.45 } },
-              { "stats": { "int": 0.60, "dex": 0.45 } },
-              { "stats": { "wis": 0.60, "dex": 0.45 } }
-            ]
-          },
-          {
-            "phase": "lore",
-            "solutions": [
-              { "stats": { "int": 0.60, "wis": 0.45 } },
-              { "stats": { "int": 0.60, "cha": 0.45 } },
-              { "stats": { "wis": 0.60, "cha": 0.45 } }
+              {
+                "skills": {
+                  "arcana": 0.6,
+                  "perception": 0.45
+                }
+              },
+              {
+                "skills": {
+                  "arcana": 0.6,
+                  "investigation": 0.45
+                }
+              },
+              {
+                "skills": {
+                  "investigation": 0.6,
+                  "perception": 0.45
+                }
+              }
             ]
           }
         ],
         "modifies": {
-          "exploration": { "dcDelta": 0.10, "durationDeltaMinutes": 120 }
+          "exploration": {
+            "dcDelta": 0.1,
+            "durationDeltaMinutes": 120
+          }
         }
       }
     },
-
     {
       "id": "merchant",
       "name": {
-        "ru": { "nom": "торговец", "gen": "торговца", "acc": "торговца", "ins": "торговцем", "pre": "торговце" },
+        "ru": {
+          "nom": "торговец",
+          "gen": "торговца",
+          "dat": "торговцу",
+          "acc": "торговца",
+          "ins": "торговцем",
+          "pre": "торговце"
+        },
         "en": "merchant"
       },
       "tier": "easy",
       "phaseEffects": {
         "modifies": {
-          "social": { "dcDelta": -0.05, "durationDeltaMinutes": -60 }
+          "social": {
+            "dcDelta": -0.05,
+            "durationDeltaMinutes": -60
+          }
         }
       }
     },
-
     {
       "id": "ambassador",
       "name": {
-        "ru": { "nom": "посол", "gen": "посла", "acc": "посла", "ins": "послом", "pre": "после" },
+        "ru": {
+          "nom": "посол",
+          "gen": "посла",
+          "dat": "послу",
+          "acc": "посла",
+          "ins": "послом",
+          "pre": "после"
+        },
         "en": "ambassador"
       },
       "tier": "normal",
       "phaseEffects": {
         "modifies": {
-          "social": { "dcDelta": 0.15, "durationDeltaMinutes": 120 }
+          "social": {
+            "dcDelta": 0.15,
+            "durationDeltaMinutes": 120
+          }
         }
       }
     },
-
     {
       "id": "pilgrim",
       "name": {
-        "ru": { "nom": "паломник", "gen": "паломника", "acc": "паломника", "ins": "паломником", "pre": "паломнике" },
+        "ru": {
+          "nom": "паломник",
+          "gen": "паломника",
+          "dat": "паломнику",
+          "acc": "паломника",
+          "ins": "паломником",
+          "pre": "паломнике"
+        },
         "en": "pilgrim"
       },
       "tier": "easy",
       "phaseEffects": {
         "modifies": {
-          "social": { "dcDelta": -0.10, "durationDeltaMinutes": -60 }
+          "social": {
+            "dcDelta": -0.1,
+            "durationDeltaMinutes": -60
+          }
         }
       }
     }

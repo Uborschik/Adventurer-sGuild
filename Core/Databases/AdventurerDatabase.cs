@@ -15,6 +15,7 @@ public static class AdventurerDatabase
     public static NameDatabase Names { get; private set; }
 
     private static Dictionary<string, string> skillToStat;
+    private static Dictionary<string, SkillInfo> skillsById;
 
     // === Загрузка ===
 
@@ -72,6 +73,7 @@ public static class AdventurerDatabase
     private static void BuildSkillIndex()
     {
         skillToStat = new Dictionary<string, string>();
+        skillsById = new Dictionary<string, SkillInfo>();
 
         foreach (var stat in Stats.Values)
         {
@@ -81,18 +83,19 @@ public static class AdventurerDatabase
                 continue;
             }
 
-            foreach (var skillId in stat.Skills)
+            foreach (var skill in stat.Skills)
             {
-                if (string.IsNullOrEmpty(skillId)) continue;
+                if (skill == null || string.IsNullOrEmpty(skill.Id)) continue;
 
-                if (skillToStat.ContainsKey(skillId))
+                if (skillToStat.ContainsKey(skill.Id))
                 {
-                    Log.Warn($"[AdventurerDB] Навык '{skillId}' привязан к нескольким статам: " +
-                             $"'{skillToStat[skillId]}' и '{stat.Id}'");
+                    Log.Warn($"[AdventurerDB] Навык '{skill.Id}' привязан к нескольким статам: " +
+                             $"'{skillToStat[skill.Id]}' и '{stat.Id}'");
                     continue;
                 }
 
-                skillToStat[skillId] = stat.Id;
+                skillToStat[skill.Id] = stat.Id;
+                skillsById[skill.Id] = skill;
             }
         }
     }
@@ -112,8 +115,13 @@ public static class AdventurerDatabase
             : null;
     }
 
-    public static bool IsValidSkill(string skillId)
-        => !string.IsNullOrEmpty(skillId)
+    public static SkillInfo GetSkill(string skillId)
+    {
+        if (string.IsNullOrEmpty(skillId)) return null;
+        return skillsById != null && skillsById.TryGetValue(skillId, out var s) ? s : null;
+    }
+
+    public static bool IsValidSkill(string skillId) => !string.IsNullOrEmpty(skillId)
         && skillToStat != null
         && skillToStat.ContainsKey(skillId);
 

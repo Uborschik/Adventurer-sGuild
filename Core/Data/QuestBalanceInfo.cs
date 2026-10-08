@@ -14,9 +14,13 @@ public class QuestBalanceProfile
     public double DurationIntBonusCap { get; set; } = 0.30;
     public double DurationIntBonusK { get; set; } = 0.15;
 
+    public SkillRollBalance SkillRoll { get; set; } = new();
+
     public double EscapeStatK { get; set; } = 40;
     public double EscapeStatCap { get; set; } = 95;
     public EscapeBaseByTier EscapeBaseByTier { get; set; } = new();
+    public double EscapeEndWeight { get; set; } = 0.8;
+    public double EscapeWisWeight { get; set; } = 0.5;
 
     public WoundDaysByTier WoundFailDaysByTier { get; set; } = new();
     public WoundSuccessByTier WoundSuccessByTier { get; set; } = new();
@@ -41,6 +45,14 @@ public class QuestBalanceDatabase
 public class ExperienceBalance
 {
     public double ContributionBaseScore { get; set; } = 0.2;
+}
+
+public class SkillRollBalance
+{
+    public double Base { get; set; } = 50;
+    public double PerRatio { get; set; } = 50;
+    public double Min { get; set; } = 10;
+    public double Max { get; set; } = 95;
 }
 
 // === Тир-множители длительности ===

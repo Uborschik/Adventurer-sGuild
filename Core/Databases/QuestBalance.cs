@@ -51,6 +51,22 @@ public static class QuestBalance
         if (p.DurationFailPenaltyPerPhase < 0)
             Log.Error($"[QuestBalance] '{p.Id}': durationFailPenaltyPerPhase < 0");
 
+        if (p.SkillRoll == null)
+        {
+            Log.Error($"[QuestBalance] '{p.Id}': нет блока skillRoll");
+        }
+        else
+        {
+            if (p.SkillRoll.Min < 0 || p.SkillRoll.Min > 100)
+                Log.Error($"[QuestBalance] '{p.Id}': skillRoll.min вне [0, 100]");
+            if (p.SkillRoll.Max < 0 || p.SkillRoll.Max > 100)
+                Log.Error($"[QuestBalance] '{p.Id}': skillRoll.max вне [0, 100]");
+            if (p.SkillRoll.Min > p.SkillRoll.Max)
+                Log.Error($"[QuestBalance] '{p.Id}': skillRoll.min > max");
+            if (p.SkillRoll.Base < p.SkillRoll.Min || p.SkillRoll.Base > p.SkillRoll.Max)
+                Log.Warn($"[QuestBalance] '{p.Id}': skillRoll.base вне [min, max]");
+        }
+
         if (p.EscapeStatK < 0)
             Log.Error($"[QuestBalance] '{p.Id}': escapeStatK < 0");
 
@@ -69,5 +85,20 @@ public static class QuestBalance
 
         if (p.Experience == null)
             Log.Error($"[QuestBalance] '{p.Id}': нет блока experience");
+
+        if (p.NightAttackChanceBase < 0 || p.NightAttackChanceBase > 100)
+            Log.Error($"[QuestBalance] '{p.Id}': nightAttackChanceBase вне [0, 100]");
+
+        if (p.MaxQuestDays < 1)
+            Log.Error($"[QuestBalance] '{p.Id}': maxQuestDays < 1");
+
+        if (p.NightCreatureLevelPenalty < 0)
+            Log.Error($"[QuestBalance] '{p.Id}': nightCreatureLevelPenalty < 0");
+
+        if (p.EscapeEndWeight < 0 || p.EscapeEndWeight > 2)
+            Log.Error($"[QuestBalance] '{p.Id}': escapeEndWeight вне [0, 2]");
+
+        if (p.EscapeWisWeight < 0 || p.EscapeWisWeight > 2)
+            Log.Error($"[QuestBalance] '{p.Id}': escapeWisWeight вне [0, 2]");
     }
 }

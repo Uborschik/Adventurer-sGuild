@@ -35,20 +35,22 @@ public class QuestResolver
 
         foreach (var phase in quest.Phases)
         {
-            // Rest-фазы пропускаем — они автоматические
             if (phase.Id == "short_rest" || phase.Id == "long_rest") continue;
 
-            bool passed = QuestCalculator.PhasePassed(
+            var rolls = QuestCalculator.ExpectedRolls(
                 phase, party, quest.CodeLevel);
+
+            bool expectedPass = rolls.Count > 0 && rolls.All(r => r.Chance >= 50);
 
             results.Add(new PhaseResult
             {
                 Phase = phase,
-                Passed = passed,
+                Passed = expectedPass,
                 EffectiveCritical = phase.Critical,
-                ExpEarned = passed ? phase.ExpReward : 0,
+                ExpEarned = expectedPass ? phase.ExpReward : 0,
                 DayCompleted = 0,
                 Attempts = 1,
+                Rolls = rolls,
             });
         }
 
@@ -59,6 +61,15 @@ public class QuestResolver
         prediction.CriticalTotal = results.Count(r => r.EffectiveCritical);
         prediction.ExpTotal = QuestCalculator.TotalExp(results);
         prediction.IsFailed = QuestCalculator.IsQuestFailed(results);
+        prediction.PhasePredictions = results.Select(r => new PhasePrediction
+        {
+            PhaseId = r.Phase.Id,
+            ExpectedPass = r.Passed,
+            MinChance = r.Rolls != null && r.Rolls.Count > 0
+        ? r.Rolls.Min(x => x.Chance)
+        : 0,
+            Rolls = r.Rolls,
+        }).ToList();
 
         return prediction;
     }

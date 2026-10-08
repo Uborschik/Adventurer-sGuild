@@ -7,9 +7,9 @@
       "critical": false,
       "expReward": 25,
       "solutions": [
-        { "skills": { "perception": 0.50, "athletics": 0.35 } },
-        { "skills": { "perception": 0.50, "endurance": 0.40 } },
-        { "skills": { "stealth": 0.60, "perception": 0.40 } }
+        { "skills": { "perception": 0.20, "athletics": 0.15 } },
+        { "skills": { "perception": 0.20, "endurance": 0.10 } },
+        { "skills": { "stealth": 0.30, "perception": 0.20 } }
       ],
       "onFail": { "durationDeltaMinutes": 240 }
     },
@@ -115,7 +115,7 @@
       "id": "survival",
       "name": { "ru": "Выжить", "en": "Survive" },
       "baseDurationMinutes": 600,
-      "critical": false,
+      "critical": true,
       "expReward": 15,
       "solutions": [
         { "skills": { "endurance": 0.50, "perception": 0.40 } },
