@@ -44,6 +44,7 @@ public partial class PhasesTab : Control
     }
 
     private readonly List<SolutionRow> _solutionRows = new();
+    private enum StatusKind { Ok, Warning, Error }
 
     public override void _Ready()
     {
@@ -346,37 +347,47 @@ public partial class PhasesTab : Control
 
     private void OnApplyPressed()
     {
-        if (_current == null)
+        if (_current == null) { SetStatus("Ничего не выбрано", StatusKind.Error); return; }
+
+        SyncUIToCurrent();
+
+        if (TuningDock.PreviewEnabled)
         {
-            SetStatus("Ничего не выбрано", error: true);
+            try
+            {
+                var dict = new System.Collections.Generic.Dictionary<string, QuestPhaseTemplate>();
+                foreach (var p in _phases) dict[p.Id] = p;
+                QuestDatabase.ApplyData(phases: dict);
+                SetStatus($"Preview: {_phases.Count} фаз в памяти (диск не тронут)", StatusKind.Warning);
+            }
+            catch (Exception e)
+            {
+                SetStatus($"Preview FAILED: {e.Message}", StatusKind.Error);
+                GD.PushError($"[PhasesTab] Preview: {e}");
+            }
             return;
         }
 
-        // UI -> модель (текущая фаза)
-        SyncUIToCurrent();
-
-        // Модель -> диск
         try
         {
             var db = new QuestPhaseDatabase { Phases = _phases };
             JsonWriter.Write(PhasesPath, db);
-            SetStatus($"Applied: {_phases.Count} фаз записано в JSON", error: false);
         }
         catch (Exception e)
         {
-            SetStatus($"Apply FAILED: {e.Message}", error: true);
+            SetStatus($"Apply FAILED: {e.Message}", StatusKind.Error);
             GD.PushError($"[PhasesTab] Apply: {e}");
             return;
         }
 
-        // Пересобрать resolvedCombos и провалидировать
         try
         {
             QuestDatabase.Load();
+            SetStatus($"Applied: {_phases.Count} фаз записано в JSON", StatusKind.Ok);
         }
         catch (Exception e)
         {
-            SetStatus($"Apply ok, но QuestDatabase.Load упал: {e.Message}", error: true);
+            SetStatus($"Apply ok, но QuestDatabase.Load упал: {e.Message}", StatusKind.Error);
             GD.PushError($"[PhasesTab] QuestDatabase.Load: {e}");
         }
     }
@@ -389,11 +400,11 @@ public partial class PhasesTab : Control
         try
         {
             QuestDatabase.Load();
-            SetStatus($"Reverted: {_phases.Count} фаз перезагружено", error: false);
+            SetStatus($"Reverted: {_phases.Count} фаз перезагружено", StatusKind.Ok);
         }
         catch (Exception e)
         {
-            SetStatus($"Revert: QuestDatabase.Load упал: {e.Message}", error: true);
+            SetStatus($"Revert: QuestDatabase.Load упал: {e.Message}", StatusKind.Error);
         }
     }
 
@@ -455,10 +466,16 @@ public partial class PhasesTab : Control
         _current = null;
     }
 
-    private void SetStatus(string text, bool error)
+    private void SetStatus(string text, StatusKind kind)
     {
         _status.Text = text;
-        _status.Modulate = error ? new Color(1f, 0.45f, 0.45f) : new Color(0.6f, 1f, 0.6f);
+        _status.Modulate = kind switch
+        {
+            StatusKind.Ok => new Color(0.6f, 1f, 0.6f),
+            StatusKind.Warning => new Color(1f, 0.9f, 0.4f),
+            StatusKind.Error => new Color(1f, 0.45f, 0.45f),
+            _ => new Color(1f, 1f, 1f),
+        };
     }
 }
 #endif

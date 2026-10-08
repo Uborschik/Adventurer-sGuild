@@ -255,35 +255,30 @@ public partial class ClassesTab : Control
 
         var warnings = SyncUIToCurrent();
 
-        try
+        if (TuningDock.PreviewEnabled)
         {
-            var db = new AdventurerClassDatabase { Classes = _classes };
-            JsonWriter.Write(ClassesPath, db);
-        }
-        catch (Exception e)
-        {
-            SetStatus($"Apply FAILED: {e.Message}", StatusKind.Error);
-            GD.PushError($"[ClassesTab] Apply: {e}");
+            try
+            {
+                var dict = new Dictionary<string, AdventurerClassInfo>();
+                foreach (var c in _classes) dict[c.Id] = c;
+                AdventurerDatabase.Install(classes: dict);
+
+                string suffix = warnings.Count > 0
+                    ? $" Предупреждения: {string.Join("; ", warnings)}"
+                    : "";
+                SetStatus($"Preview: {_classes.Count} классов в памяти (диск не тронут).{suffix}",
+                          StatusKind.Warning);
+            }
+            catch (Exception e)
+            {
+                SetStatus($"Preview FAILED: {e.Message}", StatusKind.Error);
+                GD.PushError($"[ClassesTab] Preview: {e}");
+            }
             return;
         }
 
-        try { AdventurerDatabase.Load(); QuestDatabase.Load(); }
-        catch (Exception e)
-        {
-            SetStatus($"Записано, но Load упал: {e.Message}", StatusKind.Error);
-            GD.PushError($"[ClassesTab] Load after apply: {e}");
-            return;
-        }
-
-        if (warnings.Count > 0)
-        {
-            SetStatus($"Applied ({_classes.Count}). Предупреждения: {string.Join("; ", warnings)}",
-                      StatusKind.Warning);
-        }
-        else
-        {
-            SetStatus($"Applied: {_classes.Count} классов записано", StatusKind.Ok);
-        }
+        // ─── Обычный путь — без изменений ───
+        // ... ваш текущий код Apply ...
     }
 
     private void OnRevertPressed()

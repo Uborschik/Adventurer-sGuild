@@ -282,6 +282,30 @@ public partial class StatsTab : Control
 
         var warnings = SyncUIToCurrent();
 
+        if (TuningDock.PreviewEnabled)
+        {
+            try
+            {
+                var dict = new Dictionary<string, AdventurerStatInfo>();
+                foreach (var s in _stats) dict[s.Id] = s;
+
+                AdventurerDatabase.Install(stats: dict);
+
+                string suffix = warnings.Count > 0
+                    ? $" Предупреждения: {string.Join("; ", warnings)}"
+                    : "";
+                SetStatus($"Preview: {_stats.Count} статов в памяти (диск не тронут).{suffix}",
+                          StatusKind.Warning);
+            }
+            catch (Exception e)
+            {
+                SetStatus($"Preview FAILED: {e.Message}", StatusKind.Error);
+                GD.PushError($"[StatsTab] Preview: {e}");
+            }
+            return;
+        }
+
+        // Обычный путь — без изменений
         try
         {
             var db = new AdventurerStatDatabase { Stats = _stats };

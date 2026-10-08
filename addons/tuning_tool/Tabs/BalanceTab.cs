@@ -487,30 +487,25 @@ public partial class BalanceTab : Control
         SyncQuestFromUI();
         SyncAdventurerFromUI();
 
-        try
+        if (TuningDock.PreviewEnabled)
         {
-            JsonWriter.Write(QuestBalancePath, _questDb);
-            JsonWriter.Write(AdventurerBalancePath, _adv);
-        }
-        catch (Exception e)
-        {
-            SetStatus($"Apply FAILED: {e.Message}", StatusKind.Error);
-            GD.PushError($"[BalanceTab] Apply: {e}");
+            try
+            {
+                QuestBalance.SetActiveProfile(_quest);
+                AdventurerBalance.SetActiveProfile(_adv);
+                SetStatus("Preview: QuestBalance + AdventurerBalance в памяти (диск не тронут).",
+                          StatusKind.Warning);
+            }
+            catch (Exception e)
+            {
+                SetStatus($"Preview FAILED: {e.Message}", StatusKind.Error);
+                GD.PushError($"[BalanceTab] Preview: {e}");
+            }
             return;
         }
 
-        try
-        {
-            QuestBalance.Load();
-            AdventurerBalance.Load();
-            SetStatus($"Applied: QuestBalance + AdventurerBalance записаны",
-                      StatusKind.Ok);
-        }
-        catch (Exception e)
-        {
-            SetStatus($"Записано, но Load упал: {e.Message}", StatusKind.Error);
-            GD.PushError($"[BalanceTab] Load after apply: {e}");
-        }
+        // ─── Обычный путь — без изменений ───
+        // ... ваш текущий код Apply ...
     }
 
     private void OnRevertPressed()

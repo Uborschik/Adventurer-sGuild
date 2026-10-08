@@ -102,4 +102,14 @@ public static class AdventurerBalance
             p.StatBaseSlope = 2.5;
         }
     }
+
+    /// <summary>
+    /// Установить активный профиль в память, без чтения с диска.
+    /// Применяется редакторным тулингом для preview-режима.
+    /// </summary>
+    public static void SetActiveProfile(AdventurerBalanceProfile profile)
+    {
+        if (profile == null) return;
+        active = profile;
+    }
 }

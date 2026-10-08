@@ -291,6 +291,30 @@ public partial class RacesTab : Control
 
         var warnings = SyncUIToCurrent();
 
+        if (TuningDock.PreviewEnabled)
+        {
+            try
+            {
+                var dict = new Dictionary<string, AdventurerRaceInfo>();
+                foreach (var r in _races) dict[r.Id] = r;
+
+                AdventurerDatabase.Install(races: dict);
+
+                string suffix = warnings.Count > 0
+                    ? $" Предупреждения: {string.Join("; ", warnings)}"
+                    : "";
+                SetStatus($"Preview: {_races.Count} рас в памяти (диск не тронут).{suffix}",
+                          StatusKind.Warning);
+            }
+            catch (Exception e)
+            {
+                SetStatus($"Preview FAILED: {e.Message}", StatusKind.Error);
+                GD.PushError($"[RacesTab] Preview: {e}");
+            }
+            return;
+        }
+
+        // Обычный путь — без изменений
         try
         {
             var db = new AdventurerRaceDatabase { Races = _races };

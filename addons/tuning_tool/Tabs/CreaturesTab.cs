@@ -446,6 +446,28 @@ public partial class CreaturesTab : Control
 
         var warnings = SyncUIToCurrent();
 
+        if (TuningDock.PreviewEnabled)
+        {
+            try
+            {
+                var dict = new Dictionary<string, CreatureInfo>();
+                foreach (var c in _creatures) dict[c.Id] = c;
+                QuestDatabase.ApplyData(creatures: dict);
+
+                string suffix = warnings.Count > 0
+                    ? $" Предупреждения: {string.Join("; ", warnings)}"
+                    : "";
+                SetStatus($"Preview: {_creatures.Count} существ в памяти (диск не тронут).{suffix}",
+                          warnings.Count > 0 ? StatusKind.Warning : StatusKind.Warning);
+            }
+            catch (Exception e)
+            {
+                SetStatus($"Preview FAILED: {e.Message}", StatusKind.Error);
+                GD.PushError($"[CreaturesTab] Preview: {e}");
+            }
+            return;
+        }
+
         try
         {
             var db = new CreatureDatabase { Creatures = _creatures };

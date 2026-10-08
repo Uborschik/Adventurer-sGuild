@@ -101,4 +101,18 @@ public static class QuestBalance
         if (p.EscapeWisWeight < 0 || p.EscapeWisWeight > 2)
             Log.Error($"[QuestBalance] '{p.Id}': escapeWisWeight вне [0, 2]");
     }
+
+    /// <summary>
+    /// Установить активный профиль в память, без чтения с диска.
+    /// Применяется редакторным тулингом для preview-режима.
+    /// 
+    /// В отличие от Load(), валидация НЕ выполняется — preview может
+    /// содержать промежуточные значения. Валидация запустится при
+    /// следующем Load() с консистентным файлом.
+    /// </summary>
+    public static void SetActiveProfile(QuestBalanceProfile profile)
+    {
+        if (profile == null) return;
+        active = profile;
+    }
 }
