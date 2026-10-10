@@ -1,7 +1,12 @@
-# Godot 4+ specific ignores
 .godot/
-*.translation
-
-# Godot-specific ignores
-*.import/
-export_presets.cfg
+.vs/
+.idea/
+*.user
+bin/
+obj/
+*.AssemblyInfo.cs
+*.deps.json
+*.runtimeconfig.json
+*.sourcelink.json
+project.assets.json
+*.nuget.dgspec.json

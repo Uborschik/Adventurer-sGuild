@@ -1,10 +1,10 @@
+namespace AdventurersGuild.Presentation.Quests;
+
+using System.Linq;
+using Godot;
 using AdventurersGuild.Core;
 using AdventurersGuild.Data.Quest;
 using AdventurersGuild.Domain.Quests;
-using Godot;
-using System.Linq;
-
-namespace AdventurersGuild.Presentation.Quests;
 
 public partial class QuestInfo : Control
 {
@@ -31,18 +31,25 @@ public partial class QuestInfo : Control
     {
         if (model == null) { Clear(); return; }
 
-        name.Text = QuestDatabase.TypeName(model.TypeId);
+        name.Text = QuestDatabase.BlueprintName(model.BlueprintId);
 
+        var target = QuestDatabase.GetCreature(model.TargetId);
+        var location = QuestDatabase.GetLocation(model.LocationId);
 
-        description.Text = model.Description;
+        string lang = Loc.Language;
+        string targetName = target?.Name?.Get(lang) ?? model.TargetId ?? "—";
+        string locationName = location?.Name?.Get(lang) ?? model.LocationId ?? "—";
 
-        // Фазы
-        var lang = Loc.Language;
-        var phaseNames = model.Phases == null
+        string descrText = model.Description ?? "";
+        description.Text = $"{descrText}\n\n{Loc.Get("quest.target")}: {targetName}\n" +
+                           $"{Loc.Get("quest.location")}: {locationName}";
+
+        var phaseNames = model.Phases == null || model.Phases.Count == 0
             ? "—"
-            : string.Join(", ", model.Phases.Select(p => p.Name.Get(lang) ?? p.Id));
-        phases.Text = $"Испытания: {phaseNames}";
+            : string.Join(", ", model.Phases
+                .Select(p => p.Name.Get(lang) ?? p.PhaseId));
 
+        phases.Text = $"Испытания: {phaseNames}";
 
         expires.Text = $"{Loc.Get("quest.expires")}: {Loc.FormatTime(model.ExpiresAt)}";
 
@@ -56,7 +63,7 @@ public partial class QuestInfo : Control
         name.Text = "—";
         description.Text = Loc.Get("quest.select_hint");
         phases.Text = "";
-        duration.Text = "";
+        if (duration != null) duration.Text = "";
         expires.Text = "";
         reward.Text = "";
     }

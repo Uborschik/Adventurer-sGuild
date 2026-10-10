@@ -3,6 +3,10 @@
     {
       "id": "hunt",
       "name": { "ru": "Охота", "en": "Hunt" },
+      "description": {
+        "ru": "Охота на {target:acc} в {location:pre}.",
+        "en": "A hunt for a {target} in the {location}."
+      },
       "ambientRange": { "min": 0, "max": 1 },
       "travelDays": 1,
       "baseGold": 10,
@@ -27,6 +31,10 @@
     {
       "id": "escort",
       "name": { "ru": "Сопровождение", "en": "Escort" },
+      "description": {
+        "ru": "Проводить {target:acc} через {location:acc}.",
+        "en": "Escort the {target} through the {location}."
+      },
       "ambientRange": { "min": 1, "max": 3 },
       "travelDays": 2,
       "baseGold": 60,
@@ -51,6 +59,10 @@
     {
       "id": "expedition",
       "name": { "ru": "Экспедиция", "en": "Expedition" },
+      "description": {
+        "ru": "Исследовать {location:acc}. Говорят, там водится {target:nom}.",
+        "en": "Explore the {location}. They say a {target} dwells there."
+      },
       "ambientRange": { "min": 1, "max": 2 },
       "travelDays": 3,
       "baseGold": 100,
@@ -75,6 +87,10 @@
     {
       "id": "diplomacy",
       "name": { "ru": "Дипломатия", "en": "Diplomacy" },
+      "description": {
+        "ru": "Вести переговоры с {target:ins} в {location:pre}.",
+        "en": "Negotiate with the {target} in the {location}."
+      },
       "ambientRange": { "min": 0, "max": 1 },
       "travelDays": 2,
       "baseGold": 80,
@@ -99,6 +115,10 @@
     {
       "id": "investigation",
       "name": { "ru": "Расследование", "en": "Investigation" },
+      "description": {
+        "ru": "Расследовать случившееся в {location:pre}. След ведёт к {target:dat}.",
+        "en": "Investigate what happened in the {location}. The trail leads to the {target}."
+      },
       "ambientRange": { "min": 0, "max": 2 },
       "travelDays": 2,
       "baseGold": 70,

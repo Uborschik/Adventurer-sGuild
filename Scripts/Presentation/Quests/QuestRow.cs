@@ -1,9 +1,10 @@
-using AdventurersGuild.Domain.Quests;
-using AdventurersGuild.Infrastructure;
-using AdventurersGuild.Presentation.Common;
-using Godot;
-
 namespace AdventurersGuild.Presentation.Quests;
+
+using Godot;
+using AdventurersGuild.Core;
+using AdventurersGuild.Domain.Quests;
+using AdventurersGuild.Presentation.Common;
+using AdventurersGuild.Infrastructure;
 
 public partial class QuestRow : SceneListRow
 {
@@ -24,14 +25,13 @@ public partial class QuestRow : SceneListRow
     {
         SetId(model.Id);
 
-        icon.Texture = IconLoader.Get("Quests", model.TypeId);
+        icon.Texture = IconLoader.Get("Quests", model.BlueprintId);
         name.Text = model.Name;
     }
 
     protected override void RefreshState()
     {
         var color = ComputeColor();
-
         name.Modulate = color;
         difficulty.Modulate = color;
     }

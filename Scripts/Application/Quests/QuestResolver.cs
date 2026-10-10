@@ -40,7 +40,7 @@ public class QuestResolver
 
         foreach (var phase in quest.Phases)
         {
-            if (phase.Id == "short_rest" || phase.Id == "long_rest") continue;
+            if (phase.PhaseId == "short_rest" || phase.PhaseId == "long_rest") continue;
 
             var rolls = QuestCalculator.ExpectedRolls(
                 phase, party, quest.CodeLevel);
@@ -68,7 +68,7 @@ public class QuestResolver
         prediction.IsFailed = QuestCalculator.IsQuestFailed(results);
         prediction.PhasePredictions = results.Select(r => new PhasePrediction
         {
-            PhaseId = r.Phase.Id,
+            PhaseId = r.Phase.PhaseId,
             ExpectedPass = r.Passed,
             MinChance = r.Rolls != null && r.Rolls.Count > 0
         ? r.Rolls.Min(x => x.Chance)

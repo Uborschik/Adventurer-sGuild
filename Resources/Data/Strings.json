@@ -1,5 +1,7 @@
 {
 	"ru": {
+		"quest.target": "Цель",
+		"quest.location": "Место",
 		"quest.gold": "Золото",
 		"quest.glory": "Слава",
 		"quest.expires": "Истекает",
@@ -18,6 +20,8 @@
 		"ui.day": "День {0}"
 	},
 	"en": {
+		"quest.target": "Target",
+		"quest.location": "Location",
 		"quest.gold": "Gold",
 		"quest.glory": "Glory",
 		"quest.expires": "Expires",

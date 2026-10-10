@@ -5,9 +5,9 @@
 [ext_resource type="PackedScene" uid="uid://d1vb4vrp15di4" path="res://UI/QuestBoard/QuestRow.tscn" id="3_pli3t"]
 [ext_resource type="Script" uid="uid://p2872nas533p" path="res://Scripts/Presentation/Quests/QuestInfo.cs" id="3_qnstr"]
 [ext_resource type="Script" uid="uid://dym61i6a1addu" path="res://Scripts/Presentation/Quests/PartySelect.cs" id="4_pwi1r"]
-[ext_resource type="Script" uid="uid://c7nhq5ca8s7a7" path="res://Scripts/Presentation/Party/Party.cs" id="5_78krd"]
 [ext_resource type="Script" uid="uid://bs87e2hk4ugc6" path="res://Scripts/Presentation/Party/Slot.cs" id="5_qnstr"]
 [ext_resource type="PackedScene" uid="uid://bh25hj6wv1tra" path="res://UI/AdventurerBoard/AdventurerBoard.tscn" id="6_cdytu"]
+[ext_resource type="Script" uid="uid://c7nhq5ca8s7a7" path="res://Scripts/Presentation/Party/Slots.cs" id="6_r48r7"]
 [ext_resource type="Texture2D" uid="uid://pkaqpk3xpxye" path="res://Resources/Sprites/Panels/Panel_2.tres" id="6_yb61p"]
 [ext_resource type="Texture2D" uid="uid://dsm4o6y37rmpb" path="res://Resources/Sprites/Other/frame.tres" id="7_jrtrj"]
 [ext_resource type="PackedScene" uid="uid://b3w57jddr281i" path="res://UI/AdventurerInfo/AdventurerInfo.tscn" id="7_pqlqr"]
@@ -136,7 +136,7 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 theme_override_constants/separation = 12
 alignment = 1
-script = ExtResource("5_78krd")
+script = ExtResource("6_r48r7")
 
 [node name="Slot_0" type="Control" parent="PartySelect/VBox/Slots" unique_id=1773669540]
 custom_minimum_size = Vector2(24, 24)

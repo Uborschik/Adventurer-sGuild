@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using AdventurersGuild.Data.Adventurer;
 using AdventurersGuild.Data.Balance;
 using AdventurersGuild.Data.Quest;
@@ -25,17 +24,6 @@ public struct SkillRollResult
 public struct PhaseOutcome
 {
     public bool Passed;
-    public List<SkillRollResult> Rolls;
-}
-
-public struct PhaseResult
-{
-    public QuestPhaseTemplate Phase;
-    public bool Passed;
-    public bool EffectiveCritical;
-    public int ExpEarned;
-    public int DayCompleted;
-    public int Attempts;
     public List<SkillRollResult> Rolls;
 }
 
@@ -81,12 +69,17 @@ public static class QuestCalculator
 
     // === Проверка фазы (командная) ===
 
-    public static PhaseOutcome EvaluatePhase(QuestPhaseTemplate phase, IReadOnlyList<AdventurerModel> party, int codeLevel, Random rng, double extraDc = 0)
+    public static PhaseOutcome EvaluatePhase(
+        QuestPhaseInstance phase,
+        IReadOnlyList<AdventurerModel> party,
+        int codeLevel,
+        Random rng,
+        double extraDc = 0)
     {
         var outcome = new PhaseOutcome
         {
             Passed = false,
-            Rolls = new List<SkillRollResult>()
+            Rolls = new List<SkillRollResult>(),
         };
 
         if (phase?.Solutions == null || party == null || party.Count == 0)
@@ -272,7 +265,10 @@ public static class QuestCalculator
         return baseScore + phaseScore;
     }
 
-    public static Dictionary<AdventurerModel, double> ContributionShares(IReadOnlyList<AdventurerModel> party, List<PhaseResult> results, int codeLevel)
+    public static Dictionary<AdventurerModel, double> ContributionShares(
+        IReadOnlyList<AdventurerModel> party,
+        List<PhaseResult> results,
+        int codeLevel)
     {
         var result = new Dictionary<AdventurerModel, double>();
         if (party == null || party.Count == 0) return result;
@@ -299,9 +295,12 @@ public static class QuestCalculator
         return result;
     }
 
-    // === Escape при провале combat ===
+    // === Ожидаемые броски (без rng, для UI / preview) ===
 
-    public static List<SkillRollResult> ExpectedRolls(QuestPhaseTemplate phase, IReadOnlyList<AdventurerModel> party, int codeLevel)
+    public static List<SkillRollResult> ExpectedRolls(
+        QuestPhaseInstance phase,
+        IReadOnlyList<AdventurerModel> party,
+        int codeLevel)
     {
         var bestSolutionRolls = new List<SkillRollResult>();
         if (phase?.Solutions == null || party == null) return bestSolutionRolls;
