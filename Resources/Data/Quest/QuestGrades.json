@@ -1,44 +1,8 @@
 {
-	"grades": [
-		{
-			"role": "disaster",
-			"name": {
-				"ru": "Катастрофа",
-				"en": "Disaster"
-			},
-			"goldMultiplier": 0.0,
-			"gloryMultiplier": -2.0,
-			"countsAsSuccess": false
-		},
-		{
-			"role": "failure",
-			"name": {
-				"ru": "Провал",
-				"en": "Failure"
-			},
-			"goldMultiplier": 0.0,
-			"gloryMultiplier": -1.0,
-			"countsAsSuccess": false
-		},
-		{
-			"role": "success",
-			"name": {
-				"ru": "Успех",
-				"en": "Success"
-			},
-			"goldMultiplier": 1.0,
-			"gloryMultiplier": 1.0,
-			"countsAsSuccess": true
-		},
-		{
-			"role": "triumph",
-			"name": {
-				"ru": "Триумф",
-				"en": "Triumph"
-			},
-			"goldMultiplier": 2.0,
-			"gloryMultiplier": 2.0,
-			"countsAsSuccess": true
-		}
-	]
+  "grades": [
+    { "role": "disaster", "name": { "ru": "Катастрофа", "en": "Disaster" }, "goldMultiplier": 0.0, "gloryMultiplier": -2.0, "countsAsSuccess": false },
+    { "role": "failure",  "name": { "ru": "Провал",    "en": "Failure"  }, "goldMultiplier": 0.0, "gloryMultiplier": -1.0, "countsAsSuccess": false },
+    { "role": "success",  "name": { "ru": "Успех",     "en": "Success"  }, "goldMultiplier": 1.0, "gloryMultiplier": 1.0,  "countsAsSuccess": true  },
+    { "role": "triumph",  "name": { "ru": "Триумф",    "en": "Triumph"  }, "goldMultiplier": 2.0, "gloryMultiplier": 2.0,  "countsAsSuccess": true  }
+  ]
 }

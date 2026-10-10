@@ -1,0 +1,116 @@
+{
+  "blueprints": [
+    {
+      "id": "hunt",
+      "name": { "ru": "Охота", "en": "Hunt" },
+      "ambientRange": { "min": 0, "max": 1 },
+      "travelDays": 1,
+      "baseGold": 10,
+      "baseGlory": 3,
+      "roles": [
+        {
+          "id": "tracking",
+          "tags": ["tracking", "investigation"],
+          "required": true,
+          "incoming": []
+        },
+        {
+          "id": "combat",
+          "tags": ["combat"],
+          "required": true,
+          "incoming": [
+            { "from": "tracking", "condition": "any" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "escort",
+      "name": { "ru": "Сопровождение", "en": "Escort" },
+      "ambientRange": { "min": 1, "max": 3 },
+      "travelDays": 2,
+      "baseGold": 60,
+      "baseGlory": 8,
+      "roles": [
+        {
+          "id": "guard",
+          "tags": ["guard"],
+          "required": true,
+          "incoming": []
+        },
+        {
+          "id": "social",
+          "tags": ["social"],
+          "required": false,
+          "incoming": [
+            { "from": "guard", "condition": "any" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "expedition",
+      "name": { "ru": "Экспедиция", "en": "Expedition" },
+      "ambientRange": { "min": 1, "max": 2 },
+      "travelDays": 3,
+      "baseGold": 100,
+      "baseGlory": 15,
+      "roles": [
+        {
+          "id": "exploration",
+          "tags": ["exploration", "investigation"],
+          "required": true,
+          "incoming": []
+        },
+        {
+          "id": "combat",
+          "tags": ["combat"],
+          "required": false,
+          "incoming": [
+            { "from": "exploration", "condition": "any" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "diplomacy",
+      "name": { "ru": "Дипломатия", "en": "Diplomacy" },
+      "ambientRange": { "min": 0, "max": 1 },
+      "travelDays": 2,
+      "baseGold": 80,
+      "baseGlory": 10,
+      "roles": [
+        {
+          "id": "audience",
+          "tags": ["social"],
+          "required": true,
+          "incoming": []
+        },
+        {
+          "id": "negotiation",
+          "tags": ["social", "guard"],
+          "required": true,
+          "incoming": [
+            { "from": "audience", "condition": "any" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "investigation",
+      "name": { "ru": "Расследование", "en": "Investigation" },
+      "ambientRange": { "min": 0, "max": 2 },
+      "travelDays": 2,
+      "baseGold": 70,
+      "baseGlory": 12,
+      "roles": [
+        {
+          "id": "search",
+          "tags": ["investigation", "exploration"],
+          "required": true,
+          "incoming": []
+        }
+      ]
+    }
+  ]
+}

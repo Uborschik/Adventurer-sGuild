@@ -1,6 +1,13 @@
 #if TOOLS
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using AdventurersGuild.Core;
+using AdventurersGuild.Core.Localization;
+using AdventurersGuild.Data.Adventurer;
+using AdventurersGuild.Data.IO;
+using AdventurersGuild.Data.Quest;
+using AdventurersGuild.Domain.Adventurers;
 using Godot;
 
 [Tool]
@@ -8,33 +15,32 @@ public partial class RacesTab : Control
 {
     private const string RacesPath = "res://Resources/Data/Adventurer/AdventurerRaces.json";
 
+    private const float LabelW = 130;
+    private const float FormWidth = 750;
+
     private ItemList _list;
     private VBoxContainer _editorRoot;
-    private VBoxContainer _bonusesBox;
-    private VBoxContainer _classWeightsBox;
     private Label _status;
 
-    private LineEdit _idEdit, _nameRuEdit, _nameEnEdit;
+    private LineEdit _idEdit;
+    private LineEdit _nameRuEdit, _nameEnEdit;
     private SpinBox _resilienceSpin, _populationSpin;
+
+    private readonly Dictionary<string, SpinBox> _statBonusBoxes = new();
+
+    private VBoxContainer _classWeightsBox;
+    private readonly List<ClassWeightRow> _classWeightRows = new();
 
     private readonly List<AdventurerRaceInfo> _races = new();
     private AdventurerRaceInfo _current;
 
-    private sealed class BonusRow
-    {
-        public LineEdit Stat;
-        public SpinBox Value;
-    }
+    private enum StatusKind { Ok, Warning, Error }
+
     private sealed class ClassWeightRow
     {
-        public LineEdit ClassId;
-        public SpinBox Weight;
+        public OptionButton ClassOption;
+        public SpinBox WeightSpin;
     }
-
-    private readonly List<BonusRow> _bonusRows = new();
-    private readonly List<ClassWeightRow> _classWeightRows = new();
-
-    private enum StatusKind { Ok, Warning, Error }
 
     public override void _Ready()
     {
@@ -59,6 +65,7 @@ public partial class RacesTab : Control
     private void BuildLeft(Control parent)
     {
         var left = new VBoxContainer { CustomMinimumSize = new Vector2(200, 0) };
+        left.AddThemeConstantOverride("separation", 4);
         parent.AddChild(left);
         left.AddChild(new Label { Text = "Расы" });
 
@@ -98,92 +105,272 @@ public partial class RacesTab : Control
         parent.AddChild(scroll);
 
         _editorRoot = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        _editorRoot.AddThemeConstantOverride("separation", 10);
         scroll.AddChild(_editorRoot);
 
-        _idEdit = AddTextRow(_editorRoot, "Id");
+        var (_, identityBox) = CollapsibleSection(_editorRoot, "Identity", expanded: true);
+        BuildIdentitySection(identityBox);
+
+        var (_, coreBox) = CollapsibleSection(_editorRoot, "Core", expanded: true);
+        BuildCoreSection(coreBox);
+
+        var (_, bonusesBox) = CollapsibleSection(_editorRoot, "Stat bonuses", expanded: true);
+        BuildStatBonusesSection(bonusesBox);
+
+        var (_, weightsBox) = CollapsibleSection(_editorRoot, "Class weights", expanded: true);
+        BuildClassWeightsSection(weightsBox);
+    }
+
+    private void BuildIdentitySection(Control parent)
+    {
+        var idRow = FormRow(parent);
+        idRow.AddChild(FormLabel("Id"));
+        _idEdit = FormField();
         _idEdit.Editable = false;
+        idRow.AddChild(_idEdit);
 
-        _nameRuEdit = AddTextRow(_editorRoot, "Name RU");
-        _nameEnEdit = AddTextRow(_editorRoot, "Name EN");
+        var nameRow = FormRow(parent);
+        nameRow.AddChild(FormLabel("Name RU"));
+        _nameRuEdit = FormField();
+        nameRow.AddChild(_nameRuEdit);
+        nameRow.AddChild(FormLabel("Name EN"));
+        _nameEnEdit = FormField();
+        nameRow.AddChild(_nameEnEdit);
+    }
 
-        _resilienceSpin = SpinRow(_editorRoot, "Resilience x",
-            0.1, 5.0, 0.01, 1.0,
-            "Множитель устойчивости. Влияет на шанс получить рану/умереть.");
+    private void BuildCoreSection(Control parent)
+    {
+        var r1 = FormRow(parent);
+        r1.AddChild(FormLabel("Resilience ×"));
+        _resilienceSpin = new SpinBox
+        {
+            MinValue = 0.1,
+            MaxValue = 5.0,
+            Step = 0.01,
+            Value = 1.0,
+            CustomMinimumSize = new Vector2(120, 0),
+            SizeFlagsHorizontal = SizeFlags.ShrinkBegin,
+        };
+        r1.AddChild(_resilienceSpin);
 
-        _editorRoot.AddChild(new HSeparator());
-        _editorRoot.AddChild(new Label { Text = "Stat bonuses" });
-        _editorRoot.AddChild(new Label
+        r1.AddChild(FormLabel("Population"));
+        _populationSpin = new SpinBox
+        {
+            MinValue = 0,
+            MaxValue = 10000,
+            Step = 1,
+            Value = 0,
+            CustomMinimumSize = new Vector2(120, 0),
+            SizeFlagsHorizontal = SizeFlags.ShrinkBegin,
+        };
+        r1.AddChild(_populationSpin);
+        r1.AddChild(new Control { SizeFlagsHorizontal = SizeFlags.ExpandFill });
+    }
+
+    private void BuildStatBonusesSection(Control parent)
+    {
+        parent.AddChild(new Label
         {
             Text = "Целочисленные бонусы к статам. Могут быть отрицательными.",
             Modulate = new Color(0.7f, 0.7f, 0.7f),
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         });
 
-        _bonusesBox = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        _editorRoot.AddChild(_bonusesBox);
-        var addBonusBtn = new Button { Text = "+ stat bonus" };
-        addBonusBtn.Pressed += () => AddBonusRow(null, null);
-        _editorRoot.AddChild(addBonusBtn);
+        var grid = new GridContainer { Columns = 3 };
+        grid.AddThemeConstantOverride("h_separation", 16);
+        grid.AddThemeConstantOverride("v_separation", 4);
+        parent.AddChild(grid);
 
-        _editorRoot.AddChild(new HSeparator());
-        _editorRoot.AddChild(new Label { Text = "Weight" });
+        _statBonusBoxes.Clear();
 
-        _populationSpin = SpinRow(_editorRoot, "Population",
-            0, 10000, 1, 0,
-            "Вес расы при генерации. Чем больше — тем чаще.");
-
-        _editorRoot.AddChild(new Label { Text = "Class weights" });
-        _editorRoot.AddChild(new Label
+        foreach (var statId in StatIds.All)
         {
-            Text = "Веса классов для этой расы. 0 = класс не появляется. Отсутствие ключа — тоже 0.",
+            var cell = new HBoxContainer();
+            cell.AddThemeConstantOverride("separation", 6);
+            cell.AddChild(new Label
+            {
+                Text = statId,
+                CustomMinimumSize = new Vector2(32, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+                Modulate = new Color(0.85f, 0.85f, 0.85f),
+            });
+
+            var spin = new SpinBox
+            {
+                MinValue = -10,
+                MaxValue = 10,
+                Step = 1,
+                Value = 0,
+                CustomMinimumSize = new Vector2(80, 0),
+                SizeFlagsHorizontal = SizeFlags.ShrinkBegin,
+            };
+            cell.AddChild(spin);
+            _statBonusBoxes[statId] = spin;
+            grid.AddChild(cell);
+        }
+    }
+
+    private void BuildClassWeightsSection(Control parent)
+    {
+        parent.AddChild(new Label
+        {
+            Text = "Веса классов для этой расы. 0 = класс не появляется.",
             Modulate = new Color(0.7f, 0.7f, 0.7f),
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         });
 
         _classWeightsBox = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        _editorRoot.AddChild(_classWeightsBox);
-        var addClassBtn = new Button { Text = "+ class weight" };
-        addClassBtn.Pressed += () => AddClassWeightRow(null, null);
-        _editorRoot.AddChild(addClassBtn);
-    }
+        _classWeightsBox.AddThemeConstantOverride("separation", 4);
+        parent.AddChild(_classWeightsBox);
 
-    private static LineEdit AddTextRow(Control parent, string label, string tooltip = null)
-    {
-        var row = new HBoxContainer();
-        row.AddChild(new Label
+        var addBtn = new Button
         {
-            Text = label,
-            CustomMinimumSize = new Vector2(180, 0),
-            TooltipText = tooltip ?? "",
-        });
-        var e = new LineEdit { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
-        row.AddChild(e);
-        parent.AddChild(row);
-        return e;
-    }
-
-    private static SpinBox SpinRow(Control parent, string label, double min, double max, double step,
-                                   double value, string tooltip = null)
-    {
-        var row = new HBoxContainer();
-        row.AddChild(new Label
-        {
-            Text = label,
-            CustomMinimumSize = new Vector2(180, 0),
-            TooltipText = tooltip ?? "",
-        });
-        var s = new SpinBox
-        {
-            MinValue = min,
-            MaxValue = max,
-            Step = step,
-            Value = value,
-            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+            Text = "+ class weight",
+            SizeFlagsHorizontal = SizeFlags.ShrinkBegin,
         };
-        row.AddChild(s);
-        parent.AddChild(row);
-        return s;
+        addBtn.Pressed += () => AddClassWeightRow(null, null);
+        parent.AddChild(addBtn);
     }
+
+    private void AddClassWeightRow(string classId, int? weight)
+    {
+        var row = new ClassWeightRow();
+
+        var h = new HBoxContainer();
+        h.AddThemeConstantOverride("separation", 8);
+
+        row.ClassOption = new OptionButton
+        {
+            CustomMinimumSize = new Vector2(240, 0),
+            SizeFlagsHorizontal = SizeFlags.ShrinkBegin,
+        };
+        PopulateClassOptions(row.ClassOption);
+        if (!string.IsNullOrEmpty(classId))
+            SelectClassOption(row.ClassOption, classId);
+        h.AddChild(row.ClassOption);
+
+        row.WeightSpin = new SpinBox
+        {
+            MinValue = 0,
+            MaxValue = 1000,
+            Step = 1,
+            Value = weight ?? 1,
+            CustomMinimumSize = new Vector2(100, 0),
+            SizeFlagsHorizontal = SizeFlags.ShrinkBegin,
+        };
+        h.AddChild(row.WeightSpin);
+
+        var rm = new Button
+        {
+            Text = "×",
+            Flat = true,
+            CustomMinimumSize = new Vector2(28, 0),
+            SizeFlagsHorizontal = SizeFlags.ShrinkBegin,
+        };
+        rm.Pressed += () => { _classWeightRows.Remove(row); h.QueueFree(); };
+        h.AddChild(rm);
+
+        _classWeightsBox.AddChild(h);
+        _classWeightRows.Add(row);
+    }
+
+    private static void PopulateClassOptions(OptionButton option)
+    {
+        option.Clear();
+        foreach (var c in AdventurerDatabase.Classes.Values.OrderBy(x => x.Id))
+        {
+            string name = c.Name.Get(Loc.Language);
+            option.AddItem(string.IsNullOrEmpty(name) ? c.Id : $"{c.Id}  ({name})");
+        }
+    }
+
+    private static string ReadClassId(OptionButton option)
+    {
+        if (option.Selected < 0 || option.Selected >= option.ItemCount) return null;
+        string text = option.GetItemText(option.Selected);
+        int spaceIdx = text.IndexOf("  (", StringComparison.Ordinal);
+        return spaceIdx > 0 ? text.Substring(0, spaceIdx) : text;
+    }
+
+    private static void SelectClassOption(OptionButton option, string classId)
+    {
+        for (int i = 0; i < option.ItemCount; i++)
+        {
+            string text = option.GetItemText(i);
+            int spaceIdx = text.IndexOf("  (", StringComparison.Ordinal);
+            string id = spaceIdx > 0 ? text.Substring(0, spaceIdx) : text;
+            if (id == classId) { option.Selected = i; return; }
+        }
+    }
+
+    // ==================== UI-хелперы ====================
+
+    private static (Button toggle, VBoxContainer content) CollapsibleSection(
+        VBoxContainer parent, string title, bool expanded)
+    {
+        var toggle = new Button
+        {
+            Text = (expanded ? "▼  " : "▶  ") + title,
+            ToggleMode = true,
+            ButtonPressed = expanded,
+            Flat = true,
+            Alignment = HorizontalAlignment.Left,
+            FocusMode = Control.FocusModeEnum.None,
+            AutoTranslateMode = AutoTranslateModeEnum.Disabled,
+        };
+        parent.AddChild(toggle);
+
+        var content = new VBoxContainer { Visible = expanded };
+        content.AddThemeConstantOverride("separation", 4);
+        parent.AddChild(content);
+
+        toggle.Toggled += pressed =>
+        {
+            toggle.Text = (pressed ? "▼  " : "▶  ") + title;
+            content.Visible = pressed;
+        };
+
+        return (toggle, content);
+    }
+
+    private static HBoxContainer FormRow(Control parent)
+    {
+        var wrap = new HBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        parent.AddChild(wrap);
+
+        var row = new HBoxContainer
+        {
+            CustomMinimumSize = new Vector2(FormWidth, 0),
+            SizeFlagsHorizontal = Control.SizeFlags.ShrinkBegin,
+        };
+        row.AddThemeConstantOverride("separation", 8);
+        wrap.AddChild(row);
+
+        return row;
+    }
+
+    private static Label FormLabel(string text)
+    {
+        return new Label
+        {
+            Text = text,
+            CustomMinimumSize = new Vector2(LabelW, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            AutoTranslateMode = AutoTranslateModeEnum.Disabled,
+        };
+    }
+
+    private static LineEdit FormField()
+    {
+        return new LineEdit
+        {
+            CustomMinimumSize = new Vector2(120, 0),
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+        };
+    }
+
+    // ==================== Список ====================
 
     private void RefreshList()
     {
@@ -209,81 +396,45 @@ public partial class RacesTab : Control
     private void LoadCurrentIntoUI()
     {
         var r = _current;
+
         _idEdit.Text = r.Id ?? "";
         _nameRuEdit.Text = r.Name.Ru ?? "";
         _nameEnEdit.Text = r.Name.En ?? "";
         _resilienceSpin.Value = r.ResilienceMultiplier;
-
-        foreach (var child in _bonusesBox.GetChildren()) child.QueueFree();
-        _bonusRows.Clear();
-        if (r.StatBonuses != null)
-            foreach (var kv in r.StatBonuses)
-                AddBonusRow(kv.Key, kv.Value);
-
         _populationSpin.Value = r.Weight?.Population ?? 0;
 
-        foreach (var child in _classWeightsBox.GetChildren()) child.QueueFree();
+        foreach (var statId in StatIds.All)
+        {
+            int v = 0;
+            if (r.StatBonuses != null && r.StatBonuses.TryGetValue(statId, out var b))
+                v = b;
+            _statBonusBoxes[statId].Value = v;
+        }
+
+        foreach (var child in _classWeightsBox.GetChildren())
+            child.QueueFree();
         _classWeightRows.Clear();
+
+        var warnings = new List<string>();
+
         if (r.Weight?.Classes != null)
+        {
             foreach (var kv in r.Weight.Classes)
+            {
+                if (!AdventurerDatabase.Classes.ContainsKey(kv.Key))
+                    warnings.Add($"weight.classes: неизвестный класс '{kv.Key}'");
                 AddClassWeightRow(kv.Key, kv.Value);
+            }
+        }
+
+        if (r.Weight?.Classes == null || r.Weight.Classes.Count == 0)
+            warnings.Add("weight.classes пуст — раса никогда не появится");
+
+        SetStatus(warnings.Count > 0 ? string.Join("; ", warnings) : "",
+                  warnings.Count > 0 ? StatusKind.Warning : StatusKind.Ok);
     }
 
-    private void AddBonusRow(string statId, int? value)
-    {
-        var row = new HBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        var statEdit = new LineEdit
-        {
-            Text = statId ?? "",
-            SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            PlaceholderText = "stat id (str, dex, ...)",
-        };
-        var valSpin = new SpinBox
-        {
-            MinValue = -10,
-            MaxValue = 10,
-            Step = 1,
-            Value = value ?? 0,
-            CustomMinimumSize = new Vector2(100, 0),
-        };
-        var rm = new Button { Text = "X" };
-        var br = new BonusRow { Stat = statEdit, Value = valSpin };
-        rm.Pressed += () => { _bonusRows.Remove(br); row.QueueFree(); };
-
-        row.AddChild(statEdit);
-        row.AddChild(valSpin);
-        row.AddChild(rm);
-        _bonusesBox.AddChild(row);
-        _bonusRows.Add(br);
-    }
-
-    private void AddClassWeightRow(string classId, int? weight)
-    {
-        var row = new HBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        var classEdit = new LineEdit
-        {
-            Text = classId ?? "",
-            SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            PlaceholderText = "class id (warrior, ...)",
-        };
-        var weightSpin = new SpinBox
-        {
-            MinValue = 0,
-            MaxValue = 1000,
-            Step = 1,
-            Value = weight ?? 0,
-            CustomMinimumSize = new Vector2(100, 0),
-        };
-        var rm = new Button { Text = "X" };
-        var cr = new ClassWeightRow { ClassId = classEdit, Weight = weightSpin };
-        rm.Pressed += () => { _classWeightRows.Remove(cr); row.QueueFree(); };
-
-        row.AddChild(classEdit);
-        row.AddChild(weightSpin);
-        row.AddChild(rm);
-        _classWeightsBox.AddChild(row);
-        _classWeightRows.Add(cr);
-    }
+    // ==================== Apply / Revert ====================
 
     private void OnApplyPressed()
     {
@@ -297,7 +448,6 @@ public partial class RacesTab : Control
             {
                 var dict = new Dictionary<string, AdventurerRaceInfo>();
                 foreach (var r in _races) dict[r.Id] = r;
-
                 AdventurerDatabase.Install(races: dict);
 
                 string suffix = warnings.Count > 0
@@ -314,7 +464,6 @@ public partial class RacesTab : Control
             return;
         }
 
-        // Обычный путь — без изменений
         try
         {
             var db = new AdventurerRaceDatabase { Races = _races };
@@ -335,15 +484,10 @@ public partial class RacesTab : Control
             return;
         }
 
-        if (warnings.Count > 0)
-        {
-            SetStatus($"Applied ({_races.Count}). Предупреждения: {string.Join("; ", warnings)}",
-                      StatusKind.Warning);
-        }
-        else
-        {
-            SetStatus($"Applied: {_races.Count} рас записано", StatusKind.Ok);
-        }
+        SetStatus(warnings.Count > 0
+            ? $"Applied ({_races.Count}). Предупреждения: {string.Join("; ", warnings)}"
+            : $"Applied: {_races.Count} рас записано",
+            warnings.Count > 0 ? StatusKind.Warning : StatusKind.Ok);
     }
 
     private void OnRevertPressed()
@@ -372,29 +516,21 @@ public partial class RacesTab : Control
         r.ResilienceMultiplier = NumericHelpers.Round4(_resilienceSpin.Value);
 
         var bonuses = new Dictionary<string, int>();
-        var seenB = new HashSet<string>();
-        foreach (var row in _bonusRows)
-        {
-            string sid = row.Stat.Text?.Trim();
-            if (string.IsNullOrEmpty(sid)) continue;
-            if (!seenB.Add(sid))
-                warnings.Add($"statBonuses: дубликат '{sid}'");
-            bonuses[sid] = (int)row.Value.Value;
-        }
+        foreach (var statId in StatIds.All)
+            bonuses[statId] = (int)_statBonusBoxes[statId].Value;
         r.StatBonuses = bonuses;
 
         if (r.Weight == null) r.Weight = new RaceWeightInfo();
         r.Weight.Population = (int)_populationSpin.Value;
 
         var classes = new Dictionary<string, int>();
-        var seenC = new HashSet<string>();
+        var seen = new HashSet<string>();
         foreach (var row in _classWeightRows)
         {
-            string cid = row.ClassId.Text?.Trim();
+            string cid = ReadClassId(row.ClassOption);
             if (string.IsNullOrEmpty(cid)) continue;
-            if (!seenC.Add(cid))
-                warnings.Add($"weight.classes: дубликат '{cid}'");
-            classes[cid] = (int)row.Weight.Value;
+            if (!seen.Add(cid)) warnings.Add($"weight.classes: дубликат '{cid}'");
+            classes[cid] = (int)row.WeightSpin.Value;
         }
         r.Weight.Classes = classes;
 

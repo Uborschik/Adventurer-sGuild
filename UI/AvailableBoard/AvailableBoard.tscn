@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dlpqc2bjjx5lt"]
 
-[ext_resource type="Script" uid="uid://wcjxoaewvev2" path="res://UI/AvailableBoard/AvailableBoard.cs" id="1_6xg8j"]
-[ext_resource type="Script" uid="uid://dkw120agxembb" path="res://UI/Common/AdventurerList.cs" id="2_g1qke"]
+[ext_resource type="Script" uid="uid://wcjxoaewvev2" path="res://Scripts/Presentation/Adventurers/AvailableBoard.cs" id="1_6xg8j"]
+[ext_resource type="Script" uid="uid://dkw120agxembb" path="res://Scripts/Presentation/Adventurers/AdventurerList.cs" id="2_g1qke"]
 [ext_resource type="PackedScene" uid="uid://c4nc4fcpwmdii" path="res://UI/AvailableBoard/AvailableBoardRow.tscn" id="3_6xg8j"]
 
 [node name="AvailableBoard" type="PanelContainer" unique_id=2096333078]

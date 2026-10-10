@@ -1,6 +1,13 @@
 #if TOOLS
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using AdventurersGuild.Core;
+using AdventurersGuild.Core.Localization;
+using AdventurersGuild.Data.IO;
+using AdventurersGuild.Data.Quest;
+using AdventurersGuild.Domain.Adventurers;
+using AdventurersGuild.Domain.Quests;
 using Godot;
 
 [Tool]
@@ -8,70 +15,42 @@ public partial class CreaturesTab : Control
 {
     private const string CreaturesPath = "res://Resources/Data/Quest/Creatures.json";
 
+    private const float LabelW = 130;
+    private const float FormWidth = 750;
+
     private ItemList _list;
     private VBoxContainer _editorRoot;
     private Label _status;
 
     private LineEdit _idEdit;
-    private OptionButton _tierOption;
     private LineEdit _nameEnEdit;
     private LineEdit _nomEdit, _genEdit, _datEdit, _accEdit, _insEdit, _preEdit;
+    private SpinBox _minLvlSpin, _maxLvlSpin;
 
-    private VBoxContainer _modifiesBox;
-    private VBoxContainer _addsBox;
+    private readonly Dictionary<string, SpinBox> _growthBoxes = new();
+
+    private VBoxContainer _promisesBox;
+    private readonly List<PromiseCard> _promiseCards = new();
 
     private readonly List<CreatureInfo> _creatures = new();
     private CreatureInfo _current;
 
-    private sealed class ModifierCard
-    {
-        public LineEdit Phase;
-        public CheckBox HasDcDelta;
-        public SpinBox DcDelta;
-        public CheckBox HasDuration;
-        public SpinBox Duration;
-        public VBoxContainer StatsBox;
-        public List<StatRow> Stats = new();
-    }
-
-    private sealed class StatRow
-    {
-        public LineEdit Stat;
-        public SpinBox DcDelta;
-    }
-
-    private sealed class AddedPhaseCard
-    {
-        public LineEdit Phase;
-        public LineEdit Before;
-        public VBoxContainer SolutionsBox;
-        public List<SolutionCard> Solutions = new();
-    }
-
-    private sealed class SolutionCard
-    {
-        public List<SkillRow> Skills = new();
-    }
-
-    private sealed class SkillRow
-    {
-        public LineEdit Skill;
-        public SpinBox Dc;
-    }
-
-    private readonly List<ModifierCard> _modifierCards = new();
-    private readonly List<AddedPhaseCard> _addedPhaseCards = new();
-
-    private bool _suppressSignals;
-
-    private static readonly string[] TierOptions = { "easy", "normal", "hard" };
+    private readonly List<string> _markerIds = new();
 
     private enum StatusKind { Ok, Warning, Error }
+
+    private sealed class PromiseCard
+    {
+        public OptionButton PhaseOption;
+        public SpinBox DurationSpin;
+        public SpinBox ExpSpin;
+    }
 
     public override void _Ready()
     {
         GD.Print("[CreaturesTab] _Ready вызван");
         ReloadFromDisk();
+        RebuildMarkerIds();
 
         var main = new HBoxContainer
         {
@@ -88,11 +67,19 @@ public partial class CreaturesTab : Control
         SelectFirst();
     }
 
+    private void RebuildMarkerIds()
+    {
+        _markerIds.Clear();
+        foreach (var p in QuestDatabase.Phases.Values.Where(x => x.IsMarker).OrderBy(x => x.Id))
+            _markerIds.Add(p.Id);
+    }
+
     // ==================== Левая колонка ====================
 
     private void BuildLeft(Control parent)
     {
         var left = new VBoxContainer { CustomMinimumSize = new Vector2(200, 0) };
+        left.AddThemeConstantOverride("separation", 4);
         parent.AddChild(left);
         left.AddChild(new Label { Text = "Существа" });
 
@@ -134,66 +121,324 @@ public partial class CreaturesTab : Control
         parent.AddChild(scroll);
 
         _editorRoot = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        _editorRoot.AddThemeConstantOverride("separation", 10);
         scroll.AddChild(_editorRoot);
 
-        _idEdit = AddTextRow(_editorRoot, "Id");
-        _idEdit.Editable = false;
+        var (_, identityBox) = CollapsibleSection(_editorRoot, "Identity", expanded: true);
+        var (_, nameBox) = CollapsibleSection(_editorRoot, "Name", expanded: true);
+        var (_, growthBox) = CollapsibleSection(_editorRoot, "Growth weights", expanded: true);
+        var (_, promisesBox) = CollapsibleSection(_editorRoot, "Promises", expanded: true);
 
-        var tierRow = new HBoxContainer();
-        tierRow.AddChild(new Label { Text = "Tier", CustomMinimumSize = new Vector2(120, 0) });
-        _tierOption = new OptionButton { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        foreach (var t in TierOptions) _tierOption.AddItem(t);
-        tierRow.AddChild(_tierOption);
-        _editorRoot.AddChild(tierRow);
-
-        _editorRoot.AddChild(new HSeparator());
-        _editorRoot.AddChild(new Label { Text = "Name RU" });
-        _nomEdit = AddTextRow(_editorRoot, "nom");
-        _genEdit = AddTextRow(_editorRoot, "gen");
-        _datEdit = AddTextRow(_editorRoot, "dat");
-        _accEdit = AddTextRow(_editorRoot, "acc");
-        _insEdit = AddTextRow(_editorRoot, "ins");
-        _preEdit = AddTextRow(_editorRoot, "pre");
-
-        _editorRoot.AddChild(new Label { Text = "Name EN" });
-        _nameEnEdit = AddTextRow(_editorRoot, "en");
-
-        _editorRoot.AddChild(new HSeparator());
-        _editorRoot.AddChild(new Label { Text = "Modifies" });
-        _modifiesBox = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        _editorRoot.AddChild(_modifiesBox);
-        var addModBtn = new Button { Text = "+ phase" };
-        addModBtn.Pressed += () => AddModifierCard(null, null);
-        _editorRoot.AddChild(addModBtn);
-
-        _editorRoot.AddChild(new HSeparator());
-        _editorRoot.AddChild(new Label { Text = "Adds" });
-        _addsBox = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        _editorRoot.AddChild(_addsBox);
-        var addAddedBtn = new Button { Text = "+ added phase" };
-        addAddedBtn.Pressed += () => AddAddedPhaseCard(null);
-        _editorRoot.AddChild(addAddedBtn);
+        BuildIdentitySection(identityBox);
+        BuildNameSection(nameBox);
+        BuildGrowthSection(growthBox);
+        BuildPromisesSection(promisesBox);
     }
 
-    private static LineEdit AddTextRow(Control parent, string label)
+    private void BuildIdentitySection(Control parent)
     {
-        var row = new HBoxContainer();
-        row.AddChild(new Label { Text = label, CustomMinimumSize = new Vector2(120, 0) });
-        var edit = new LineEdit { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
-        row.AddChild(edit);
-        parent.AddChild(row);
+        var idRow = FormRow(parent);
+        idRow.AddChild(FormLabel("Id"));
+        _idEdit = FormField();
+        _idEdit.Editable = false;
+        idRow.AddChild(_idEdit);
+
+        var lvlRow = FormRow(parent);
+        lvlRow.AddChild(FormLabel("Level range"));
+        lvlRow.AddChild(new Label { Text = "min", VerticalAlignment = VerticalAlignment.Center });
+        _minLvlSpin = Spin(1, 60, 1, 1, 90);
+        lvlRow.AddChild(_minLvlSpin);
+        lvlRow.AddChild(new Label { Text = "max", VerticalAlignment = VerticalAlignment.Center });
+        _maxLvlSpin = Spin(1, 60, 1, 60, 90);
+        lvlRow.AddChild(_maxLvlSpin);
+        lvlRow.AddChild(new Control { SizeFlagsHorizontal = SizeFlags.ExpandFill });
+    }
+
+    private void BuildNameSection(Control parent)
+    {
+        var r1 = FormRow(parent);
+        r1.AddChild(FormLabel("Name EN"));
+        _nameEnEdit = FormField();
+        r1.AddChild(_nameEnEdit);
+
+        parent.AddChild(new Label
+        {
+            Text = "Русские падежи:",
+            Modulate = new Color(0.7f, 0.7f, 0.7f),
+        });
+
+        var grid = new GridContainer { Columns = 3 };
+        grid.AddThemeConstantOverride("h_separation", 16);
+        grid.AddThemeConstantOverride("v_separation", 4);
+        parent.AddChild(grid);
+
+        _nomEdit = AddCaseField(grid, "nom", "Именительный. Кто? что?\nПример: волк, гоблин.");
+        _genEdit = AddCaseField(grid, "gen", "Родительный. Кого? чего?\nПример: волка, гоблина.");
+        _datEdit = AddCaseField(grid, "dat", "Дательный. Кому? чему?\nПример: волку, гоблину.");
+        _accEdit = AddCaseField(grid, "acc", "Винительный. Кого? что?\nПример: волка, гоблина.");
+        _insEdit = AddCaseField(grid, "ins", "Творительный. Кем? чем?\nПример: волком, гоблином.");
+        _preEdit = AddCaseField(grid, "pre", "Предложный. О ком? о чём?\nПример: волке, гоблине.");
+    }
+
+    private LineEdit AddCaseField(GridContainer grid, string label, string tooltip)
+    {
+        var cell = new HBoxContainer();
+        cell.AddThemeConstantOverride("separation", 6);
+        cell.AddChild(new Label
+        {
+            Text = label,
+            CustomMinimumSize = new Vector2(32, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+            Modulate = new Color(0.85f, 0.85f, 0.85f),
+            TooltipText = tooltip,
+        });
+        var edit = new LineEdit
+        {
+            CustomMinimumSize = new Vector2(160, 0),
+            SizeFlagsHorizontal = SizeFlags.ShrinkBegin,
+        };
+        cell.AddChild(edit);
+        grid.AddChild(cell);
         return edit;
+    }
+
+    private void BuildGrowthSection(Control parent)
+    {
+        parent.AddChild(new Label
+        {
+            Text = "Веса роста статов. Формула как у авантюристов: " +
+                   "statValue = StatBaseValue + refMax(level) * weight.",
+            Modulate = new Color(0.7f, 0.7f, 0.7f),
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        });
+
+        var grid = new GridContainer { Columns = 3 };
+        grid.AddThemeConstantOverride("h_separation", 16);
+        grid.AddThemeConstantOverride("v_separation", 4);
+        parent.AddChild(grid);
+
+        _growthBoxes.Clear();
+
+        foreach (var statId in StatIds.All)
+        {
+            var cell = new HBoxContainer();
+            cell.AddThemeConstantOverride("separation", 6);
+            cell.AddChild(new Label
+            {
+                Text = statId,
+                CustomMinimumSize = new Vector2(32, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+                Modulate = new Color(0.85f, 0.85f, 0.85f),
+            });
+            var spin = new SpinBox
+            {
+                MinValue = 0,
+                MaxValue = 10,
+                Step = 0.01,
+                Value = 0,
+                CustomMinimumSize = new Vector2(80, 0),
+                SizeFlagsHorizontal = SizeFlags.ShrinkBegin,
+            };
+            cell.AddChild(spin);
+            _growthBoxes[statId] = spin;
+            grid.AddChild(cell);
+        }
+    }
+
+    private void BuildPromisesSection(Control parent)
+    {
+        parent.AddChild(new Label
+        {
+            Text = "Обещания: какие маркеры существо предоставляет в квест. " +
+                   "Каждое обещание реализуется через статы существа.",
+            Modulate = new Color(0.7f, 0.7f, 0.7f),
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        });
+
+        _promisesBox = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        _promisesBox.AddThemeConstantOverride("separation", 4);
+        parent.AddChild(_promisesBox);
+
+        var addBtn = new Button { Text = "+ promise", SizeFlagsHorizontal = SizeFlags.ShrinkBegin };
+        addBtn.Pressed += () => AddPromiseCard(null);
+        parent.AddChild(addBtn);
+    }
+
+    private void AddPromiseCard(PhasePromise promise)
+    {
+        var card = new PromiseCard();
+
+        var frame = new PanelContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        var inner = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        inner.AddThemeConstantOverride("separation", 6);
+        frame.AddChild(inner);
+
+        var h = new HBoxContainer();
+        h.AddThemeConstantOverride("separation", 8);
+
+        h.AddChild(new Label
+        {
+            Text = "phase",
+            CustomMinimumSize = new Vector2(64, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            AutoTranslateMode = AutoTranslateModeEnum.Disabled,
+        });
+
+        card.PhaseOption = new OptionButton
+        {
+            CustomMinimumSize = new Vector2(200, 0),
+            SizeFlagsHorizontal = SizeFlags.ShrinkBegin,
+        };
+        PopulatePhaseOptions(card.PhaseOption, promise?.Phase);
+        h.AddChild(card.PhaseOption);
+
+        h.AddChild(new Label
+        {
+            Text = "duration",
+            CustomMinimumSize = new Vector2(70, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+            HorizontalAlignment = HorizontalAlignment.Right,
+        });
+        card.DurationSpin = Spin(0, 10000, 1, promise?.DurationMinutes ?? 0, 100);
+        h.AddChild(card.DurationSpin);
+
+        h.AddChild(new Label
+        {
+            Text = "exp",
+            CustomMinimumSize = new Vector2(40, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+            HorizontalAlignment = HorizontalAlignment.Right,
+        });
+        card.ExpSpin = Spin(0, 10000, 1, promise?.ExpReward ?? 0, 90);
+        h.AddChild(card.ExpSpin);
+
+        var rm = new Button
+        {
+            Text = "×",
+            Flat = true,
+            CustomMinimumSize = new Vector2(28, 0),
+        };
+        rm.Pressed += () => { _promiseCards.Remove(card); frame.QueueFree(); };
+        h.AddChild(rm);
+        inner.AddChild(h);
+
+        _promisesBox.AddChild(frame);
+        _promiseCards.Add(card);
+    }
+
+    private void PopulatePhaseOptions(OptionButton option, string currentId)
+    {
+        option.Clear();
+        foreach (var pid in _markerIds)
+            option.AddItem(pid);
+
+        if (string.IsNullOrEmpty(currentId)) { option.Selected = 0; return; }
+
+        for (int i = 0; i < option.ItemCount; i++)
+        {
+            if (option.GetItemText(i) == currentId) { option.Selected = i; return; }
+        }
+
+        option.AddItem($"{currentId}  (неизвестный)");
+        option.Selected = option.ItemCount - 1;
+    }
+
+    private static string ReadPhaseId(OptionButton option)
+    {
+        if (option.Selected < 0 || option.Selected >= option.ItemCount) return null;
+        string text = option.GetItemText(option.Selected);
+        int spaceIdx = text.IndexOf("  (неизвестный)", StringComparison.Ordinal);
+        return spaceIdx > 0 ? text.Substring(0, spaceIdx) : text;
+    }
+
+    // ==================== UI-хелперы ====================
+
+    private static (Button toggle, VBoxContainer content) CollapsibleSection(
+        VBoxContainer parent, string title, bool expanded)
+    {
+        var toggle = new Button
+        {
+            Text = (expanded ? "▼  " : "▶  ") + title,
+            ToggleMode = true,
+            ButtonPressed = expanded,
+            Flat = true,
+            Alignment = HorizontalAlignment.Left,
+            FocusMode = Control.FocusModeEnum.None,
+            AutoTranslateMode = AutoTranslateModeEnum.Disabled,
+        };
+        parent.AddChild(toggle);
+
+        var content = new VBoxContainer { Visible = expanded };
+        content.AddThemeConstantOverride("separation", 4);
+        parent.AddChild(content);
+
+        toggle.Toggled += pressed =>
+        {
+            toggle.Text = (pressed ? "▼  " : "▶  ") + title;
+            content.Visible = pressed;
+        };
+
+        return (toggle, content);
+    }
+
+    private static HBoxContainer FormRow(Control parent)
+    {
+        var wrap = new HBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        parent.AddChild(wrap);
+
+        var row = new HBoxContainer
+        {
+            CustomMinimumSize = new Vector2(FormWidth, 0),
+            SizeFlagsHorizontal = Control.SizeFlags.ShrinkBegin,
+        };
+        row.AddThemeConstantOverride("separation", 8);
+        wrap.AddChild(row);
+
+        return row;
+    }
+
+    private static Label FormLabel(string text)
+    {
+        return new Label
+        {
+            Text = text,
+            CustomMinimumSize = new Vector2(LabelW, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            AutoTranslateMode = AutoTranslateModeEnum.Disabled,
+        };
+    }
+
+    private static LineEdit FormField()
+    {
+        return new LineEdit
+        {
+            CustomMinimumSize = new Vector2(120, 0),
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+        };
+    }
+
+    private static SpinBox Spin(double min, double max, double step, double value, float width = 120)
+    {
+        return new SpinBox
+        {
+            MinValue = min,
+            MaxValue = max,
+            Step = step,
+            Value = value,
+            CustomMinimumSize = new Vector2(width, 0),
+            SizeFlagsHorizontal = SizeFlags.ShrinkBegin,
+        };
     }
 
     // ==================== Список ====================
 
     private void RefreshList()
     {
-        _suppressSignals = true;
         _list.Clear();
-        for (int i = 0; i < _creatures.Count; i++)
-            _list.AddItem(_creatures[i].Id);
-        _suppressSignals = false;
+        foreach (var c in _creatures)
+            _list.AddItem(c.Id);
     }
 
     private void SelectFirst()
@@ -205,7 +450,6 @@ public partial class CreaturesTab : Control
 
     private void OnCreatureSelected(long index)
     {
-        if (_suppressSignals) return;
         if (index < 0 || index >= _creatures.Count) return;
         _current = _creatures[(int)index];
         LoadCurrentIntoUI();
@@ -213,12 +457,11 @@ public partial class CreaturesTab : Control
 
     private void LoadCurrentIntoUI()
     {
-        _suppressSignals = true;
         var c = _current;
 
         _idEdit.Text = c.Id ?? "";
-        int tierIdx = Array.IndexOf(TierOptions, c.Tier);
-        _tierOption.Selected = tierIdx >= 0 ? tierIdx : 1;
+        _minLvlSpin.Value = c.MinLvl;
+        _maxLvlSpin.Value = c.MaxLvl;
 
         var n = c.Name;
         _nomEdit.Text = n?.Ru?.Nom ?? "";
@@ -229,213 +472,22 @@ public partial class CreaturesTab : Control
         _preEdit.Text = n?.Ru?.Pre ?? "";
         _nameEnEdit.Text = n?.En ?? "";
 
-        foreach (var child in _modifiesBox.GetChildren()) child.QueueFree();
-        _modifierCards.Clear();
-        if (c.PhaseEffects?.Modifies != null)
-            foreach (var kv in c.PhaseEffects.Modifies)
-                AddModifierCard(kv.Key, kv.Value);
-
-        foreach (var child in _addsBox.GetChildren()) child.QueueFree();
-        _addedPhaseCards.Clear();
-        if (c.PhaseEffects?.Adds != null)
-            foreach (var a in c.PhaseEffects.Adds)
-                AddAddedPhaseCard(a);
-
-        _suppressSignals = false;
-    }
-
-    // ==================== Modifier card ====================
-
-    private void AddModifierCard(string phaseId, PhaseModifier mod)
-    {
-        var card = new ModifierCard();
-
-        var frame = new PanelContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        var inner = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        frame.AddChild(inner);
-
-        var header = new HBoxContainer();
-        header.AddChild(new Label { Text = "phase", CustomMinimumSize = new Vector2(60, 0) });
-        card.Phase = new LineEdit
+        foreach (var statId in StatIds.All)
         {
-            Text = phaseId ?? "",
-            SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            PlaceholderText = "phase id",
-        };
-        header.AddChild(card.Phase);
-        var rm = new Button { Text = "X" };
-        rm.Pressed += () => { _modifierCards.Remove(card); frame.QueueFree(); };
-        header.AddChild(rm);
-        inner.AddChild(header);
+            double v = 0;
+            if (c.GrowthWeights != null && c.GrowthWeights.TryGetValue(statId, out var w))
+                v = w;
+            _growthBoxes[statId].Value = v;
+        }
 
-        var dcRow = new HBoxContainer();
-        card.HasDcDelta = new CheckBox { ButtonPressed = mod?.DcDelta.HasValue ?? false };
-        card.DcDelta = new SpinBox
-        {
-            MinValue = -5,
-            MaxValue = 5,
-            Step = 0.05,
-            Value = mod?.DcDelta ?? 0,
-            SizeFlagsHorizontal = SizeFlags.ExpandFill,
-        };
-        card.DcDelta.Editable = card.HasDcDelta.ButtonPressed;
-        card.HasDcDelta.Toggled += v => card.DcDelta.Editable = v;
-        dcRow.AddChild(new Label { Text = "DcDelta", CustomMinimumSize = new Vector2(120, 0) });
-        dcRow.AddChild(card.HasDcDelta);
-        dcRow.AddChild(card.DcDelta);
-        inner.AddChild(dcRow);
+        foreach (var child in _promisesBox.GetChildren())
+            child.QueueFree();
+        _promiseCards.Clear();
+        if (c.Promises != null)
+            foreach (var p in c.Promises)
+                AddPromiseCard(p);
 
-        var durRow = new HBoxContainer();
-        card.HasDuration = new CheckBox { ButtonPressed = mod?.DurationDeltaMinutes.HasValue ?? false };
-        card.Duration = new SpinBox
-        {
-            MinValue = -10000,
-            MaxValue = 10000,
-            Step = 1,
-            Value = mod?.DurationDeltaMinutes ?? 0,
-            SizeFlagsHorizontal = SizeFlags.ExpandFill,
-        };
-        card.Duration.Editable = card.HasDuration.ButtonPressed;
-        card.HasDuration.Toggled += v => card.Duration.Editable = v;
-        durRow.AddChild(new Label { Text = "DurationΔ", CustomMinimumSize = new Vector2(120, 0) });
-        durRow.AddChild(card.HasDuration);
-        durRow.AddChild(card.Duration);
-        inner.AddChild(durRow);
-
-        inner.AddChild(new Label { Text = "Stat modifiers" });
-        card.StatsBox = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        inner.AddChild(card.StatsBox);
-
-        var addStat = new Button { Text = "+ stat" };
-        addStat.Pressed += () => AddStatRow(card, null, null);
-        inner.AddChild(addStat);
-
-        if (mod?.StatModifiers != null)
-            foreach (var kv in mod.StatModifiers)
-                AddStatRow(card, kv.Key, kv.Value.DcDelta);
-
-        _modifiesBox.AddChild(frame);
-        _modifierCards.Add(card);
-    }
-
-    private void AddStatRow(ModifierCard card, string statId, double? dcDelta)
-    {
-        var row = new HBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        var statEdit = new LineEdit
-        {
-            Text = statId ?? "",
-            SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            PlaceholderText = "stat id",
-        };
-        var dcSpin = new SpinBox
-        {
-            MinValue = -5,
-            MaxValue = 5,
-            Step = 0.05,
-            Value = dcDelta ?? 0,
-            CustomMinimumSize = new Vector2(90, 0),
-        };
-        var rm = new Button { Text = "X" };
-        var sr = new StatRow { Stat = statEdit, DcDelta = dcSpin };
-        rm.Pressed += () => { card.Stats.Remove(sr); row.QueueFree(); };
-
-        row.AddChild(statEdit);
-        row.AddChild(dcSpin);
-        row.AddChild(rm);
-        card.StatsBox.AddChild(row);
-        card.Stats.Add(sr);
-    }
-
-    // ==================== Added phase card ====================
-
-    private void AddAddedPhaseCard(AddedPhase ap)
-    {
-        var card = new AddedPhaseCard();
-
-        var frame = new PanelContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        var inner = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        frame.AddChild(inner);
-
-        var header = new HBoxContainer();
-        header.AddChild(new Label { Text = "phase", CustomMinimumSize = new Vector2(60, 0) });
-        card.Phase = new LineEdit { Text = ap?.Phase ?? "", SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        header.AddChild(card.Phase);
-        header.AddChild(new Label { Text = "before" });
-        card.Before = new LineEdit { Text = ap?.Before ?? "", SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        header.AddChild(card.Before);
-        var rm = new Button { Text = "X" };
-        rm.Pressed += () => { _addedPhaseCards.Remove(card); frame.QueueFree(); };
-        header.AddChild(rm);
-        inner.AddChild(header);
-
-        inner.AddChild(new Label { Text = "Solutions" });
-        card.SolutionsBox = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        inner.AddChild(card.SolutionsBox);
-
-        var addSol = new Button { Text = "+ solution" };
-        addSol.Pressed += () => AddSolutionCard(card, null);
-        inner.AddChild(addSol);
-
-        if (ap?.Solutions != null)
-            foreach (var s in ap.Solutions)
-                AddSolutionCard(card, s);
-
-        _addsBox.AddChild(frame);
-        _addedPhaseCards.Add(card);
-    }
-
-    private void AddSolutionCard(AddedPhaseCard apCard, PhaseSolution sol)
-    {
-        var sc = new SolutionCard();
-        var root = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        var header = new HBoxContainer();
-        header.AddChild(new Label { Text = "Solution", SizeFlagsHorizontal = SizeFlags.ExpandFill });
-        var rm = new Button { Text = "X" };
-        rm.Pressed += () => { apCard.Solutions.Remove(sc); root.QueueFree(); };
-        header.AddChild(rm);
-        root.AddChild(header);
-
-        var skillsBox = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        root.AddChild(skillsBox);
-
-        var addSkill = new Button { Text = "+ skill" };
-        addSkill.Pressed += () => AddSkillRow(sc, skillsBox, null, 0);
-        root.AddChild(addSkill);
-
-        apCard.SolutionsBox.AddChild(root);
-        apCard.Solutions.Add(sc);
-
-        if (sol?.Skills != null)
-            foreach (var kv in sol.Skills)
-                AddSkillRow(sc, skillsBox, kv.Key, kv.Value);
-    }
-
-    private void AddSkillRow(SolutionCard sc, VBoxContainer parent, string skillId, double dc)
-    {
-        var row = new HBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        var skillEdit = new LineEdit
-        {
-            Text = skillId ?? "",
-            SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            PlaceholderText = "skill id",
-        };
-        var dcSpin = new SpinBox
-        {
-            MinValue = 0,
-            MaxValue = 10,
-            Step = 0.01,
-            Value = dc,
-            CustomMinimumSize = new Vector2(90, 0),
-        };
-        var rm = new Button { Text = "X" };
-        var skr = new SkillRow { Skill = skillEdit, Dc = dcSpin };
-        rm.Pressed += () => { sc.Skills.Remove(skr); row.QueueFree(); };
-
-        row.AddChild(skillEdit);
-        row.AddChild(dcSpin);
-        row.AddChild(rm);
-        parent.AddChild(row);
-        sc.Skills.Add(skr);
+        SetStatus("", StatusKind.Ok);
     }
 
     // ==================== Apply / Revert ====================
@@ -458,7 +510,7 @@ public partial class CreaturesTab : Control
                     ? $" Предупреждения: {string.Join("; ", warnings)}"
                     : "";
                 SetStatus($"Preview: {_creatures.Count} существ в памяти (диск не тронут).{suffix}",
-                          warnings.Count > 0 ? StatusKind.Warning : StatusKind.Warning);
+                          StatusKind.Warning);
             }
             catch (Exception e)
             {
@@ -484,21 +536,14 @@ public partial class CreaturesTab : Control
         catch (Exception e)
         {
             SetStatus($"Записано, но QuestDatabase.Load упал: {e.Message}", StatusKind.Error);
-            GD.PushError($"[CreaturesTab] QuestDatabase.Load: {e}");
+            GD.PushError($"[CreaturesTab] Load: {e}");
             return;
         }
 
-        if (warnings.Count > 0)
-        {
-            string msg = $"Applied ({_creatures.Count} существ). Предупреждения: " +
-                         string.Join("; ", warnings);
-            SetStatus(msg, StatusKind.Warning);
-            GD.PushWarning($"[CreaturesTab] {msg}");
-        }
-        else
-        {
-            SetStatus($"Applied: {_creatures.Count} существ записано в JSON", StatusKind.Ok);
-        }
+        SetStatus(warnings.Count > 0
+            ? $"Applied ({_creatures.Count}). Предупреждения: {string.Join("; ", warnings)}"
+            : $"Applied: {_creatures.Count} существ записано",
+            warnings.Count > 0 ? StatusKind.Warning : StatusKind.Ok);
     }
 
     private void OnRevertPressed()
@@ -513,22 +558,17 @@ public partial class CreaturesTab : Control
         }
         catch (Exception e)
         {
-            SetStatus($"Revert: QuestDatabase.Load упал: {e.Message}", StatusKind.Error);
+            SetStatus($"Revert: Load упал: {e.Message}", StatusKind.Error);
         }
     }
 
-    // ==================== Sync UI -> модель ====================
-
-    // Возвращает список предупреждений (дубликаты ключей, пустые id и т.п.)
     private List<string> SyncUIToCurrent()
     {
         var warnings = new List<string>();
         var c = _current;
 
-        // Name
         if (c.Name == null) c.Name = new LocalizedNoun();
         if (c.Name.Ru == null) c.Name.Ru = new NounForms();
-
         c.Name.Ru.Nom = EmptyToNull(_nomEdit.Text);
         c.Name.Ru.Gen = EmptyToNull(_genEdit.Text);
         c.Name.Ru.Dat = EmptyToNull(_datEdit.Text);
@@ -537,90 +577,38 @@ public partial class CreaturesTab : Control
         c.Name.Ru.Pre = EmptyToNull(_preEdit.Text);
         c.Name.En = _nameEnEdit.Text;
 
-        if (_tierOption.Selected >= 0 && _tierOption.Selected < TierOptions.Length)
-            c.Tier = TierOptions[_tierOption.Selected];
+        c.MinLvl = (int)_minLvlSpin.Value;
+        c.MaxLvl = (int)_maxLvlSpin.Value;
+        if (c.MaxLvl < c.MinLvl)
+            warnings.Add($"levelRange: max < min ({c.MinLvl}..{c.MaxLvl})");
 
-        if (c.PhaseEffects == null) c.PhaseEffects = new CreaturePhaseEffects();
+        var weights = new Dictionary<string, double>();
+        foreach (var statId in StatIds.All)
+            weights[statId] = NumericHelpers.Round4(_growthBoxes[statId].Value);
+        c.GrowthWeights = weights;
 
-        // Modifies
-        var mods = new Dictionary<string, PhaseModifier>();
-        var seenModPhases = new HashSet<string>();
-        foreach (var card in _modifierCards)
+        var promises = new List<PhasePromise>();
+        var seen = new HashSet<string>();
+        foreach (var card in _promiseCards)
         {
-            string phaseId = card.Phase.Text?.Trim();
-            if (string.IsNullOrEmpty(phaseId)) continue;
+            string pid = ReadPhaseId(card.PhaseOption);
+            if (string.IsNullOrEmpty(pid)) continue;
+            if (!seen.Add(pid))
+                warnings.Add($"promises: дубликат '{pid}'");
 
-            if (!seenModPhases.Add(phaseId))
-                warnings.Add($"Modifies: дубликат фазы '{phaseId}', используется последняя карточка");
-
-            var mod = new PhaseModifier();
-            if (card.HasDcDelta.ButtonPressed) mod.DcDelta = card.DcDelta.Value;
-            if (card.HasDuration.ButtonPressed) mod.DurationDeltaMinutes = (int)card.Duration.Value;
-
-            if (card.Stats.Count > 0)
+            promises.Add(new PhasePromise
             {
-                var stats = new Dictionary<string, StatDcDelta>();
-                var seenStats = new HashSet<string>();
-                foreach (var s in card.Stats)
-                {
-                    string sid = s.Stat.Text?.Trim();
-                    if (string.IsNullOrEmpty(sid)) continue;
-
-                    if (!seenStats.Add(sid))
-                        warnings.Add($"Modifies['{phaseId}']: дубликат стата '{sid}'");
-
-                    stats[sid] = new StatDcDelta { DcDelta = NumericHelpers.Round4(s.DcDelta.Value) };
-                }
-                if (stats.Count > 0) mod.StatModifiers = stats;
-            }
-
-            mods[phaseId] = mod;
+                Phase = pid,
+                DurationMinutes = (int)card.DurationSpin.Value,
+                ExpReward = (int)card.ExpSpin.Value,
+            });
         }
-        c.PhaseEffects.Modifies = mods.Count > 0 ? mods : null;
-
-        // Adds
-        var adds = new List<AddedPhase>();
-        foreach (var apCard in _addedPhaseCards)
-        {
-            string phaseId = apCard.Phase.Text?.Trim();
-            if (string.IsNullOrEmpty(phaseId)) continue;
-
-            var ap = new AddedPhase
-            {
-                Phase = phaseId,
-                Before = EmptyToNull(apCard.Before.Text),
-                Solutions = new List<PhaseSolution>(),
-            };
-
-            for (int si = 0; si < apCard.Solutions.Count; si++)
-            {
-                var sc = apCard.Solutions[si];
-                var skills = new Dictionary<string, double>();
-                var seenSkills = new HashSet<string>();
-                foreach (var s in sc.Skills)
-                {
-                    string sid = s.Skill.Text?.Trim();
-                    if (string.IsNullOrEmpty(sid)) continue;
-
-                    if (!seenSkills.Add(sid))
-                        warnings.Add($"Adds['{phaseId}'].sol[{si}]: дубликат скилла '{sid}'");
-
-                    skills[sid] = s.Dc.Value;
-                }
-                ap.Solutions.Add(new PhaseSolution { Skills = skills });
-            }
-
-            adds.Add(ap);
-        }
-        c.PhaseEffects.Adds = adds.Count > 0 ? adds : null;
+        c.Promises = promises;
 
         return warnings;
     }
 
-    private static string EmptyToNull(string s)
-        => string.IsNullOrEmpty(s) ? null : s;
-
-    // ==================== Прочее ====================
+    private static string EmptyToNull(string s) => string.IsNullOrEmpty(s) ? null : s;
 
     private void ReloadFromDisk()
     {

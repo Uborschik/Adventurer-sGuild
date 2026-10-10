@@ -2,6 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AdventurersGuild.Core;
+using AdventurersGuild.Core.Localization;
+using AdventurersGuild.Data.Adventurer;
+using AdventurersGuild.Data.IO;
+using AdventurersGuild.Data.Quest;
+using AdventurersGuild.Domain.Adventurers;
 using Godot;
 
 [Tool]
@@ -9,25 +15,27 @@ public partial class ClassesTab : Control
 {
     private const string ClassesPath = "res://Resources/Data/Adventurer/AdventurerClasses.json";
 
+    private const float LabelW = 130;
+    private const float FormWidth = 750;
+
     private ItemList _list;
     private VBoxContainer _editorRoot;
-    private VBoxContainer _growthBox;
     private Label _status;
 
-    private LineEdit _idEdit, _nameRuEdit, _nameEnEdit;
-    private LineEdit _primaryStatEdit, _primarySkillEdit;
-    private LineEdit _secondaryStatEdit, _secondarySkillEdit;
+    private LineEdit _idEdit;
+    private LineEdit _nameRuEdit, _nameEnEdit;
+
+    private OptionButton _primaryStatOption, _primarySkillOption;
+    private OptionButton _secondaryStatOption, _secondarySkillOption;
     private SpinBox _weightSpin;
+
+    private readonly List<string> _primarySkillIds = new();
+    private readonly List<string> _secondarySkillIds = new();
+
+    private readonly Dictionary<string, SpinBox> _growthBoxes = new();
 
     private readonly List<AdventurerClassInfo> _classes = new();
     private AdventurerClassInfo _current;
-
-    private sealed class GrowthRow
-    {
-        public LineEdit Stat;
-        public SpinBox Weight;
-    }
-    private readonly List<GrowthRow> _growthRows = new();
 
     private enum StatusKind { Ok, Warning, Error }
 
@@ -56,6 +64,7 @@ public partial class ClassesTab : Control
     private void BuildLeft(Control parent)
     {
         var left = new VBoxContainer { CustomMinimumSize = new Vector2(200, 0) };
+        left.AddThemeConstantOverride("separation", 4);
         parent.AddChild(left);
         left.AddChild(new Label { Text = "Классы" });
 
@@ -96,83 +105,294 @@ public partial class ClassesTab : Control
         };
         parent.AddChild(scroll);
 
-        _editorRoot = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        _editorRoot = new VBoxContainer
+        {
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+        };
+        _editorRoot.AddThemeConstantOverride("separation", 10);
         scroll.AddChild(_editorRoot);
 
-        _idEdit = AddTextRow(_editorRoot, "Id", "Уникальный идентификатор класса. Read-only.");
+        var (_, identityBox) = CollapsibleSection(_editorRoot, "Identity", expanded: true);
+        BuildIdentitySection(identityBox);
+
+        var (_, coreBox) = CollapsibleSection(_editorRoot, "Core", expanded: true);
+        BuildCoreSection(coreBox);
+
+        var (_, growthBox) = CollapsibleSection(_editorRoot, "Growth weights", expanded: true);
+        BuildGrowthSection(growthBox);
+    }
+
+    private void BuildIdentitySection(Control parent)
+    {
+        var idRow = FormRow(parent);
+        idRow.AddChild(FormLabel("Id"));
+        _idEdit = FormField();
         _idEdit.Editable = false;
+        idRow.AddChild(_idEdit);
 
-        _nameRuEdit = AddTextRow(_editorRoot, "Name RU", "Русское название класса.");
-        _nameEnEdit = AddTextRow(_editorRoot, "Name EN", "Английское название класса.");
+        var nameRow = FormRow(parent);
+        nameRow.AddChild(FormLabel("Name RU"));
+        _nameRuEdit = FormField();
+        nameRow.AddChild(_nameRuEdit);
+        nameRow.AddChild(FormLabel("Name EN"));
+        _nameEnEdit = FormField();
+        nameRow.AddChild(_nameEnEdit);
+    }
 
-        _editorRoot.AddChild(new HSeparator());
+    private void BuildCoreSection(Control parent)
+    {
+        var r1 = FormRow(parent);
+        r1.AddChild(FormLabel("Primary stat"));
+        _primaryStatOption = new OptionButton
+        {
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+        };
+        _primaryStatOption.ItemSelected += _ => OnPrimaryStatChanged();
+        r1.AddChild(_primaryStatOption);
 
-        _primaryStatEdit = AddTextRow(_editorRoot, "Primary stat",
-            "Основной стат. Должен существовать в AdventurerStats.json.\nНапример: str, dex, end, int, wis, cha.");
-        _primarySkillEdit = AddTextRow(_editorRoot, "Primary skill",
-            "Основной навык. Должен принадлежать primary stat.\nСмотри AdventurerStats.json → stats[].skills[].id.");
-        _secondaryStatEdit = AddTextRow(_editorRoot, "Secondary stat",
-            "Дополнительный стат. Не должен совпадать с primary.");
-        _secondarySkillEdit = AddTextRow(_editorRoot, "Secondary skill",
-            "Дополнительный навык. Должен принадлежать secondary stat.");
+        r1.AddChild(FormLabel("Primary skill"));
+        _primarySkillOption = new OptionButton
+        {
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+        };
+        r1.AddChild(_primarySkillOption);
 
-        _editorRoot.AddChild(new HSeparator());
-        _editorRoot.AddChild(new Label { Text = "Growth weights" });
-        _editorRoot.AddChild(new Label
+        var r2 = FormRow(parent);
+        r2.AddChild(FormLabel("Secondary stat"));
+        _secondaryStatOption = new OptionButton
+        {
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+        };
+        _secondaryStatOption.ItemSelected += _ => OnSecondaryStatChanged();
+        r2.AddChild(_secondaryStatOption);
+
+        r2.AddChild(FormLabel("Secondary skill"));
+        _secondarySkillOption = new OptionButton
+        {
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+        };
+        r2.AddChild(_secondarySkillOption);
+
+        var r3 = FormRow(parent);
+        r3.AddChild(FormLabel("Weight"));
+        _weightSpin = new SpinBox
+        {
+            MinValue = 0,
+            MaxValue = 1000,
+            Step = 1,
+            Value = 0,
+            CustomMinimumSize = new Vector2(120, 0),
+            SizeFlagsHorizontal = SizeFlags.ShrinkBegin,
+        };
+        r3.AddChild(_weightSpin);
+        r3.AddChild(new Control { SizeFlagsHorizontal = SizeFlags.ExpandFill });
+
+        PopulateStatOptions(_primaryStatOption);
+        PopulateStatOptions(_secondaryStatOption);
+    }
+
+    private void BuildGrowthSection(Control parent)
+    {
+        parent.AddChild(new Label
         {
             Text = "Веса роста статов. Primary stat обычно = 1.00, остальные меньше.",
             Modulate = new Color(0.7f, 0.7f, 0.7f),
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         });
 
-        _growthBox = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        _editorRoot.AddChild(_growthBox);
+        var grid = new GridContainer { Columns = 3 };
+        grid.AddThemeConstantOverride("h_separation", 16);
+        grid.AddThemeConstantOverride("v_separation", 4);
+        parent.AddChild(grid);
 
-        var addStatBtn = new Button { Text = "+ stat" };
-        addStatBtn.Pressed += () => AddGrowthRow(null, null);
-        _editorRoot.AddChild(addStatBtn);
+        _growthBoxes.Clear();
 
-        _weightSpin = SpinRow(_editorRoot, "Weight",
-            0, 1000, 1, 0,
-            "Вес класса при генерации авантюристов. Чем больше — тем чаще попадается.");
+        foreach (var statId in StatIds.All)
+        {
+            var cell = new HBoxContainer();
+            cell.AddThemeConstantOverride("separation", 6);
+            cell.AddChild(new Label
+            {
+                Text = statId,
+                CustomMinimumSize = new Vector2(32, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+                Modulate = new Color(0.85f, 0.85f, 0.85f),
+            });
+
+            var spin = new SpinBox
+            {
+                MinValue = 0,
+                MaxValue = 10,
+                Step = 0.01,
+                Value = 0,
+                CustomMinimumSize = new Vector2(80, 0),
+                SizeFlagsHorizontal = SizeFlags.ShrinkBegin,
+            };
+            cell.AddChild(spin);
+            _growthBoxes[statId] = spin;
+            grid.AddChild(cell);
+        }
     }
 
-    private static LineEdit AddTextRow(Control parent, string label, string tooltip = null)
+    // ==================== Дропдауны статов/скиллов ====================
+
+    private static void PopulateStatOptions(OptionButton option)
     {
-        var row = new HBoxContainer();
-        row.AddChild(new Label
+        option.Clear();
+        foreach (var statId in StatIds.All)
         {
-            Text = label,
-            CustomMinimumSize = new Vector2(180, 0),
-            TooltipText = tooltip ?? "",
-        });
-        var e = new LineEdit { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
-        row.AddChild(e);
-        parent.AddChild(row);
-        return e;
+            if (!AdventurerDatabase.Stats.ContainsKey(statId)) continue;
+            string name = AdventurerDatabase.StatName(statId);
+            option.AddItem(string.IsNullOrEmpty(name) ? statId : $"{statId}  ({name})");
+        }
     }
 
-    private static SpinBox SpinRow(Control parent, string label, double min, double max, double step,
-                                   double value, string tooltip = null)
+    private static string ReadStatId(OptionButton option)
     {
-        var row = new HBoxContainer();
-        row.AddChild(new Label
+        if (option.Selected < 0 || option.Selected >= option.ItemCount) return null;
+        string text = option.GetItemText(option.Selected);
+        int spaceIdx = text.IndexOf("  (", StringComparison.Ordinal);
+        return spaceIdx > 0 ? text.Substring(0, spaceIdx) : text;
+    }
+
+    private static int FindStatIndex(OptionButton option, string statId)
+    {
+        if (string.IsNullOrEmpty(statId)) return -1;
+        for (int i = 0; i < option.ItemCount; i++)
         {
-            Text = label,
-            CustomMinimumSize = new Vector2(180, 0),
-            TooltipText = tooltip ?? "",
-        });
-        var s = new SpinBox
+            string text = option.GetItemText(i);
+            int spaceIdx = text.IndexOf("  (", StringComparison.Ordinal);
+            string id = spaceIdx > 0 ? text.Substring(0, spaceIdx) : text;
+            if (id == statId) return i;
+        }
+        return -1;
+    }
+
+    /// <summary>
+    /// Пересобирает список скиллов выбранного стата.
+    /// Если wantSkillId != null и присутствует среди скиллов — выставляем его выбранным.
+    /// Иначе выбираем первый доступный.
+    /// </summary>
+    private static void PopulateSkillOptions(
+        OptionButton skillOption, List<string> skillIds,
+        string statId, string wantSkillId)
+    {
+        skillOption.Clear();
+        skillIds.Clear();
+
+        if (string.IsNullOrEmpty(statId)
+            || !AdventurerDatabase.Stats.TryGetValue(statId, out var statInfo)
+            || statInfo.Skills == null)
         {
-            MinValue = min,
-            MaxValue = max,
-            Step = step,
-            Value = value,
+            return;
+        }
+
+        int selectIdx = -1;
+        int i = 0;
+        foreach (var skill in statInfo.Skills)
+        {
+            if (skill == null || string.IsNullOrEmpty(skill.Id)) continue;
+
+            skillIds.Add(skill.Id);
+            string name = skill.Name.Get(Loc.Language);
+            skillOption.AddItem(string.IsNullOrEmpty(name)
+                ? skill.Id
+                : $"{skill.Id}  ({name})");
+
+            if (skill.Id == wantSkillId) selectIdx = i;
+            i++;
+        }
+
+        if (skillIds.Count > 0)
+            skillOption.Selected = selectIdx >= 0 ? selectIdx : 0;
+    }
+
+    private static string ReadSkillId(OptionButton option, List<string> ids)
+    {
+        if (option.Selected < 0 || option.Selected >= ids.Count) return null;
+        return ids[option.Selected];
+    }
+
+    private void OnPrimaryStatChanged()
+    {
+        string statId = ReadStatId(_primaryStatOption);
+        PopulateSkillOptions(_primarySkillOption, _primarySkillIds, statId, null);
+    }
+
+    private void OnSecondaryStatChanged()
+    {
+        string statId = ReadStatId(_secondaryStatOption);
+        PopulateSkillOptions(_secondarySkillOption, _secondarySkillIds, statId, null);
+    }
+
+    // ==================== UI-хелперы ====================
+
+    private static (Button toggle, VBoxContainer content) CollapsibleSection(
+        VBoxContainer parent, string title, bool expanded)
+    {
+        var toggle = new Button
+        {
+            Text = (expanded ? "▼  " : "▶  ") + title,
+            ToggleMode = true,
+            ButtonPressed = expanded,
+            Flat = true,
+            Alignment = HorizontalAlignment.Left,
+            FocusMode = Control.FocusModeEnum.None,
+            AutoTranslateMode = AutoTranslateModeEnum.Disabled,
+        };
+        parent.AddChild(toggle);
+
+        var content = new VBoxContainer { Visible = expanded };
+        content.AddThemeConstantOverride("separation", 4);
+        parent.AddChild(content);
+
+        toggle.Toggled += pressed =>
+        {
+            toggle.Text = (pressed ? "▼  " : "▶  ") + title;
+            content.Visible = pressed;
+        };
+
+        return (toggle, content);
+    }
+
+    private static HBoxContainer FormRow(Control parent)
+    {
+        var wrap = new HBoxContainer
+        {
             SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
         };
-        row.AddChild(s);
-        parent.AddChild(row);
-        return s;
+        parent.AddChild(wrap);
+
+        var row = new HBoxContainer
+        {
+            CustomMinimumSize = new Vector2(FormWidth, 0),
+            SizeFlagsHorizontal = Control.SizeFlags.ShrinkBegin,
+        };
+        row.AddThemeConstantOverride("separation", 8);
+        wrap.AddChild(row);
+
+        return row;
+    }
+
+    private static Label FormLabel(string text)
+    {
+        return new Label
+        {
+            Text = text,
+            CustomMinimumSize = new Vector2(LabelW, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            AutoTranslateMode = AutoTranslateModeEnum.Disabled,
+        };
+    }
+
+    private static LineEdit FormField()
+    {
+        return new LineEdit
+        {
+            CustomMinimumSize = new Vector2(120, 0),
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+        };
     }
 
     // ==================== Список ====================
@@ -205,46 +425,41 @@ public partial class ClassesTab : Control
         _idEdit.Text = c.Id ?? "";
         _nameRuEdit.Text = c.Name.Ru ?? "";
         _nameEnEdit.Text = c.Name.En ?? "";
-        _primaryStatEdit.Text = c.PrimaryStat ?? "";
-        _primarySkillEdit.Text = c.PrimarySkill ?? "";
-        _secondaryStatEdit.Text = c.SecondaryStat ?? "";
-        _secondarySkillEdit.Text = c.SecondarySkill ?? "";
+
+        // Primary stat + skill
+        int pStatIdx = FindStatIndex(_primaryStatOption, c.PrimaryStat);
+        if (pStatIdx >= 0) _primaryStatOption.Selected = pStatIdx;
+        PopulateSkillOptions(_primarySkillOption, _primarySkillIds,
+                             c.PrimaryStat, c.PrimarySkill);
+
+        // Secondary stat + skill
+        int sStatIdx = FindStatIndex(_secondaryStatOption, c.SecondaryStat);
+        if (sStatIdx >= 0) _secondaryStatOption.Selected = sStatIdx;
+        PopulateSkillOptions(_secondarySkillOption, _secondarySkillIds,
+                             c.SecondaryStat, c.SecondarySkill);
+
         _weightSpin.Value = c.Weight;
 
-        foreach (var child in _growthBox.GetChildren()) child.QueueFree();
-        _growthRows.Clear();
-
-        if (c.GrowthWeights != null)
-            foreach (var kv in c.GrowthWeights)
-                AddGrowthRow(kv.Key, kv.Value);
-    }
-
-    private void AddGrowthRow(string statId, double? weight)
-    {
-        var row = new HBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        var statEdit = new LineEdit
+        foreach (var statId in StatIds.All)
         {
-            Text = statId ?? "",
-            SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            PlaceholderText = "stat id",
-        };
-        var weightSpin = new SpinBox
-        {
-            MinValue = 0,
-            MaxValue = 10,
-            Step = 0.01,
-            Value = weight ?? 0,
-            CustomMinimumSize = new Vector2(100, 0),
-        };
-        var rm = new Button { Text = "X" };
-        var gr = new GrowthRow { Stat = statEdit, Weight = weightSpin };
-        rm.Pressed += () => { _growthRows.Remove(gr); row.QueueFree(); };
+            double v = 0;
+            if (c.GrowthWeights != null && c.GrowthWeights.TryGetValue(statId, out var w))
+                v = w;
+            _growthBoxes[statId].Value = v;
+        }
 
-        row.AddChild(statEdit);
-        row.AddChild(weightSpin);
-        row.AddChild(rm);
-        _growthBox.AddChild(row);
-        _growthRows.Add(gr);
+        // Warn если что-то не сошлось с текущими данными.
+        var warnings = new List<string>();
+        if (!string.IsNullOrEmpty(c.PrimaryStat)
+            && !AdventurerDatabase.IsValidSkill(c.PrimarySkill))
+            warnings.Add($"primarySkill '{c.PrimarySkill}' не найден");
+        if (!string.IsNullOrEmpty(c.SecondaryStat)
+            && !AdventurerDatabase.IsValidSkill(c.SecondarySkill))
+            warnings.Add($"secondarySkill '{c.SecondarySkill}' не найден");
+        if (warnings.Count > 0)
+            SetStatus(string.Join("; ", warnings), StatusKind.Warning);
+        else
+            SetStatus("", StatusKind.Ok);
     }
 
     // ==================== Apply / Revert ====================
@@ -277,8 +492,35 @@ public partial class ClassesTab : Control
             return;
         }
 
-        // ─── Обычный путь — без изменений ───
-        // ... ваш текущий код Apply ...
+        try
+        {
+            var db = new AdventurerClassDatabase { Classes = _classes };
+            JsonWriter.Write(ClassesPath, db);
+        }
+        catch (Exception e)
+        {
+            SetStatus($"Apply FAILED: {e.Message}", StatusKind.Error);
+            GD.PushError($"[ClassesTab] Apply: {e}");
+            return;
+        }
+
+        try { AdventurerDatabase.Load(); QuestDatabase.Load(); }
+        catch (Exception e)
+        {
+            SetStatus($"Записано, но Load упал: {e.Message}", StatusKind.Error);
+            GD.PushError($"[ClassesTab] Load after apply: {e}");
+            return;
+        }
+
+        if (warnings.Count > 0)
+        {
+            SetStatus($"Applied ({_classes.Count}). Предупреждения: {string.Join("; ", warnings)}",
+                      StatusKind.Warning);
+        }
+        else
+        {
+            SetStatus($"Applied: {_classes.Count} классов записано", StatusKind.Ok);
+        }
     }
 
     private void OnRevertPressed()
@@ -304,28 +546,42 @@ public partial class ClassesTab : Control
         var c = _current;
 
         c.Name = new LocalizedString { Ru = _nameRuEdit.Text, En = _nameEnEdit.Text };
-        c.PrimaryStat = EmptyToNull(_primaryStatEdit.Text);
-        c.PrimarySkill = EmptyToNull(_primarySkillEdit.Text);
-        c.SecondaryStat = EmptyToNull(_secondaryStatEdit.Text);
-        c.SecondarySkill = EmptyToNull(_secondarySkillEdit.Text);
+
+        string primaryStat = ReadStatId(_primaryStatOption);
+        string primarySkill = ReadSkillId(_primarySkillOption, _primarySkillIds);
+        string secondaryStat = ReadStatId(_secondaryStatOption);
+        string secondarySkill = ReadSkillId(_secondarySkillOption, _secondarySkillIds);
+
+        // Проверка «primarySkill принадлежит primaryStat».
+        if (!string.IsNullOrEmpty(primarySkill))
+        {
+            string actualStat = AdventurerDatabase.StatForSkill(primarySkill);
+            if (actualStat != null && actualStat != primaryStat)
+                warnings.Add($"primarySkill '{primarySkill}' принадлежит '{actualStat}', " +
+                             $"а primaryStat = '{primaryStat}'");
+        }
+
+        if (!string.IsNullOrEmpty(secondarySkill))
+        {
+            string actualStat = AdventurerDatabase.StatForSkill(secondarySkill);
+            if (actualStat != null && actualStat != secondaryStat)
+                warnings.Add($"secondarySkill '{secondarySkill}' принадлежит '{actualStat}', " +
+                             $"а secondaryStat = '{secondaryStat}'");
+        }
+
+        c.PrimaryStat = primaryStat;
+        c.PrimarySkill = primarySkill;
+        c.SecondaryStat = secondaryStat;
+        c.SecondarySkill = secondarySkill;
         c.Weight = (int)_weightSpin.Value;
 
         var weights = new Dictionary<string, double>();
-        var seen = new HashSet<string>();
-        foreach (var row in _growthRows)
-        {
-            string sid = row.Stat.Text?.Trim();
-            if (string.IsNullOrEmpty(sid)) continue;
-            if (!seen.Add(sid))
-                warnings.Add($"growthWeights: дубликат '{sid}'");
-            weights[sid] = NumericHelpers.Round4(row.Weight.Value);
-        }
+        foreach (var statId in StatIds.All)
+            weights[statId] = NumericHelpers.Round4(_growthBoxes[statId].Value);
         c.GrowthWeights = weights;
 
         return warnings;
     }
-
-    private static string EmptyToNull(string s) => string.IsNullOrEmpty(s) ? null : s;
 
     private void ReloadFromDisk()
     {

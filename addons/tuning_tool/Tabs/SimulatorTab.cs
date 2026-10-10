@@ -2,6 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AdventurersGuild.Application.Quests;
+using AdventurersGuild.Core;
+using AdventurersGuild.Data.Adventurer;
+using AdventurersGuild.Data.Balance;
+using AdventurersGuild.Data.Quest;
+using AdventurersGuild.Domain.Adventurers;
 using Godot;
 
 [Tool]
@@ -312,7 +318,7 @@ public partial class SimulatorTab : Control
         var sim = Simulator.Run(quest, _party, trials, seed);
 
         var sb = new System.Text.StringBuilder();
-        sb.AppendLine($"Квест: {quest.Name}  tier={quest.Tier}  lvl={quest.CodeLevel}");
+        sb.AppendLine($"Квест: {quest.Name}  d={quest.DifficultyModifier:+0.00;-0.00;+0.00}  lvl={quest.CodeLevel}");
         sb.AppendLine($"Фаз: {quest.Phases.Count}");
         sb.AppendLine($"Партия: {string.Join(", ", _party.Select(a => $"{a.ClassId} {a.RaceId} L{a.Level.Number}"))}");
         sb.AppendLine($"Trials: {sim.Trials}   Seed: {(seed.HasValue ? seed.Value.ToString() : "random")}");

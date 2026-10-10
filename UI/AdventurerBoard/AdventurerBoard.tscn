@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://bh25hj6wv1tra"]
 
-[ext_resource type="Script" uid="uid://hmreoybdq7h3" path="res://UI/AdventurerBoard/AdventurerBoard.cs" id="1_yjoyy"]
-[ext_resource type="Script" uid="uid://dkw120agxembb" path="res://UI/Common/AdventurerList.cs" id="2_dxo13"]
+[ext_resource type="Script" uid="uid://hmreoybdq7h3" path="res://Scripts/Presentation/Adventurers/AdventurerBoard.cs" id="1_yjoyy"]
+[ext_resource type="Script" uid="uid://dkw120agxembb" path="res://Scripts/Presentation/Adventurers/AdventurerList.cs" id="2_dxo13"]
 [ext_resource type="PackedScene" uid="uid://71rvwg3j2430" path="res://UI/AdventurerBoard/AdventurerBoardRow.tscn" id="3_yjoyy"]
 
 [node name="AdventurerBoard" type="PanelContainer" unique_id=1011375650]

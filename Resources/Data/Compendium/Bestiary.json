@@ -1,0 +1,77 @@
+{
+  "habitats": [
+    {
+      "locationId": "forest",
+      "creatures": [
+        { "creatureId": "wolf",     "weight": 10 },
+        { "creatureId": "boar",     "weight": 8  },
+        { "creatureId": "bear",     "weight": 3  },
+        { "creatureId": "goblin",   "weight": 5  },
+        { "creatureId": "merchant", "weight": 2  },
+        { "creatureId": "pilgrim",  "weight": 3  }
+      ]
+    },
+    {
+      "locationId": "mountains",
+      "creatures": [
+        { "creatureId": "wolf",     "weight": 5 },
+        { "creatureId": "boar",     "weight": 3 },
+        { "creatureId": "goblin",   "weight": 4 },
+        { "creatureId": "pilgrim",  "weight": 2 }
+      ]
+    },
+    {
+      "locationId": "swamps",
+      "creatures": [
+        { "creatureId": "wolf",   "weight": 5 },
+        { "creatureId": "bear",   "weight": 4 },
+        { "creatureId": "goblin", "weight": 6 }
+      ]
+    },
+    {
+      "locationId": "steppe",
+      "creatures": [
+        { "creatureId": "wolf",       "weight": 8 },
+        { "creatureId": "boar",       "weight": 6 },
+        { "creatureId": "merchant",   "weight": 3 },
+        { "creatureId": "ambassador", "weight": 1 }
+      ]
+    },
+    {
+      "locationId": "mountain_pass",
+      "creatures": [
+        { "creatureId": "boar",       "weight": 6 },
+        { "creatureId": "goblin",     "weight": 4 },
+        { "creatureId": "merchant",   "weight": 5 },
+        { "creatureId": "ambassador", "weight": 2 },
+        { "creatureId": "pilgrim",    "weight": 4 }
+      ]
+    },
+    {
+      "locationId": "ancient_ruins",
+      "creatures": [
+        { "creatureId": "goblin",           "weight": 6 },
+        { "creatureId": "undead",           "weight": 5 },
+        { "creatureId": "ancient_machines", "weight": 3 },
+        { "creatureId": "traps",            "weight": 8 }
+      ]
+    },
+    {
+      "locationId": "forgotten_catacombs",
+      "creatures": [
+        { "creatureId": "goblin",           "weight": 4 },
+        { "creatureId": "undead",           "weight": 8 },
+        { "creatureId": "ancient_machines", "weight": 4 },
+        { "creatureId": "traps",            "weight": 6 }
+      ]
+    },
+    {
+      "locationId": "cursed_halls",
+      "creatures": [
+        { "creatureId": "undead",           "weight": 10 },
+        { "creatureId": "ancient_machines", "weight": 6  },
+        { "creatureId": "traps",            "weight": 5  }
+      ]
+    }
+  ]
+}

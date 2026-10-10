@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://d1vb4vrp15di4"]
 
-[ext_resource type="Script" uid="uid://6h4pg5f3lp40" path="res://UI/QuestBoard/QuestRow.cs" id="1_1xpmj"]
+[ext_resource type="Script" uid="uid://6h4pg5f3lp40" path="res://Scripts/Presentation/Quests/QuestRow.cs" id="1_1xpmj"]
 
 [node name="QuestRow" type="Button" unique_id=1564354113]
 anchors_preset = 8

@@ -3,9 +3,7 @@
     {
       "id": "default",
 
-      "durationTierMultiplier": {
-        "easy": 1.0, "normal": 1.2, "hard": 1.5
-      },
+      "durationMultiplier": 1.2,
       "durationFailPenaltyPerPhase": 0.30,
       "durationIntBonusCap": 0.30,
       "durationIntBonusK": 0.15,
@@ -19,25 +17,12 @@
 
       "escapeStatK": 40,
       "escapeStatCap": 95,
-      "escapeBaseByTier": {
-        "easy":   60,
-        "normal": 45,
-        "hard":   30
-      },
+      "escapeBase": 45,
       "escapeEndWeight": 0.8,
       "escapeWisWeight": 0.5,
 
-      "woundFailDaysByTier": {
-        "easy":   { "min": 2, "max": 4 },
-        "normal": { "min": 3, "max": 6 },
-        "hard":   { "min": 5, "max": 10 }
-      },
-
-      "woundSuccessByTier": {
-        "easy":   { "chance": 5,  "min": 1, "max": 2 },
-        "normal": { "chance": 15, "min": 1, "max": 3 },
-        "hard":   { "chance": 30, "min": 2, "max": 4 }
-      },
+      "woundFailDays": { "min": 3, "max": 6 },
+      "woundSuccess":  { "chance": 15, "min": 1, "max": 3 },
 
       "nightAttackChanceBase": 25,
       "maxQuestDays": 90,

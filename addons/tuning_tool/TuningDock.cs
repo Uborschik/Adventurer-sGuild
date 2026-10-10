@@ -1,4 +1,8 @@
 #if TOOLS
+using AdventurersGuild.Core;
+using AdventurersGuild.Data.Adventurer;
+using AdventurersGuild.Data.Balance;
+using AdventurersGuild.Data.Quest;
 using Godot;
 
 [Tool]
@@ -47,13 +51,11 @@ public partial class TuningDock : Control
 
         tabs.TabAlignment = TabBar.AlignmentMode.Center;
 
+        AddTab(tabs, "Reference", new ReferenceTab());
         AddTab(tabs, "Simulator", new SimulatorTab());
-        AddTab(tabs, "Phases", new PhasesTab());
-        AddTab(tabs, "Creatures", new CreaturesTab());
-        AddTab(tabs, "Classes", new ClassesTab());
-        AddTab(tabs, "Races", new RacesTab());
+        AddTab(tabs, "Adventurers", new AdventurersTab());
+        AddTab(tabs, "Quests", new QuestsTab());
         AddTab(tabs, "Stats", new StatsTab());
-        AddTab(tabs, "Balance", new BalanceTab());
     }
 
     private static void AddTab(TabContainer tabs, string name, Control content)

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://c4nc4fcpwmdii"]
 
-[ext_resource type="Script" uid="uid://dicw0ks04ofq6" path="res://UI/AvailableBoard/AvailableBoardRow.cs" id="1_2ss7n"]
+[ext_resource type="Script" uid="uid://dicw0ks04ofq6" path="res://Scripts/Presentation/Adventurers/AvailableBoardRow.cs" id="1_2ss7n"]
 [ext_resource type="Texture2D" uid="uid://loplff3644kt" path="res://Resources/Sprites/Icons/Classes/bard.tres" id="2_n5y7e"]
 [ext_resource type="Texture2D" uid="uid://drj5lrfubq08l" path="res://Resources/Sprites/Icons/Classes/rogue.tres" id="3_dhlts"]
 

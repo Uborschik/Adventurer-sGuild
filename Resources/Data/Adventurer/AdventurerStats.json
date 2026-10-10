@@ -65,8 +65,8 @@
       },
       "skills": [
         {
-          "id": "endurance",
-          "name": { "ru": "Выносливость", "en": "Endurance" },
+          "id": "grit",
+          "name": { "ru": "Упорство", "en": "Grit" },
           "statModifier": 1.00,
           "classModifiers": {
             "warrior": 1.15, "barbarian": 1.10, "paladin": 1.15, "rogue": 0.95,

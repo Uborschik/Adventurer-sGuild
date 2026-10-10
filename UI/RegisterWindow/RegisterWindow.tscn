@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://btxj6fchakec3"]
 
-[ext_resource type="Script" uid="uid://c2sssrfc1c5ah" path="res://UI/RegisterWindow/RegisterWindow.cs" id="1_l3ce5"]
+[ext_resource type="Script" uid="uid://c2sssrfc1c5ah" path="res://Scripts/Presentation/Adventurers/RegisterWindow.cs" id="1_l3ce5"]
 [ext_resource type="PackedScene" uid="uid://bh25hj6wv1tra" path="res://UI/AdventurerBoard/AdventurerBoard.tscn" id="2_u16gv"]
 [ext_resource type="PackedScene" uid="uid://b3w57jddr281i" path="res://UI/AdventurerInfo/AdventurerInfo.tscn" id="3_lpkkt"]
 [ext_resource type="PackedScene" uid="uid://dlpqc2bjjx5lt" path="res://UI/AvailableBoard/AvailableBoard.tscn" id="4_u16gv"]

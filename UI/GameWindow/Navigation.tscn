@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://daigvagevjny4"]
 
-[ext_resource type="Script" uid="uid://cbo755o48r5vk" path="res://UI/TopBar/Navigation/Navigation.cs" id="1_jepo4"]
-[ext_resource type="Script" uid="uid://cpg4m8ishtu5y" path="res://UI/TopBar/Navigation/NavigationButton.cs" id="2_4uhut"]
+[ext_resource type="Script" uid="uid://cbo755o48r5vk" path="res://Scripts/Presentation/Game/Navigation.cs" id="1_jepo4"]
+[ext_resource type="Script" uid="uid://cpg4m8ishtu5y" path="res://Scripts/Presentation/Common/NavigationButton.cs" id="2_4uhut"]
 [ext_resource type="Texture2D" uid="uid://cqomvakl20fyu" path="res://Resources/Sprites/Icons/Interface/adventurers.tres" id="3_7i1q3"]
 [ext_resource type="Texture2D" uid="uid://luwsssfklyxy" path="res://Resources/Sprites/Icons/Interface/quests.tres" id="4_hiow0"]
 [ext_resource type="Texture2D" uid="uid://bn4ots3ms6o8u" path="res://Resources/Sprites/Icons/Interface/tavern.tres" id="5_wwjp3"]

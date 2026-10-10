@@ -1,0 +1,130 @@
+using System.Collections.Generic;
+using System.Linq;
+using AdventurersGuild.Core;
+using AdventurersGuild.Data.IO;
+using AdventurersGuild.Domain.Quests;
+
+namespace AdventurersGuild.Data.Balance;
+
+public static class QuestBalance
+{
+    private const string Path = "res://Resources/Data/Quest/QuestBalance.json";
+
+    private static Dictionary<string, QuestBalanceProfile> profiles;
+    private static QuestBalanceProfile active;
+
+    public static QuestBalanceProfile Active
+    {
+        get
+        {
+            if (active == null)
+            {
+                Log.Warn("[QuestBalance] Active == null, использую дефолты");
+                active = new QuestBalanceProfile { Id = "fallback" };
+            }
+            return active;
+        }
+    }
+
+    public static void Load(string activeId = "default")
+    {
+        var db = JsonLoader.Load<QuestBalanceDatabase>(Path);
+        profiles = db.Profiles.ToDictionary(p => p.Id);
+
+        if (!profiles.TryGetValue(activeId, out var profile))
+        {
+            Log.Error($"[QuestBalance] Нет профиля '{activeId}', беру первый");
+            profile = db.Profiles.FirstOrDefault();
+        }
+
+        if (profile == null)
+        {
+            Log.Error("[QuestBalance] Нет ни одного профиля — дефолты");
+            profile = new QuestBalanceProfile { Id = "fallback" };
+        }
+
+        Validate(profile);
+        active = profile;
+        Log.Info($"[QuestBalance] профиль '{Active.Id}' загружен");
+    }
+
+    public static QuestBalanceProfile Get(string id)
+        => profiles != null && profiles.TryGetValue(id, out var p) ? p : null;
+
+    private static void Validate(QuestBalanceProfile p)
+    {
+        if (p.DurationMultiplier <= 0)
+            Log.Error($"[QuestBalance] '{p.Id}': durationMultiplier <= 0");
+
+        if (p.DurationFailPenaltyPerPhase < 0)
+            Log.Error($"[QuestBalance] '{p.Id}': durationFailPenaltyPerPhase < 0");
+
+        if (p.SkillRoll == null)
+        {
+            Log.Error($"[QuestBalance] '{p.Id}': нет блока skillRoll");
+        }
+        else
+        {
+            if (p.SkillRoll.Min < 0 || p.SkillRoll.Min > 100)
+                Log.Error($"[QuestBalance] '{p.Id}': skillRoll.min вне [0, 100]");
+            if (p.SkillRoll.Max < 0 || p.SkillRoll.Max > 100)
+                Log.Error($"[QuestBalance] '{p.Id}': skillRoll.max вне [0, 100]");
+            if (p.SkillRoll.Min > p.SkillRoll.Max)
+                Log.Error($"[QuestBalance] '{p.Id}': skillRoll.min > max");
+            if (p.SkillRoll.Base < p.SkillRoll.Min || p.SkillRoll.Base > p.SkillRoll.Max)
+                Log.Warn($"[QuestBalance] '{p.Id}': skillRoll.base вне [min, max]");
+        }
+
+        if (p.EscapeBase < 0 || p.EscapeBase > 100)
+            Log.Error($"[QuestBalance] '{p.Id}': escapeBase вне [0, 100]");
+
+        if (p.EscapeStatK < 0)
+            Log.Error($"[QuestBalance] '{p.Id}': escapeStatK < 0");
+
+        if (p.EscapeStatCap < 0 || p.EscapeStatCap > 100)
+            Log.Error($"[QuestBalance] '{p.Id}': escapeStatCap вне [0, 100]");
+
+        if (p.EnduranceInjuryK <= 0)
+            Log.Error($"[QuestBalance] '{p.Id}': enduranceInjuryK <= 0");
+        if (p.EnduranceInjuryCap < 0 || p.EnduranceInjuryCap > 1)
+            Log.Error($"[QuestBalance] '{p.Id}': enduranceInjuryCap вне [0, 1]");
+
+        if (p.EnduranceDeathK <= 0)
+            Log.Error($"[QuestBalance] '{p.Id}': enduranceDeathK <= 0");
+
+        if (p.EnduranceDeathCap < 0 || p.EnduranceDeathCap > 1)
+            Log.Error($"[QuestBalance] '{p.Id}': enduranceDeathCap вне [0, 1]");
+
+        if (p.Experience == null)
+            Log.Error($"[QuestBalance] '{p.Id}': нет блока experience");
+
+        if (p.NightAttackChanceBase < 0 || p.NightAttackChanceBase > 100)
+            Log.Error($"[QuestBalance] '{p.Id}': nightAttackChanceBase вне [0, 100]");
+
+        if (p.MaxQuestDays < 1)
+            Log.Error($"[QuestBalance] '{p.Id}': maxQuestDays < 1");
+
+        if (p.NightCreatureLevelPenalty < 0)
+            Log.Error($"[QuestBalance] '{p.Id}': nightCreatureLevelPenalty < 0");
+
+        if (p.EscapeEndWeight < 0 || p.EscapeEndWeight > 2)
+            Log.Error($"[QuestBalance] '{p.Id}': escapeEndWeight вне [0, 2]");
+
+        if (p.EscapeWisWeight < 0 || p.EscapeWisWeight > 2)
+            Log.Error($"[QuestBalance] '{p.Id}': escapeWisWeight вне [0, 2]");
+
+        if (p.WoundFailDays.Min < 0 || p.WoundFailDays.Max < p.WoundFailDays.Min)
+            Log.Error($"[QuestBalance] '{p.Id}': woundFailDays некорректны");
+
+        if (p.WoundSuccess.Chance < 0 || p.WoundSuccess.Chance > 100)
+            Log.Error($"[QuestBalance] '{p.Id}': woundSuccess.chance вне [0, 100]");
+        if (p.WoundSuccess.Min < 0 || p.WoundSuccess.Max < p.WoundSuccess.Min)
+            Log.Error($"[QuestBalance] '{p.Id}': woundSuccess.min/max некорректны");
+    }
+
+    public static void SetActiveProfile(QuestBalanceProfile profile)
+    {
+        if (profile == null) return;
+        active = profile;
+    }
+}

@@ -2,355 +2,161 @@
   "phases": [
     {
       "id": "tracking",
-      "name": {
-        "ru": "Выследить",
-        "en": "Track"
-      },
-      "baseDurationMinutes": 480,
-      "critical": false,
-      "expReward": 25,
-      "solutions": [
-        {
-          "skills": {
-            "perception": 0.2,
-            "athletics": 0.15
-          }
-        },
-        {
-          "skills": {
-            "perception": 0.2,
-            "endurance": 0.1
-          }
-        },
-        {
-          "skills": {
-            "stealth": 0.3,
-            "perception": 0.2
-          }
-        }
-      ],
-      "onFail": {
-        "dcDelta": 0,
-        "durationDeltaMinutes": 240
-      }
+      "name": { "ru": "Выследить", "en": "Track" },
+      "tags": ["tracking", "investigation"],
+      "paths": [
+        { "checks": [
+          { "skill": "perception", "resistance": ["wis", "dex"] },
+          { "skill": "athletics",  "resistance": ["str", "dex"] }
+        ]},
+        { "checks": [
+          { "skill": "perception", "resistance": ["wis", "dex"] },
+          { "skill": "grit",       "resistance": ["end", "str"] }
+        ]},
+        { "checks": [
+          { "skill": "stealth",    "resistance": ["dex", "wis"] },
+          { "skill": "perception", "resistance": ["wis", "dex"] }
+        ]}
+      ]
     },
     {
       "id": "exploration",
-      "name": {
-        "ru": "Разведать",
-        "en": "Explore"
-      },
-      "baseDurationMinutes": 600,
-      "critical": true,
-      "expReward": 30,
-      "solutions": [
-        {
-          "skills": {
-            "investigation": 0.55,
-            "perception": 0.45
-          }
-        },
-        {
-          "skills": {
-            "investigation": 0.55,
-            "endurance": 0.4
-          }
-        },
-        {
-          "skills": {
-            "perception": 0.55,
-            "endurance": 0.4
-          }
-        }
-      ],
-      "onFail": {
-        "dcDelta": 0,
-        "durationDeltaMinutes": 240
-      }
+      "name": { "ru": "Разведать", "en": "Explore" },
+      "tags": ["exploration", "investigation"],
+      "paths": [
+        { "checks": [
+          { "skill": "investigation", "resistance": ["int", "wis"] },
+          { "skill": "perception",    "resistance": ["wis", "dex"] }
+        ]},
+        { "checks": [
+          { "skill": "investigation", "resistance": ["int", "wis"] },
+          { "skill": "grit",          "resistance": ["end", "str"] }
+        ]}
+      ]
     },
     {
       "id": "stealth",
-      "name": {
-        "ru": "Скрытно пройти",
-        "en": "Sneak"
-      },
-      "baseDurationMinutes": 240,
-      "critical": false,
-      "expReward": 20,
-      "solutions": [
-        {
-          "skills": {
-            "stealth": 0.55,
-            "perception": 0.4
-          }
-        },
-        {
-          "skills": {
-            "stealth": 0.55,
-            "investigation": 0.4
-          }
-        },
-        {
-          "skills": {
-            "stealth": 0.55,
-            "deception": 0.3
-          }
-        }
-      ],
-      "onFail": {
-        "targetPhase": "combat",
-        "dcDelta": 0.1,
-        "durationDeltaMinutes": 60
-      }
+      "name": { "ru": "Скрытно пройти", "en": "Sneak" },
+      "tags": ["stealth"],
+      "paths": [
+        { "checks": [
+          { "skill": "stealth",       "resistance": ["dex", "wis"] },
+          { "skill": "perception",    "resistance": ["wis", "dex"] }
+        ]},
+        { "checks": [
+          { "skill": "stealth",       "resistance": ["dex", "wis"] },
+          { "skill": "investigation", "resistance": ["int", "wis"] }
+        ]},
+        { "checks": [
+          { "skill": "stealth",       "resistance": ["dex", "wis"] },
+          { "skill": "deception",     "resistance": ["cha", "dex"] }
+        ]}
+      ]
     },
     {
       "id": "guard",
-      "name": {
-        "ru": "Защитить",
-        "en": "Guard"
-      },
-      "baseDurationMinutes": 360,
-      "critical": true,
-      "expReward": 30,
-      "solutions": [
-        {
-          "skills": {
-            "athletics": 0.55,
-            "endurance": 0.55
-          }
-        },
-        {
-          "skills": {
-            "athletics": 0.55,
-            "persuasion": 0.4
-          }
-        },
-        {
-          "skills": {
-            "perception": 0.55,
-            "endurance": 0.55
-          }
-        }
-      ],
-      "onFail": {
-        "dcDelta": 0,
-        "durationDeltaMinutes": 180
-      }
+      "name": { "ru": "Защитить", "en": "Guard" },
+      "tags": ["guard", "combat"],
+      "paths": [
+        { "checks": [
+          { "skill": "athletics",  "resistance": ["str", "dex"] },
+          { "skill": "grit",       "resistance": ["end", "str"] }
+        ]},
+        { "checks": [
+          { "skill": "athletics",  "resistance": ["str", "dex"] },
+          { "skill": "persuasion", "resistance": ["cha", "wis"] }
+        ]},
+        { "checks": [
+          { "skill": "perception", "resistance": ["wis", "dex"] },
+          { "skill": "grit",       "resistance": ["end", "str"] }
+        ]}
+      ]
     },
     {
       "id": "social",
-      "name": {
-        "ru": "Договориться",
-        "en": "Negotiate"
-      },
-      "baseDurationMinutes": 240,
-      "critical": true,
-      "expReward": 30,
-      "solutions": [
-        {
-          "skills": {
-            "persuasion": 0.55,
-            "perception": 0.4
-          }
-        },
-        {
-          "skills": {
-            "persuasion": 0.55,
-            "investigation": 0.45
-          }
-        },
-        {
-          "skills": {
-            "persuasion": 0.55,
-            "intimidation": 0.4
-          }
-        },
-        {
-          "skills": {
-            "deception": 0.55,
-            "investigation": 0.45
-          }
-        }
-      ],
-      "onFail": {
-        "dcDelta": 0,
-        "durationDeltaMinutes": 120
-      }
+      "name": { "ru": "Договориться", "en": "Negotiate" },
+      "tags": ["social"],
+      "paths": [
+        { "checks": [
+          { "skill": "persuasion",    "resistance": ["cha", "wis"] },
+          { "skill": "perception",    "resistance": ["wis", "dex"] }
+        ]},
+        { "checks": [
+          { "skill": "persuasion",    "resistance": ["cha", "wis"] },
+          { "skill": "investigation", "resistance": ["int", "wis"] }
+        ]},
+        { "checks": [
+          { "skill": "deception",     "resistance": ["cha", "dex"] },
+          { "skill": "investigation", "resistance": ["int", "wis"] }
+        ]}
+      ]
     },
     {
       "id": "combat",
-      "name": {
-        "ru": "Схватка",
-        "en": "Combat"
-      },
-      "baseDurationMinutes": 180,
-      "critical": true,
-      "expReward": 30,
-      "solutions": [
-        {
-          "skills": {
-            "athletics": 0.6,
-            "endurance": 0.45
-          }
-        },
-        {
-          "skills": {
-            "acrobatics": 0.6,
-            "endurance": 0.45
-          }
-        },
-        {
-          "skills": {
-            "arcana": 0.65,
-            "perception": 0.4
-          }
-        },
-        {
-          "skills": {
-            "perception": 0.55,
-            "persuasion": 0.45
-          }
-        },
-        {
-          "skills": {
-            "deception": 0.55,
-            "acrobatics": 0.6
-          }
-        }
-      ],
-      "onFail": {
-        "dcDelta": 0,
-        "durationDeltaMinutes": 120
-      }
+      "name": { "ru": "Схватка", "en": "Combat" },
+      "tags": ["combat"],
+      "paths": [
+        { "checks": [
+          { "skill": "athletics",  "resistance": ["str", "dex"] },
+          { "skill": "grit",       "resistance": ["end", "str"] }
+        ]},
+        { "checks": [
+          { "skill": "acrobatics", "resistance": ["dex", "str"] },
+          { "skill": "grit",       "resistance": ["end", "str"] }
+        ]},
+        { "checks": [
+          { "skill": "arcana",     "resistance": ["int", "wis"] },
+          { "skill": "perception", "resistance": ["wis", "dex"] }
+        ]},
+        { "checks": [
+          { "skill": "deception",  "resistance": ["cha", "dex"] },
+          { "skill": "acrobatics", "resistance": ["dex", "str"] }
+        ]}
+      ]
     },
     {
       "id": "puzzle",
-      "name": {
-        "ru": "Разгадать",
-        "en": "Puzzle"
-      },
-      "baseDurationMinutes": 300,
-      "critical": false,
-      "expReward": 25,
-      "solutions": [
-        {
-          "skills": {
-            "investigation": 0.6,
-            "perception": 0.45
-          }
-        },
-        {
-          "skills": {
-            "investigation": 0.6,
-            "acrobatics": 0.45
-          }
-        },
-        {
-          "skills": {
-            "perception": 0.6,
-            "acrobatics": 0.45
-          }
-        }
-      ],
-      "onFail": {
-        "dcDelta": 0,
-        "durationDeltaMinutes": 180
-      }
+      "name": { "ru": "Разгадать", "en": "Puzzle" },
+      "tags": ["puzzle", "lore"],
+      "paths": [
+        { "checks": [
+          { "skill": "investigation", "resistance": ["int", "wis"] },
+          { "skill": "perception",    "resistance": ["wis", "dex"] }
+        ]},
+        { "checks": [
+          { "skill": "arcana",        "resistance": ["int", "wis"] },
+          { "skill": "investigation", "resistance": ["int", "wis"] }
+        ]}
+      ]
     },
     {
       "id": "lore",
-      "name": {
-        "ru": "Древние знания",
-        "en": "Lore"
-      },
-      "baseDurationMinutes": 240,
-      "critical": false,
-      "expReward": 20,
-      "solutions": [
-        {
-          "skills": {
-            "arcana": 0.6,
-            "perception": 0.45
-          }
-        },
-        {
-          "skills": {
-            "arcana": 0.6,
-            "persuasion": 0.45
-          }
-        },
-        {
-          "skills": {
-            "investigation": 0.6,
-            "persuasion": 0.45
-          }
-        }
-      ],
-      "onFail": {
-        "dcDelta": 0,
-        "durationDeltaMinutes": 120
-      }
+      "name": { "ru": "Древние знания", "en": "Lore" },
+      "tags": ["lore", "investigation"],
+      "paths": [
+        { "checks": [
+          { "skill": "arcana",     "resistance": ["int", "wis"] },
+          { "skill": "perception", "resistance": ["wis", "dex"] }
+        ]},
+        { "checks": [
+          { "skill": "arcana",     "resistance": ["int", "wis"] },
+          { "skill": "persuasion", "resistance": ["cha", "wis"] }
+        ]}
+      ]
     },
     {
       "id": "survival",
-      "name": {
-        "ru": "Выжить",
-        "en": "Survive"
-      },
-      "baseDurationMinutes": 600,
-      "critical": true,
-      "expReward": 15,
-      "solutions": [
-        {
-          "skills": {
-            "endurance": 0.5,
-            "perception": 0.4
-          }
-        },
-        {
-          "skills": {
-            "athletics": 0.5,
-            "endurance": 0.5
-          }
-        },
-        {
-          "skills": {
-            "athletics": 0.5,
-            "perception": 0.4
-          }
-        }
-      ],
-      "onFail": {
-        "dcDelta": 0,
-        "durationDeltaMinutes": 180
-      }
-    },
-    {
-      "id": "short_rest",
-      "name": {
-        "ru": "Короткий привал",
-        "en": "Short Rest"
-      },
-      "baseDurationMinutes": 60,
-      "critical": false,
-      "expReward": 0,
-      "solutions": []
-    },
-    {
-      "id": "long_rest",
-      "name": {
-        "ru": "Ночлег",
-        "en": "Long Rest"
-      },
-      "baseDurationMinutes": 480,
-      "critical": false,
-      "expReward": 0,
-      "solutions": [
-        {
-          "skills": {
-            "perception": 0.5
-          }
-        }
+      "name": { "ru": "Выжить", "en": "Survive" },
+      "tags": ["survival"],
+      "paths": [
+        { "checks": [
+          { "skill": "grit",       "resistance": ["end", "str"] },
+          { "skill": "perception", "resistance": ["wis", "dex"] }
+        ]},
+        { "checks": [
+          { "skill": "athletics",  "resistance": ["str", "dex"] },
+          { "skill": "grit",       "resistance": ["end", "str"] }
+        ]}
       ]
     }
   ]

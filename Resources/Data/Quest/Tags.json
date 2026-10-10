@@ -1,0 +1,14 @@
+{
+  "tags": [
+    { "id": "tracking",      "name": { "ru": "Выслеживание",  "en": "Tracking" } },
+    { "id": "investigation", "name": { "ru": "Расследование", "en": "Investigation" } },
+    { "id": "combat",        "name": { "ru": "Сражение",      "en": "Combat" } },
+    { "id": "stealth",       "name": { "ru": "Скрытность",    "en": "Stealth" } },
+    { "id": "social",        "name": { "ru": "Общение",       "en": "Social" } },
+    { "id": "guard",         "name": { "ru": "Охрана",        "en": "Guard" } },
+    { "id": "survival",      "name": { "ru": "Выживание",     "en": "Survival" } },
+    { "id": "puzzle",        "name": { "ru": "Загадка",       "en": "Puzzle" } },
+    { "id": "exploration",   "name": { "ru": "Исследование",  "en": "Exploration" } },
+    { "id": "lore",          "name": { "ru": "Знания",        "en": "Lore" } }
+  ]
+}

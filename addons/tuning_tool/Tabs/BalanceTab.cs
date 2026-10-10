@@ -1,47 +1,42 @@
 #if TOOLS
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using AdventurersGuild.Core;
+using AdventurersGuild.Data.Balance;
+using AdventurersGuild.Data.IO;
+using AdventurersGuild.Domain.Quests;
 using Godot;
 
 [Tool]
 public partial class BalanceTab : Control
 {
     private const string QuestBalancePath = "res://Resources/Data/Quest/QuestBalance.json";
-    private const string AdventurerBalancePath = "res://Resources/Data/Adventurer/AdventurerBalance.json";
 
-    private QuestBalanceDatabase _questDb;
-    private QuestBalanceProfile _quest;
-    private AdventurerBalanceProfile _adv;
+    private const float LabelW = 180;
+    private const float FormWidth = 750;
 
+    private VBoxContainer _editorRoot;
     private Label _status;
 
-    // ===== Quest widgets =====
-    private LineEdit _qId;
-    private SpinBox _qDurEasy, _qDurNormal, _qDurHard;
-    private SpinBox _qDurFailPenalty, _qDurIntBonusCap, _qDurIntBonusK;
-    private SpinBox _qSkillBase, _qSkillPerRatio, _qSkillMin, _qSkillMax;
-    private SpinBox _qEscapeStatK, _qEscapeStatCap;
-    private SpinBox _qEscapeEasy, _qEscapeNormal, _qEscapeHard;
-    private SpinBox _qEscapeEndWeight, _qEscapeWisWeight;
-    private SpinBox _qWFailEasyMin, _qWFailEasyMax;
-    private SpinBox _qWFailNormalMin, _qWFailNormalMax;
-    private SpinBox _qWFailHardMin, _qWFailHardMax;
-    private SpinBox _qWSuccEasyChance, _qWSuccEasyMin, _qWSuccEasyMax;
-    private SpinBox _qWSuccNormalChance, _qWSuccNormalMin, _qWSuccNormalMax;
-    private SpinBox _qWSuccHardChance, _qWSuccHardMin, _qWSuccHardMax;
-    private SpinBox _qNightAttackChance, _qMaxQuestDays, _qNightCreatureLvlPenalty;
-    private SpinBox _qEndInjuryK, _qEndInjuryCap, _qEndDeathK, _qEndDeathCap;
-    private SpinBox _qExpContributionBaseScore;
+    private LineEdit _idEdit;
+    private SpinBox _durMultiplierSpin, _durFailPenaltySpin, _durIntBonusCapSpin, _durIntBonusKSpin;
+    private SpinBox _skillBaseSpin, _skillPerRatioSpin, _skillMinSpin, _skillMaxSpin;
+    private SpinBox _escapeStatKSpin, _escapeStatCapSpin, _escapeBaseSpin;
+    private SpinBox _escapeEndWeightSpin, _escapeWisWeightSpin;
 
-    // ===== Adventurer widgets =====
-    private SpinBox _aMaxLevel, _aExpCapLvl1;
-    private OptionButton _aExpCapScaling;
-    private SpinBox _aExpCapAcceleration;
-    private SpinBox _aStatBaseValue, _aStatStartPool, _aStatBaseSlope;
+    private SpinBox _wfMinSpin, _wfMaxSpin;
+    private SpinBox _wsChanceSpin, _wsMinSpin, _wsMaxSpin;
+
+    private SpinBox _nightAttackChanceSpin, _maxQuestDaysSpin, _nightCreatureLvlPenaltySpin;
+    private SpinBox _endInjuryKSpin, _endInjuryCapSpin;
+    private SpinBox _endDeathKSpin, _endDeathCapSpin;
+    private SpinBox _expContributionBaseScoreSpin;
+
+    private QuestBalanceDatabase _db;
+    private QuestBalanceProfile _quest;
 
     private enum StatusKind { Ok, Warning, Error }
-    private static readonly string[] ScalingOptions =
-        { "flat", "linear", "polynomial", "quadratic", "exponential" };
 
     public override void _Ready()
     {
@@ -49,452 +44,426 @@ public partial class BalanceTab : Control
 
         if (!ReloadFromDisk())
         {
-            _status = new Label { Text = "Не удалось загрузить balance-файлы (см. Output)" };
-            AddChild(_status);
+            var err = new Label { Text = "Не удалось загрузить QuestBalance.json (см. Output)" };
+            AddChild(err);
             return;
         }
 
-        var main = new VBoxContainer
+        var root = new VBoxContainer
         {
             SizeFlagsHorizontal = SizeFlags.ExpandFill,
             SizeFlagsVertical = SizeFlags.ExpandFill,
         };
-        main.SetAnchorsPreset(LayoutPreset.FullRect);
-        AddChild(main);
+        root.SetAnchorsPreset(LayoutPreset.FullRect);
+        AddChild(root);
 
-        var top = new HBoxContainer();
-        var applyBtn = new Button { Text = "Apply" };
-        var revertBtn = new Button { Text = "Revert" };
+        var scroll = new ScrollContainer
+        {
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+        };
+        root.AddChild(scroll);
+
+        _editorRoot = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        _editorRoot.AddThemeConstantOverride("separation", 10);
+        scroll.AddChild(_editorRoot);
+
+        var (_, idBox) = CollapsibleSection(_editorRoot, "Identity", expanded: true);
+        var (_, durBox) = CollapsibleSection(_editorRoot, "Duration", expanded: true);
+        var (_, skillBox) = CollapsibleSection(_editorRoot, "Skill Roll", expanded: true);
+        var (_, escapeBox) = CollapsibleSection(_editorRoot, "Escape", expanded: true);
+        var (_, woundsBox) = CollapsibleSection(_editorRoot, "Wounds", expanded: false);
+        var (_, nightBox) = CollapsibleSection(_editorRoot, "Night & Limits", expanded: false);
+        var (_, endurBox) = CollapsibleSection(_editorRoot, "Endurance", expanded: false);
+        var (_, expBox) = CollapsibleSection(_editorRoot, "Experience", expanded: false);
+
+        BuildIdentity(idBox);
+        BuildDuration(durBox);
+        BuildSkillRoll(skillBox);
+        BuildEscape(escapeBox);
+        BuildWounds(woundsBox);
+        BuildNightLimits(nightBox);
+        BuildEndurance(endurBox);
+        BuildExperience(expBox);
+
+        var btnRow = new HBoxContainer();
+        var applyBtn = new Button { Text = "Apply", SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        var revertBtn = new Button { Text = "Revert", SizeFlagsHorizontal = SizeFlags.ExpandFill };
         applyBtn.Pressed += OnApplyPressed;
         revertBtn.Pressed += OnRevertPressed;
-        top.AddChild(applyBtn);
-        top.AddChild(revertBtn);
-        _status = new Label
+        btnRow.AddChild(applyBtn);
+        btnRow.AddChild(revertBtn);
+        root.AddChild(btnRow);
+
+        _status = new Label { Text = "" };
+        root.AddChild(_status);
+
+        LoadIntoUI();
+        SetStatus($"Загружен профиль '{_quest.Id}'", StatusKind.Ok);
+    }
+
+    // ==================== Секции ====================
+
+    private void BuildIdentity(Control parent)
+    {
+        var r = FormRow(parent);
+        r.AddChild(FormLabel("Id"));
+        _idEdit = FormField();
+        _idEdit.Editable = false;
+        r.AddChild(_idEdit);
+
+        parent.AddChild(new Label
         {
-            Text = "",
+            Text = "Профиль, который используется игрой. Обычно 'default'.",
+            Modulate = new Color(0.7f, 0.7f, 0.7f),
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
-            SizeFlagsHorizontal = SizeFlags.ExpandFill,
-        };
-        top.AddChild(_status);
-        main.AddChild(top);
-        main.AddChild(new HSeparator());
-
-        var columns = new HBoxContainer
-        {
-            SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            SizeFlagsVertical = SizeFlags.ExpandFill,
-        };
-        main.AddChild(columns);
-
-        BuildQuestColumn(columns);
-        BuildAdventurerColumn(columns);
-
-        LoadQuestIntoUI();
-        LoadAdventurerIntoUI();
-        SetStatus("Готово", StatusKind.Ok);
+        });
     }
 
-    // ==================== Левая колонка: QuestBalance ====================
-
-    private void BuildQuestColumn(Control parent)
+    private void BuildDuration(Control parent)
     {
-        var scroll = new ScrollContainer
-        {
-            SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            SizeFlagsVertical = SizeFlags.ExpandFill,
-        };
-        parent.AddChild(scroll);
+        var r1 = FormRow(parent);
+        r1.AddChild(FormLabel("Multiplier ×"));
+        _durMultiplierSpin = Spin(0, 10, 0.05, 0);
+        r1.AddChild(_durMultiplierSpin);
+        r1.AddChild(new Control { SizeFlagsHorizontal = SizeFlags.ExpandFill });
 
-        var v = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        scroll.AddChild(v);
+        var r2 = FormRow(parent);
+        r2.AddChild(FormLabel("Fail penalty/phase"));
+        _durFailPenaltySpin = Spin(0, 1, 0.01, 0);
+        r2.AddChild(_durFailPenaltySpin);
 
-        Section(v, "Quest Balance — профиль");
-        _qId = TextRow(v, "id (read-only)", null);
-        _qId.Editable = false;
+        r2.AddChild(FormLabel("Int bonus cap"));
+        _durIntBonusCapSpin = Spin(0, 5, 0.01, 0);
+        r2.AddChild(_durIntBonusCapSpin);
 
-        Section(v, "Duration");
-        var t3 = Tier3Row(v, 0.0, 10.0, 0.05, 1.0, 1.2, 1.5,
-            "Множитель длительности фазы по тиру: easy/normal/hard.");
-        _qDurEasy = t3[0]; _qDurNormal = t3[1]; _qDurHard = t3[2];
-        _qDurFailPenalty = SpinRow(v, "failPenaltyPerPhase", 0, 1, 0.01, 0.30,
-            "Штраф к длительности за каждую проваленную фазу (доля).");
-        _qDurIntBonusCap = SpinRow(v, "intBonusCap", 0, 5, 0.01, 0.30,
-            "Максимальный бонус длительности от INT (доля).");
-        _qDurIntBonusK = SpinRow(v, "intBonusK", 0, 5, 0.01, 0.15,
-            "Коэффициент перевода INT в бонус длительности.");
-
-        Section(v, "Skill Roll");
-        _qSkillBase = SpinRow(v, "base", 0, 200, 1, 50);
-        _qSkillPerRatio = SpinRow(v, "perRatio", 0, 200, 1, 50);
-        _qSkillMin = SpinRow(v, "min", 0, 100, 1, 5);
-        _qSkillMax = SpinRow(v, "max", 0, 100, 1, 80);
-
-        Section(v, "Escape");
-        _qEscapeStatK = SpinRow(v, "escapeStatK", 0, 200, 1, 40);
-        _qEscapeStatCap = SpinRow(v, "escapeStatCap", 0, 100, 1, 95);
-        var eb = Tier3Row(v, 0, 100, 1, 60, 45, 30, "Базовый шанс побега по тиру существа.");
-        _qEscapeEasy = eb[0]; _qEscapeNormal = eb[1]; _qEscapeHard = eb[2];
-        _qEscapeEndWeight = SpinRow(v, "endWeight", 0, 2, 0.01, 0.8);
-        _qEscapeWisWeight = SpinRow(v, "wisWeight", 0, 2, 0.01, 0.5);
-
-        Section(v, "Wound on fail (дней)");
-        (_qWFailEasyMin, _qWFailEasyMax) = RangeRow(v, "easy", 2, 4);
-        (_qWFailNormalMin, _qWFailNormalMax) = RangeRow(v, "normal", 3, 6);
-        (_qWFailHardMin, _qWFailHardMax) = RangeRow(v, "hard", 5, 10);
-
-        Section(v, "Wound on success");
-        (_qWSuccEasyChance, _qWSuccEasyMin, _qWSuccEasyMax) = SuccessRow(v, "easy", 5, 1, 2);
-        (_qWSuccNormalChance, _qWSuccNormalMin, _qWSuccNormalMax) = SuccessRow(v, "normal", 15, 1, 3);
-        (_qWSuccHardChance, _qWSuccHardMin, _qWSuccHardMax) = SuccessRow(v, "hard", 30, 2, 4);
-
-        Section(v, "Night / Limits");
-        _qNightAttackChance = SpinRow(v, "nightAttackChanceBase", 0, 100, 1, 25);
-        _qMaxQuestDays = SpinRow(v, "maxQuestDays", 1, 3650, 1, 90);
-        _qNightCreatureLvlPenalty = SpinRow(v, "nightCreatureLevelPenalty", 0, 100, 1, 5);
-
-        Section(v, "Endurance");
-        _qEndInjuryK = SpinRow(v, "enduranceInjuryK", 0, 1000, 1, 60);
-        _qEndInjuryCap = SpinRow(v, "enduranceInjuryCap", 0, 1, 0.01, 0.75);
-        _qEndDeathK = SpinRow(v, "enduranceDeathK", 0, 1000, 1, 150);
-        _qEndDeathCap = SpinRow(v, "enduranceDeathCap", 0, 1, 0.01, 0.50);
-
-        Section(v, "Experience");
-        _qExpContributionBaseScore = SpinRow(v, "contributionBaseScore", 0, 10, 0.01, 0.2);
+        var r3 = FormRow(parent);
+        r3.AddChild(FormLabel("Int bonus K"));
+        _durIntBonusKSpin = Spin(0, 5, 0.01, 0);
+        r3.AddChild(_durIntBonusKSpin);
+        r3.AddChild(new Control { SizeFlagsHorizontal = SizeFlags.ExpandFill });
     }
 
-    // ==================== Правая колонка: AdventurerBalance ====================
-
-    private void BuildAdventurerColumn(Control parent)
+    private void BuildSkillRoll(Control parent)
     {
-        var scroll = new ScrollContainer
+        var r = FormRow(parent);
+        r.AddChild(FormLabel("base"));
+        _skillBaseSpin = Spin(0, 200, 1, 0);
+        r.AddChild(_skillBaseSpin);
+        r.AddChild(FormLabel("perRatio"));
+        _skillPerRatioSpin = Spin(0, 200, 1, 0);
+        r.AddChild(_skillPerRatioSpin);
+
+        var r2 = FormRow(parent);
+        r2.AddChild(FormLabel("min"));
+        _skillMinSpin = Spin(0, 100, 1, 0);
+        r2.AddChild(_skillMinSpin);
+        r2.AddChild(FormLabel("max"));
+        _skillMaxSpin = Spin(0, 100, 1, 0);
+        r2.AddChild(_skillMaxSpin);
+
+        parent.AddChild(new Label
         {
-            SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            SizeFlagsVertical = SizeFlags.ExpandFill,
-        };
-        parent.AddChild(scroll);
-
-        var v = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        scroll.AddChild(v);
-
-        Section(v, "Adventurer Balance");
-        _aMaxLevel = SpinRow(v, "maxLevel", 1, 1000, 1, 60);
-        _aExpCapLvl1 = SpinRow(v, "expCapLvl1", 1, 100000, 1, 45);
-
-        var row = new HBoxContainer();
-        row.AddChild(new Label { Text = "expCapScaling", CustomMinimumSize = new Vector2(180, 0) });
-        _aExpCapScaling = new OptionButton { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        foreach (var s in ScalingOptions) _aExpCapScaling.AddItem(s);
-        row.AddChild(_aExpCapScaling);
-        v.AddChild(row);
-
-        _aExpCapAcceleration = SpinRow(v, "expCapAcceleration", 0, 10, 0.01, 0.22);
-
-        Section(v, "Stats");
-        _aStatBaseValue = SpinRow(v, "statBaseValue", 0, 1000, 0.01, 0.0);
-        _aStatStartPool = SpinRow(v, "statStartPool", 0, 1000, 0.01, 10.0);
-        _aStatBaseSlope = SpinRow(v, "statBaseSlope", 0, 1000, 0.01, 3.5);
+            Text = "chance = clamp(base + (ratio − 1)·perRatio, min, max)\n" +
+                   "ratio  = skillValue / (rawDc × refMax)",
+            Modulate = new Color(0.65f, 0.65f, 0.65f),
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        });
     }
 
-    // ==================== Хелперы UI ====================
-
-    private static void Section(Control parent, string title)
+    private void BuildEscape(Control parent)
     {
+        var r1 = FormRow(parent);
+        r1.AddChild(FormLabel("statK"));
+        _escapeStatKSpin = Spin(0, 200, 1, 0);
+        r1.AddChild(_escapeStatKSpin);
+        r1.AddChild(FormLabel("statCap"));
+        _escapeStatCapSpin = Spin(0, 100, 1, 0);
+        r1.AddChild(_escapeStatCapSpin);
+
+        var r2 = FormRow(parent);
+        r2.AddChild(FormLabel("Base"));
+        _escapeBaseSpin = Spin(0, 100, 1, 0);
+        r2.AddChild(_escapeBaseSpin);
+        r2.AddChild(new Control { SizeFlagsHorizontal = SizeFlags.ExpandFill });
+
+        var r3 = FormRow(parent);
+        r3.AddChild(FormLabel("endWeight"));
+        _escapeEndWeightSpin = Spin(0, 2, 0.01, 0);
+        r3.AddChild(_escapeEndWeightSpin);
+        r3.AddChild(FormLabel("wisWeight"));
+        _escapeWisWeightSpin = Spin(0, 2, 0.01, 0);
+        r3.AddChild(_escapeWisWeightSpin);
+    }
+
+    private void BuildWounds(Control parent)
+    {
+        parent.AddChild(new Label
+        {
+            Text = "Wound on fail — сколько дней ранения при провале escape",
+            Modulate = new Color(0.7f, 0.7f, 0.7f),
+        });
+
+        var r1 = FormRow(parent);
+        r1.AddChild(FormLabel("Days min"));
+        _wfMinSpin = Spin(0, 10000, 1, 0, 80);
+        r1.AddChild(_wfMinSpin);
+        r1.AddChild(FormLabel("max"));
+        _wfMaxSpin = Spin(0, 10000, 1, 0, 80);
+        r1.AddChild(_wfMaxSpin);
+
         parent.AddChild(new HSeparator());
-        parent.AddChild(new Label { Text = title });
+        parent.AddChild(new Label
+        {
+            Text = "Wound on success — шанс и дни ранения при успехе",
+            Modulate = new Color(0.7f, 0.7f, 0.7f),
+        });
+
+        var r2 = FormRow(parent);
+        r2.AddChild(FormLabel("Chance %"));
+        _wsChanceSpin = Spin(0, 100, 1, 0, 80);
+        r2.AddChild(_wsChanceSpin);
+        r2.AddChild(FormLabel("min"));
+        _wsMinSpin = Spin(0, 1000, 1, 0, 60);
+        r2.AddChild(_wsMinSpin);
+        r2.AddChild(FormLabel("max"));
+        _wsMaxSpin = Spin(0, 1000, 1, 0, 60);
+        r2.AddChild(_wsMaxSpin);
     }
 
-    private static LineEdit TextRow(Control parent, string label, string tooltip)
+    private void BuildNightLimits(Control parent)
     {
-        var row = new HBoxContainer();
-        row.AddChild(new Label
-        {
-            Text = label,
-            CustomMinimumSize = new Vector2(180, 0),
-            TooltipText = tooltip ?? "",
-        });
-        var e = new LineEdit { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
-        row.AddChild(e);
-        parent.AddChild(row);
-        return e;
+        var r1 = FormRow(parent);
+        r1.AddChild(FormLabel("Night attack %"));
+        _nightAttackChanceSpin = Spin(0, 100, 1, 0);
+        r1.AddChild(_nightAttackChanceSpin);
+
+        r1.AddChild(FormLabel("Max quest days"));
+        _maxQuestDaysSpin = Spin(1, 3650, 1, 1);
+        r1.AddChild(_maxQuestDaysSpin);
+
+        var r2 = FormRow(parent);
+        r2.AddChild(FormLabel("Night level penalty"));
+        _nightCreatureLvlPenaltySpin = Spin(0, 100, 1, 0);
+        r2.AddChild(_nightCreatureLvlPenaltySpin);
+        r2.AddChild(new Control { SizeFlagsHorizontal = SizeFlags.ExpandFill });
     }
 
-    private static SpinBox SpinRow(Control parent, string label, double min, double max, double step,
-                                   double value, string tooltip = null)
+    private void BuildEndurance(Control parent)
     {
-        var row = new HBoxContainer();
-        row.AddChild(new Label
+        var r1 = FormRow(parent);
+        r1.AddChild(FormLabel("Injury K"));
+        _endInjuryKSpin = Spin(0, 1000, 1, 0);
+        r1.AddChild(_endInjuryKSpin);
+        r1.AddChild(FormLabel("Injury cap"));
+        _endInjuryCapSpin = Spin(0, 1, 0.01, 0);
+        r1.AddChild(_endInjuryCapSpin);
+
+        var r2 = FormRow(parent);
+        r2.AddChild(FormLabel("Death K"));
+        _endDeathKSpin = Spin(0, 1000, 1, 0);
+        r2.AddChild(_endDeathKSpin);
+        r2.AddChild(FormLabel("Death cap"));
+        _endDeathCapSpin = Spin(0, 1, 0.01, 0);
+        r2.AddChild(_endDeathCapSpin);
+    }
+
+    private void BuildExperience(Control parent)
+    {
+        var r = FormRow(parent);
+        r.AddChild(FormLabel("Contribution base"));
+        _expContributionBaseScoreSpin = Spin(0, 10, 0.01, 0);
+        r.AddChild(_expContributionBaseScoreSpin);
+        r.AddChild(new Control { SizeFlagsHorizontal = SizeFlags.ExpandFill });
+    }
+
+    // ==================== UI-хелперы ====================
+
+    private static (Button toggle, VBoxContainer content) CollapsibleSection(
+        VBoxContainer parent, string title, bool expanded)
+    {
+        var toggle = new Button
         {
-            Text = label,
-            CustomMinimumSize = new Vector2(180, 0),
-            TooltipText = tooltip ?? "",
-        });
-        var s = new SpinBox
+            Text = (expanded ? "▼  " : "▶  ") + title,
+            ToggleMode = true,
+            ButtonPressed = expanded,
+            Flat = true,
+            Alignment = HorizontalAlignment.Left,
+            FocusMode = Control.FocusModeEnum.None,
+            AutoTranslateMode = AutoTranslateModeEnum.Disabled,
+        };
+        parent.AddChild(toggle);
+
+        var content = new VBoxContainer { Visible = expanded };
+        content.AddThemeConstantOverride("separation", 4);
+        parent.AddChild(content);
+
+        toggle.Toggled += pressed =>
+        {
+            toggle.Text = (pressed ? "▼  " : "▶  ") + title;
+            content.Visible = pressed;
+        };
+
+        return (toggle, content);
+    }
+
+    private static HBoxContainer FormRow(Control parent)
+    {
+        var wrap = new HBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        parent.AddChild(wrap);
+
+        var row = new HBoxContainer
+        {
+            CustomMinimumSize = new Vector2(FormWidth, 0),
+            SizeFlagsHorizontal = Control.SizeFlags.ShrinkBegin,
+        };
+        row.AddThemeConstantOverride("separation", 8);
+        wrap.AddChild(row);
+
+        return row;
+    }
+
+    private static Label FormLabel(string text)
+    {
+        return new Label
+        {
+            Text = text,
+            CustomMinimumSize = new Vector2(LabelW, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            AutoTranslateMode = AutoTranslateModeEnum.Disabled,
+        };
+    }
+
+    private static LineEdit FormField()
+    {
+        return new LineEdit
+        {
+            CustomMinimumSize = new Vector2(120, 0),
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+        };
+    }
+
+    private static SpinBox Spin(double min, double max, double step, double value, float width = 120)
+    {
+        return new SpinBox
         {
             MinValue = min,
             MaxValue = max,
             Step = step,
             Value = value,
-            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+            CustomMinimumSize = new Vector2(width, 0),
+            SizeFlagsHorizontal = SizeFlags.ShrinkBegin,
         };
-        row.AddChild(s);
-        parent.AddChild(row);
-        return s;
     }
 
-    private static SpinBox[] Tier3Row(Control parent, double min, double max, double step,
-                                      double vEasy, double vNormal, double vHard,
-                                      string tooltip = null)
-    {
-        var row = new HBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
-        string[] names = { "easy", "normal", "hard" };
-        double[] vals = { vEasy, vNormal, vHard };
-        var spins = new SpinBox[3];
-        for (int i = 0; i < 3; i++)
-        {
-            row.AddChild(new Label { Text = names[i], TooltipText = tooltip ?? "" });
-            spins[i] = new SpinBox
-            {
-                MinValue = min,
-                MaxValue = max,
-                Step = step,
-                Value = vals[i],
-                SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
-            };
-            row.AddChild(spins[i]);
-        }
-        parent.AddChild(row);
-        return spins;
-    }
+    // ==================== Load / Sync ====================
 
-    private static (SpinBox min, SpinBox max) RangeRow(Control parent, string label, int vMin, int vMax)
-    {
-        var row = new HBoxContainer();
-        row.AddChild(new Label { Text = label, CustomMinimumSize = new Vector2(70, 0) });
-        row.AddChild(new Label { Text = "min" });
-        var mn = new SpinBox
-        {
-            MinValue = 0,
-            MaxValue = 10000,
-            Step = 1,
-            Value = vMin,
-            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
-        };
-        row.AddChild(mn);
-        row.AddChild(new Label { Text = "max" });
-        var mx = new SpinBox
-        {
-            MinValue = 0,
-            MaxValue = 10000,
-            Step = 1,
-            Value = vMax,
-            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
-        };
-        row.AddChild(mx);
-        parent.AddChild(row);
-        return (mn, mx);
-    }
-
-    private static (SpinBox chance, SpinBox min, SpinBox max) SuccessRow(
-        Control parent, string label, int chance, int vMin, int vMax)
-    {
-        var row = new HBoxContainer();
-        row.AddChild(new Label { Text = label, CustomMinimumSize = new Vector2(70, 0) });
-        row.AddChild(new Label { Text = "chance%" });
-        var ch = new SpinBox
-        {
-            MinValue = 0,
-            MaxValue = 100,
-            Step = 1,
-            Value = chance,
-            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
-        };
-        row.AddChild(ch);
-        row.AddChild(new Label { Text = "min" });
-        var mn = new SpinBox
-        {
-            MinValue = 0,
-            MaxValue = 1000,
-            Step = 1,
-            Value = vMin,
-            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
-        };
-        row.AddChild(mn);
-        row.AddChild(new Label { Text = "max" });
-        var mx = new SpinBox
-        {
-            MinValue = 0,
-            MaxValue = 1000,
-            Step = 1,
-            Value = vMax,
-            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
-        };
-        row.AddChild(mx);
-        parent.AddChild(row);
-        return (ch, mn, mx);
-    }
-
-    // ==================== Load disk -> UI ====================
-
-    private void LoadQuestIntoUI()
-    {
-        var q = _quest;
-        _qId.Text = q.Id ?? "";
-
-        _qDurEasy.Value = q.DurationTierMultiplier.Easy;
-        _qDurNormal.Value = q.DurationTierMultiplier.Normal;
-        _qDurHard.Value = q.DurationTierMultiplier.Hard;
-        _qDurFailPenalty.Value = q.DurationFailPenaltyPerPhase;
-        _qDurIntBonusCap.Value = q.DurationIntBonusCap;
-        _qDurIntBonusK.Value = q.DurationIntBonusK;
-
-        _qSkillBase.Value = q.SkillRoll.Base;
-        _qSkillPerRatio.Value = q.SkillRoll.PerRatio;
-        _qSkillMin.Value = q.SkillRoll.Min;
-        _qSkillMax.Value = q.SkillRoll.Max;
-
-        _qEscapeStatK.Value = q.EscapeStatK;
-        _qEscapeStatCap.Value = q.EscapeStatCap;
-        _qEscapeEasy.Value = q.EscapeBaseByTier.Easy;
-        _qEscapeNormal.Value = q.EscapeBaseByTier.Normal;
-        _qEscapeHard.Value = q.EscapeBaseByTier.Hard;
-        _qEscapeEndWeight.Value = q.EscapeEndWeight;
-        _qEscapeWisWeight.Value = q.EscapeWisWeight;
-
-        _qWFailEasyMin.Value = q.WoundFailDaysByTier.Easy.Min;
-        _qWFailEasyMax.Value = q.WoundFailDaysByTier.Easy.Max;
-        _qWFailNormalMin.Value = q.WoundFailDaysByTier.Normal.Min;
-        _qWFailNormalMax.Value = q.WoundFailDaysByTier.Normal.Max;
-        _qWFailHardMin.Value = q.WoundFailDaysByTier.Hard.Min;
-        _qWFailHardMax.Value = q.WoundFailDaysByTier.Hard.Max;
-
-        _qWSuccEasyChance.Value = q.WoundSuccessByTier.Easy.Chance;
-        _qWSuccEasyMin.Value = q.WoundSuccessByTier.Easy.Min;
-        _qWSuccEasyMax.Value = q.WoundSuccessByTier.Easy.Max;
-        _qWSuccNormalChance.Value = q.WoundSuccessByTier.Normal.Chance;
-        _qWSuccNormalMin.Value = q.WoundSuccessByTier.Normal.Min;
-        _qWSuccNormalMax.Value = q.WoundSuccessByTier.Normal.Max;
-        _qWSuccHardChance.Value = q.WoundSuccessByTier.Hard.Chance;
-        _qWSuccHardMin.Value = q.WoundSuccessByTier.Hard.Min;
-        _qWSuccHardMax.Value = q.WoundSuccessByTier.Hard.Max;
-
-        _qNightAttackChance.Value = q.NightAttackChanceBase;
-        _qMaxQuestDays.Value = q.MaxQuestDays;
-        _qNightCreatureLvlPenalty.Value = q.NightCreatureLevelPenalty;
-
-        _qEndInjuryK.Value = q.EnduranceInjuryK;
-        _qEndInjuryCap.Value = q.EnduranceInjuryCap;
-        _qEndDeathK.Value = q.EnduranceDeathK;
-        _qEndDeathCap.Value = q.EnduranceDeathCap;
-
-        _qExpContributionBaseScore.Value = q.Experience?.ContributionBaseScore ?? 0.2;
-    }
-
-    private void LoadAdventurerIntoUI()
-    {
-        var a = _adv;
-        _aMaxLevel.Value = a.MaxLevel;
-        _aExpCapLvl1.Value = a.ExpCapLvl1;
-
-        int idx = Array.IndexOf(ScalingOptions, a.ExpCapScaling);
-        _aExpCapScaling.Selected = idx >= 0 ? idx : Array.IndexOf(ScalingOptions, "polynomial");
-
-        _aExpCapAcceleration.Value = a.ExpCapAcceleration;
-        _aStatBaseValue.Value = a.StatBaseValue;
-        _aStatStartPool.Value = a.StatStartPool;
-        _aStatBaseSlope.Value = a.StatBaseSlope;
-    }
-
-    // ==================== Sync UI -> модели ====================
-
-    private void SyncQuestFromUI()
+    private void LoadIntoUI()
     {
         var q = _quest;
 
-        q.DurationTierMultiplier = new TierMultiplierMap
-        {
-            Easy = NumericHelpers.Round4(_qDurEasy.Value),
-            Normal = NumericHelpers.Round4(_qDurNormal.Value),
-            Hard = NumericHelpers.Round4(_qDurHard.Value),
-        };
-        q.DurationFailPenaltyPerPhase = NumericHelpers.Round4(_qDurFailPenalty.Value);
-        q.DurationIntBonusCap = NumericHelpers.Round4(_qDurIntBonusCap.Value);
-        q.DurationIntBonusK = NumericHelpers.Round4(_qDurIntBonusK.Value);
+        _idEdit.Text = q.Id ?? "";
+
+        _durMultiplierSpin.Value = q.DurationMultiplier;
+        _durFailPenaltySpin.Value = q.DurationFailPenaltyPerPhase;
+        _durIntBonusCapSpin.Value = q.DurationIntBonusCap;
+        _durIntBonusKSpin.Value = q.DurationIntBonusK;
+
+        _skillBaseSpin.Value = q.SkillRoll.Base;
+        _skillPerRatioSpin.Value = q.SkillRoll.PerRatio;
+        _skillMinSpin.Value = q.SkillRoll.Min;
+        _skillMaxSpin.Value = q.SkillRoll.Max;
+
+        _escapeStatKSpin.Value = q.EscapeStatK;
+        _escapeStatCapSpin.Value = q.EscapeStatCap;
+        _escapeBaseSpin.Value = q.EscapeBase;
+        _escapeEndWeightSpin.Value = q.EscapeEndWeight;
+        _escapeWisWeightSpin.Value = q.EscapeWisWeight;
+
+        _wfMinSpin.Value = q.WoundFailDays.Min;
+        _wfMaxSpin.Value = q.WoundFailDays.Max;
+
+        _wsChanceSpin.Value = q.WoundSuccess.Chance;
+        _wsMinSpin.Value = q.WoundSuccess.Min;
+        _wsMaxSpin.Value = q.WoundSuccess.Max;
+
+        _nightAttackChanceSpin.Value = q.NightAttackChanceBase;
+        _maxQuestDaysSpin.Value = q.MaxQuestDays;
+        _nightCreatureLvlPenaltySpin.Value = q.NightCreatureLevelPenalty;
+
+        _endInjuryKSpin.Value = q.EnduranceInjuryK;
+        _endInjuryCapSpin.Value = q.EnduranceInjuryCap;
+        _endDeathKSpin.Value = q.EnduranceDeathK;
+        _endDeathCapSpin.Value = q.EnduranceDeathCap;
+
+        _expContributionBaseScoreSpin.Value = q.Experience?.ContributionBaseScore ?? 0.2;
+    }
+
+    private void SyncFromUI()
+    {
+        var q = _quest;
+
+        q.DurationMultiplier = NumericHelpers.Round4(_durMultiplierSpin.Value);
+        q.DurationFailPenaltyPerPhase = NumericHelpers.Round4(_durFailPenaltySpin.Value);
+        q.DurationIntBonusCap = NumericHelpers.Round4(_durIntBonusCapSpin.Value);
+        q.DurationIntBonusK = NumericHelpers.Round4(_durIntBonusKSpin.Value);
 
         q.SkillRoll = new SkillRollBalance
         {
-            Base = NumericHelpers.Round4(_qSkillBase.Value),
-            PerRatio = NumericHelpers.Round4(_qSkillPerRatio.Value),
-            Min = NumericHelpers.Round4(_qSkillMin.Value),
-            Max = NumericHelpers.Round4(_qSkillMax.Value),
+            Base = NumericHelpers.Round4(_skillBaseSpin.Value),
+            PerRatio = NumericHelpers.Round4(_skillPerRatioSpin.Value),
+            Min = NumericHelpers.Round4(_skillMinSpin.Value),
+            Max = NumericHelpers.Round4(_skillMaxSpin.Value),
         };
 
-        q.EscapeStatK = NumericHelpers.Round4(_qEscapeStatK.Value);
-        q.EscapeStatCap = NumericHelpers.Round4(_qEscapeStatCap.Value);
-        q.EscapeBaseByTier = new EscapeBaseByTier
+        q.EscapeStatK = NumericHelpers.Round4(_escapeStatKSpin.Value);
+        q.EscapeStatCap = NumericHelpers.Round4(_escapeStatCapSpin.Value);
+        q.EscapeBase = NumericHelpers.Round4(_escapeBaseSpin.Value);
+        q.EscapeEndWeight = NumericHelpers.Round4(_escapeEndWeightSpin.Value);
+        q.EscapeWisWeight = NumericHelpers.Round4(_escapeWisWeightSpin.Value);
+
+        q.WoundFailDays = new WoundRange
         {
-            Easy = NumericHelpers.Round4(_qEscapeEasy.Value),
-            Normal = NumericHelpers.Round4(_qEscapeNormal.Value),
-            Hard = NumericHelpers.Round4(_qEscapeHard.Value),
+            Min = (int)_wfMinSpin.Value,
+            Max = (int)_wfMaxSpin.Value,
         };
-        q.EscapeEndWeight = NumericHelpers.Round4(_qEscapeEndWeight.Value);
-        q.EscapeWisWeight = NumericHelpers.Round4(_qEscapeWisWeight.Value);
-
-        q.WoundFailDaysByTier = new WoundDaysByTier
+        q.WoundSuccess = new WoundSuccessRange
         {
-            Easy = new WoundRange { Min = (int)_qWFailEasyMin.Value, Max = (int)_qWFailEasyMax.Value },
-            Normal = new WoundRange { Min = (int)_qWFailNormalMin.Value, Max = (int)_qWFailNormalMax.Value },
-            Hard = new WoundRange { Min = (int)_qWFailHardMin.Value, Max = (int)_qWFailHardMax.Value },
-        };
-        q.WoundSuccessByTier = new WoundSuccessByTier
-        {
-            Easy = new WoundSuccessRange { Chance = (int)_qWSuccEasyChance.Value, Min = (int)_qWSuccEasyMin.Value, Max = (int)_qWSuccEasyMax.Value },
-            Normal = new WoundSuccessRange { Chance = (int)_qWSuccNormalChance.Value, Min = (int)_qWSuccNormalMin.Value, Max = (int)_qWSuccNormalMax.Value },
-            Hard = new WoundSuccessRange { Chance = (int)_qWSuccHardChance.Value, Min = (int)_qWSuccHardMin.Value, Max = (int)_qWSuccHardMax.Value },
+            Chance = (int)_wsChanceSpin.Value,
+            Min = (int)_wsMinSpin.Value,
+            Max = (int)_wsMaxSpin.Value,
         };
 
-        q.NightAttackChanceBase = NumericHelpers.Round4(_qNightAttackChance.Value);
-        q.MaxQuestDays = (int)_qMaxQuestDays.Value;
-        q.NightCreatureLevelPenalty = (int)_qNightCreatureLvlPenalty.Value;
+        q.NightAttackChanceBase = NumericHelpers.Round4(_nightAttackChanceSpin.Value);
+        q.MaxQuestDays = (int)_maxQuestDaysSpin.Value;
+        q.NightCreatureLevelPenalty = (int)_nightCreatureLvlPenaltySpin.Value;
 
-        q.EnduranceInjuryK = NumericHelpers.Round4(_qEndInjuryK.Value);
-        q.EnduranceInjuryCap = NumericHelpers.Round4(_qEndInjuryCap.Value);
-        q.EnduranceDeathK = NumericHelpers.Round4(_qEndDeathK.Value);
-        q.EnduranceDeathCap = NumericHelpers.Round4(_qEndDeathCap.Value);
+        q.EnduranceInjuryK = NumericHelpers.Round4(_endInjuryKSpin.Value);
+        q.EnduranceInjuryCap = NumericHelpers.Round4(_endInjuryCapSpin.Value);
+        q.EnduranceDeathK = NumericHelpers.Round4(_endDeathKSpin.Value);
+        q.EnduranceDeathCap = NumericHelpers.Round4(_endDeathCapSpin.Value);
 
         q.Experience = new ExperienceBalance
         {
-            ContributionBaseScore = NumericHelpers.Round4(_qExpContributionBaseScore.Value),
+            ContributionBaseScore = NumericHelpers.Round4(_expContributionBaseScoreSpin.Value),
         };
-    }
-
-    private void SyncAdventurerFromUI()
-    {
-        var a = _adv;
-        a.MaxLevel = (int)_aMaxLevel.Value;
-        a.ExpCapLvl1 = (int)_aExpCapLvl1.Value;
-        if (_aExpCapScaling.Selected >= 0 && _aExpCapScaling.Selected < ScalingOptions.Length)
-            a.ExpCapScaling = ScalingOptions[_aExpCapScaling.Selected];
-        a.ExpCapAcceleration = NumericHelpers.Round4(_aExpCapAcceleration.Value);
-        a.StatBaseValue = NumericHelpers.Round4(_aStatBaseValue.Value);
-        a.StatStartPool = NumericHelpers.Round4(_aStatStartPool.Value);
-        a.StatBaseSlope = NumericHelpers.Round4(_aStatBaseSlope.Value);
     }
 
     // ==================== Apply / Revert ====================
 
     private void OnApplyPressed()
     {
-        SyncQuestFromUI();
-        SyncAdventurerFromUI();
+        if (_quest == null) { SetStatus("Профиль не загружен", StatusKind.Error); return; }
+
+        SyncFromUI();
 
         if (TuningDock.PreviewEnabled)
         {
             try
             {
                 QuestBalance.SetActiveProfile(_quest);
-                AdventurerBalance.SetActiveProfile(_adv);
-                SetStatus("Preview: QuestBalance + AdventurerBalance в памяти (диск не тронут).",
-                          StatusKind.Warning);
+                SetStatus("Preview: профиль в памяти (диск не тронут).", StatusKind.Warning);
             }
             catch (Exception e)
             {
@@ -504,21 +473,37 @@ public partial class BalanceTab : Control
             return;
         }
 
-        // ─── Обычный путь — без изменений ───
-        // ... ваш текущий код Apply ...
+        try
+        {
+            JsonWriter.Write(QuestBalancePath, _db);
+        }
+        catch (Exception e)
+        {
+            SetStatus($"Apply FAILED: {e.Message}", StatusKind.Error);
+            GD.PushError($"[BalanceTab] Apply: {e}");
+            return;
+        }
+
+        try
+        {
+            QuestBalance.Load();
+            SetStatus($"Applied: QuestBalance записан ({_db.Profiles.Count} профилей)", StatusKind.Ok);
+        }
+        catch (Exception e)
+        {
+            SetStatus($"Записано, но Load упал: {e.Message}", StatusKind.Error);
+            GD.PushError($"[BalanceTab] Load after apply: {e}");
+        }
     }
 
     private void OnRevertPressed()
     {
-        ReloadFromDisk();
-        LoadQuestIntoUI();
-        LoadAdventurerIntoUI();
+        if (!ReloadFromDisk()) return;
+        LoadIntoUI();
         try
         {
             QuestBalance.Load();
-            AdventurerBalance.Load();
-            SetStatus("Reverted: QuestBalance + AdventurerBalance перезагружены",
-                      StatusKind.Ok);
+            SetStatus($"Reverted: профиль '{_quest.Id}' перезагружен", StatusKind.Ok);
         }
         catch (Exception e)
         {
@@ -532,23 +517,18 @@ public partial class BalanceTab : Control
     {
         try
         {
-            _questDb = JsonLoader.Load<QuestBalanceDatabase>(QuestBalancePath);
-            _adv = JsonLoader.Load<AdventurerBalanceProfile>(AdventurerBalancePath);
+            _db = JsonLoader.Load<QuestBalanceDatabase>(QuestBalancePath);
 
-            if (_questDb?.Profiles == null || _questDb.Profiles.Count == 0)
+            if (_db?.Profiles == null || _db.Profiles.Count == 0)
             {
                 GD.PushError($"[BalanceTab] {QuestBalancePath}: нет профилей");
                 return false;
             }
 
-            // Берём профиль с id="default", если он есть, иначе первый.
-            _quest = null;
-            foreach (var p in _questDb.Profiles)
-                if (p.Id == "default") { _quest = p; break; }
-            _quest ??= _questDb.Profiles[0];
+            _quest = _db.Profiles.FirstOrDefault(p => p.Id == "default") ?? _db.Profiles[0];
 
             GD.Print($"[BalanceTab] ReloadFromDisk: профиль '{_quest.Id}', " +
-                     $"scaling='{_adv.ExpCapScaling}', maxLevel={_adv.MaxLevel}");
+                     $"{_db.Profiles.Count} шт. в базе");
             return true;
         }
         catch (Exception e)

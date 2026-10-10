@@ -30,7 +30,7 @@ project/assembly_name="Adventurer’sGuild"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/atlas_slicer/plugin.cfg", "res://addons/tuning_tool/plugin.cfg")
+enabled=PackedStringArray("res://addons/atlas_slicer/plugin.cfg")
 
 [gui]
 

@@ -1,6 +1,13 @@
 #if TOOLS
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using AdventurersGuild.Core;
+using AdventurersGuild.Core.Localization;
+using AdventurersGuild.Data.Adventurer;
+using AdventurersGuild.Data.IO;
+using AdventurersGuild.Data.Quest;
+using AdventurersGuild.Domain.Adventurers;
 using Godot;
 
 [Tool]
@@ -8,34 +15,32 @@ public partial class StatsTab : Control
 {
     private const string StatsPath = "res://Resources/Data/Adventurer/AdventurerStats.json";
 
+    private const float LabelW = 130;
+    private const float FormWidth = 750;
+
     private ItemList _list;
     private VBoxContainer _editorRoot;
-    private VBoxContainer _skillsBox;
     private Label _status;
 
-    private LineEdit _idEdit, _nameRuEdit, _nameEnEdit;
+    private LineEdit _idEdit;
+    private LineEdit _nameRuEdit, _nameEnEdit;
     private LineEdit _descRuEdit, _descEnEdit;
+
+    private VBoxContainer _skillsBox;
+    private readonly List<SkillCard> _skillCards = new();
 
     private readonly List<AdventurerStatInfo> _stats = new();
     private AdventurerStatInfo _current;
 
+    private enum StatusKind { Ok, Warning, Error }
+
     private sealed class SkillCard
     {
-        public LineEdit SkillId;
+        public OptionButton SkillId;
         public LineEdit NameRu, NameEn;
         public SpinBox StatModifier;
-        public VBoxContainer ClassModifiersBox;
-        public List<ClassModRow> ClassMods = new();
+        public Dictionary<string, SpinBox> ClassModifierBoxes = new();
     }
-    private sealed class ClassModRow
-    {
-        public LineEdit ClassId;
-        public SpinBox Modifier;
-    }
-
-    private readonly List<SkillCard> _skillCards = new();
-
-    private enum StatusKind { Ok, Warning, Error }
 
     public override void _Ready()
     {
@@ -57,9 +62,12 @@ public partial class StatsTab : Control
         SelectFirst();
     }
 
+    // ==================== Левая колонка ====================
+
     private void BuildLeft(Control parent)
     {
         var left = new VBoxContainer { CustomMinimumSize = new Vector2(200, 0) };
+        left.AddThemeConstantOverride("separation", 4);
         parent.AddChild(left);
         left.AddChild(new Label { Text = "Статы" });
 
@@ -89,6 +97,8 @@ public partial class StatsTab : Control
         left.AddChild(_status);
     }
 
+    // ==================== Правая колонка ====================
+
     private void BuildRight(Control parent)
     {
         var scroll = new ScrollContainer
@@ -99,48 +109,285 @@ public partial class StatsTab : Control
         parent.AddChild(scroll);
 
         _editorRoot = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        _editorRoot.AddThemeConstantOverride("separation", 10);
         scroll.AddChild(_editorRoot);
 
-        _idEdit = AddTextRow(_editorRoot, "Id");
+        var (_, infoBox) = CollapsibleSection(_editorRoot, "Info", expanded: true);
+        BuildInfoSection(infoBox);
+
+        var (_, skillsBox) = CollapsibleSection(_editorRoot, "Skills", expanded: true);
+        BuildSkillsSection(skillsBox);
+    }
+
+    private void BuildInfoSection(Control parent)
+    {
+        var idRow = FormRow(parent);
+        idRow.AddChild(FormLabel("Id"));
+        _idEdit = FormField();
         _idEdit.Editable = false;
+        idRow.AddChild(_idEdit);
 
-        _nameRuEdit = AddTextRow(_editorRoot, "Name RU");
-        _nameEnEdit = AddTextRow(_editorRoot, "Name EN");
+        var nameRow = FormRow(parent);
+        nameRow.AddChild(FormLabel("Name RU"));
+        _nameRuEdit = FormField();
+        nameRow.AddChild(_nameRuEdit);
+        nameRow.AddChild(FormLabel("Name EN"));
+        _nameEnEdit = FormField();
+        nameRow.AddChild(_nameEnEdit);
 
-        _descRuEdit = AddTextRow(_editorRoot, "Desc RU");
-        _descEnEdit = AddTextRow(_editorRoot, "Desc EN");
+        var descRuRow = FormRow(parent);
+        descRuRow.AddChild(FormLabel("Desc RU"));
+        _descRuEdit = FormField();
+        descRuRow.AddChild(_descRuEdit);
 
-        _editorRoot.AddChild(new HSeparator());
-        _editorRoot.AddChild(new Label { Text = "Skills" });
-        _editorRoot.AddChild(new Label
+        var descEnRow = FormRow(parent);
+        descEnRow.AddChild(FormLabel("Desc EN"));
+        _descEnEdit = FormField();
+        descEnRow.AddChild(_descEnEdit);
+    }
+
+    private void BuildSkillsSection(Control parent)
+    {
+        parent.AddChild(new Label
         {
-            Text = "Навыки, привязанные к этому стату. У каждого — свой модификатор " +
-                   "и множители по классам.",
+            Text = "Навыки, привязанные к этому стату. statModifier и множители по классам.",
             Modulate = new Color(0.7f, 0.7f, 0.7f),
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         });
 
         _skillsBox = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        _editorRoot.AddChild(_skillsBox);
-        var addSkillBtn = new Button { Text = "+ skill" };
+        _skillsBox.AddThemeConstantOverride("separation", 8);
+        parent.AddChild(_skillsBox);
+
+        var addSkillBtn = new Button
+        {
+            Text = "+ skill",
+            SizeFlagsHorizontal = SizeFlags.ShrinkBegin,
+        };
         addSkillBtn.Pressed += () => AddSkillCard(null);
-        _editorRoot.AddChild(addSkillBtn);
+        parent.AddChild(addSkillBtn);
     }
 
-    private static LineEdit AddTextRow(Control parent, string label, string tooltip = null)
+    private void AddSkillCard(SkillInfo skill)
     {
-        var row = new HBoxContainer();
-        row.AddChild(new Label
+        var card = new SkillCard();
+
+        var frame = new PanelContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        var inner = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        inner.AddThemeConstantOverride("separation", 6);
+        frame.AddChild(inner);
+
+        // Row 1: skill id (dropdown из SkillIds.All) + ×
+        var idRow = FormRow(inner);
+        idRow.AddChild(FormLabel("skill id"));
+        card.SkillId = new OptionButton
         {
-            Text = label,
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+        };
+        PopulateSkillIdOptions(card.SkillId, skill?.Id);
+        idRow.AddChild(card.SkillId);
+
+        var rm = new Button
+        {
+            Text = "×",
+            Flat = true,
+            CustomMinimumSize = new Vector2(28, 0),
+            SizeFlagsHorizontal = SizeFlags.ShrinkBegin,
+        };
+        rm.Pressed += () => { _skillCards.Remove(card); frame.QueueFree(); };
+        idRow.AddChild(rm);
+
+        // Row 2: names
+        var nameRow = FormRow(inner);
+        nameRow.AddChild(FormLabel("Name RU"));
+        card.NameRu = FormField();
+        card.NameRu.Text = skill?.Name.Ru ?? "";
+        nameRow.AddChild(card.NameRu);
+        nameRow.AddChild(FormLabel("Name EN"));
+        card.NameEn = FormField();
+        card.NameEn.Text = skill?.Name.En ?? "";
+        nameRow.AddChild(card.NameEn);
+
+        // Row 3: statModifier
+        var smRow = FormRow(inner);
+        smRow.AddChild(FormLabel("statModifier"));
+        card.StatModifier = new SpinBox
+        {
+            MinValue = 0,
+            MaxValue = 10,
+            Step = 0.01,
+            Value = skill?.StatModifier ?? 1.0,
             CustomMinimumSize = new Vector2(120, 0),
-            TooltipText = tooltip ?? "",
+            SizeFlagsHorizontal = SizeFlags.ShrinkBegin,
+        };
+        smRow.AddChild(card.StatModifier);
+        smRow.AddChild(new Control { SizeFlagsHorizontal = SizeFlags.ExpandFill });
+
+        // Class modifiers — фиксированная сетка 4×2 по всем классам базы.
+        inner.AddChild(new Label
+        {
+            Text = "Class modifiers",
+            Modulate = new Color(0.85f, 0.85f, 0.85f),
         });
-        var e = new LineEdit { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
-        row.AddChild(e);
-        parent.AddChild(row);
-        return e;
+
+        var grid = new GridContainer { Columns = 4 };
+        grid.AddThemeConstantOverride("h_separation", 16);
+        grid.AddThemeConstantOverride("v_separation", 4);
+        inner.AddChild(grid);
+
+        card.ClassModifierBoxes.Clear();
+
+        foreach (var cls in AdventurerDatabase.Classes.Values.OrderBy(c => c.Id))
+        {
+            var cell = new HBoxContainer();
+            cell.AddThemeConstantOverride("separation", 6);
+            cell.AddChild(new Label
+            {
+                Text = cls.Id,
+                CustomMinimumSize = new Vector2(72, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+                Modulate = new Color(0.85f, 0.85f, 0.85f),
+            });
+
+            var spin = new SpinBox
+            {
+                MinValue = 0,
+                MaxValue = 10,
+                Step = 0.01,
+                Value = 1.0,
+                CustomMinimumSize = new Vector2(80, 0),
+                SizeFlagsHorizontal = SizeFlags.ShrinkBegin,
+            };
+
+            if (skill?.ClassModifiers != null
+                && skill.ClassModifiers.TryGetValue(cls.Id, out var v))
+                spin.Value = v;
+
+            cell.AddChild(spin);
+            grid.AddChild(cell);
+
+            card.ClassModifierBoxes[cls.Id] = spin;
+        }
+
+        _skillsBox.AddChild(frame);
+        _skillCards.Add(card);
     }
+
+    // ==================== Skill id dropdown helpers ====================
+
+    private static void PopulateSkillIdOptions(OptionButton option, string currentId)
+    {
+        option.Clear();
+
+        foreach (var sid in SkillIds.All)
+        {
+            string name = AdventurerDatabase.GetSkill(sid)?.Name.Get(Loc.Language) ?? "";
+            option.AddItem(string.IsNullOrEmpty(name) ? sid : $"{sid}  ({name})");
+        }
+
+        // Если текущий skill id не из SkillIds.All — добавляем его как «устаревший»,
+        // чтобы пользователь видел невалидное значение и мог его заменить.
+        if (!string.IsNullOrEmpty(currentId)
+            && !SkillIds.All.Contains(currentId))
+        {
+            option.AddItem($"{currentId}  (неизвестный)");
+            option.Selected = option.ItemCount - 1;
+            return;
+        }
+
+        // Выбираем текущий, если он есть в списке.
+        for (int i = 0; i < option.ItemCount; i++)
+        {
+            string text = option.GetItemText(i);
+            int spaceIdx = text.IndexOf("  (", StringComparison.Ordinal);
+            string id = spaceIdx > 0 ? text.Substring(0, spaceIdx) : text;
+            if (id == currentId)
+            {
+                option.Selected = i;
+                return;
+            }
+        }
+
+        // Фолбэк: выбираем первый доступный.
+        if (option.ItemCount > 0) option.Selected = 0;
+    }
+
+    private static string ReadSkillId(OptionButton option)
+    {
+        if (option.Selected < 0 || option.Selected >= option.ItemCount) return null;
+        string text = option.GetItemText(option.Selected);
+        int spaceIdx = text.IndexOf("  (", StringComparison.Ordinal);
+        return spaceIdx > 0 ? text.Substring(0, spaceIdx) : text;
+    }
+
+    // ==================== UI-хелперы ====================
+
+    private static (Button toggle, VBoxContainer content) CollapsibleSection(
+        VBoxContainer parent, string title, bool expanded)
+    {
+        var toggle = new Button
+        {
+            Text = (expanded ? "▼  " : "▶  ") + title,
+            ToggleMode = true,
+            ButtonPressed = expanded,
+            Flat = true,
+            Alignment = HorizontalAlignment.Left,
+            FocusMode = Control.FocusModeEnum.None,
+            AutoTranslateMode = AutoTranslateModeEnum.Disabled,
+        };
+        parent.AddChild(toggle);
+
+        var content = new VBoxContainer { Visible = expanded };
+        content.AddThemeConstantOverride("separation", 4);
+        parent.AddChild(content);
+
+        toggle.Toggled += pressed =>
+        {
+            toggle.Text = (pressed ? "▼  " : "▶  ") + title;
+            content.Visible = pressed;
+        };
+
+        return (toggle, content);
+    }
+
+    private static HBoxContainer FormRow(Control parent)
+    {
+        var wrap = new HBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        parent.AddChild(wrap);
+
+        var row = new HBoxContainer
+        {
+            CustomMinimumSize = new Vector2(FormWidth, 0),
+            SizeFlagsHorizontal = Control.SizeFlags.ShrinkBegin,
+        };
+        row.AddThemeConstantOverride("separation", 8);
+        wrap.AddChild(row);
+
+        return row;
+    }
+
+    private static Label FormLabel(string text)
+    {
+        return new Label
+        {
+            Text = text,
+            CustomMinimumSize = new Vector2(LabelW, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            AutoTranslateMode = AutoTranslateModeEnum.Disabled,
+        };
+    }
+
+    private static LineEdit FormField()
+    {
+        return new LineEdit
+        {
+            CustomMinimumSize = new Vector2(120, 0),
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+        };
+    }
+
+    // ==================== Список ====================
 
     private void RefreshList()
     {
@@ -172,109 +419,33 @@ public partial class StatsTab : Control
         _descRuEdit.Text = s.Description.Ru ?? "";
         _descEnEdit.Text = s.Description.En ?? "";
 
-        foreach (var child in _skillsBox.GetChildren()) child.QueueFree();
+        foreach (var child in _skillsBox.GetChildren())
+            child.QueueFree();
         _skillCards.Clear();
 
+        var warnings = new List<string>();
+
         if (s.Skills != null)
+        {
             foreach (var sk in s.Skills)
+            {
+                if (sk == null || string.IsNullOrEmpty(sk.Id))
+                {
+                    warnings.Add("пустой skill id");
+                    continue;
+                }
                 AddSkillCard(sk);
+            }
+        }
+
+        if (s.Skills == null || s.Skills.Count == 0)
+            warnings.Add("нет навыков — стат никогда не будет валидным");
+
+        SetStatus(warnings.Count > 0 ? string.Join("; ", warnings) : "",
+                  warnings.Count > 0 ? StatusKind.Warning : StatusKind.Ok);
     }
 
-    private void AddSkillCard(SkillInfo skill)
-    {
-        var card = new SkillCard();
-
-        var frame = new PanelContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        var inner = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        frame.AddChild(inner);
-
-        var header = new HBoxContainer();
-        header.AddChild(new Label { Text = "skill id", CustomMinimumSize = new Vector2(70, 0) });
-        card.SkillId = new LineEdit
-        {
-            Text = skill?.Id ?? "",
-            SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            PlaceholderText = "skill id",
-        };
-        header.AddChild(card.SkillId);
-        var rm = new Button { Text = "X" };
-        rm.Pressed += () => { _skillCards.Remove(card); frame.QueueFree(); };
-        header.AddChild(rm);
-        inner.AddChild(header);
-
-        var nameRow = new HBoxContainer();
-        nameRow.AddChild(new Label { Text = "Name RU", CustomMinimumSize = new Vector2(70, 0) });
-        card.NameRu = new LineEdit
-        {
-            Text = skill?.Name.Ru ?? "",
-            SizeFlagsHorizontal = SizeFlags.ExpandFill,
-        };
-        nameRow.AddChild(card.NameRu);
-        nameRow.AddChild(new Label { Text = "EN" });
-        card.NameEn = new LineEdit
-        {
-            Text = skill?.Name.En ?? "",
-            SizeFlagsHorizontal = SizeFlags.ExpandFill,
-        };
-        nameRow.AddChild(card.NameEn);
-        inner.AddChild(nameRow);
-
-        var smRow = new HBoxContainer();
-        smRow.AddChild(new Label { Text = "statModifier", CustomMinimumSize = new Vector2(120, 0) });
-        card.StatModifier = new SpinBox
-        {
-            MinValue = 0,
-            MaxValue = 10,
-            Step = 0.01,
-            Value = skill?.StatModifier ?? 1.0,
-            SizeFlagsHorizontal = SizeFlags.ExpandFill,
-        };
-        smRow.AddChild(card.StatModifier);
-        inner.AddChild(smRow);
-
-        inner.AddChild(new Label { Text = "Class modifiers" });
-        card.ClassModifiersBox = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        inner.AddChild(card.ClassModifiersBox);
-
-        var addClassMod = new Button { Text = "+ class modifier" };
-        addClassMod.Pressed += () => AddClassModRow(card, null, null);
-        inner.AddChild(addClassMod);
-
-        if (skill?.ClassModifiers != null)
-            foreach (var kv in skill.ClassModifiers)
-                AddClassModRow(card, kv.Key, kv.Value);
-
-        _skillsBox.AddChild(frame);
-        _skillCards.Add(card);
-    }
-
-    private void AddClassModRow(SkillCard card, string classId, double? modifier)
-    {
-        var row = new HBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        var classEdit = new LineEdit
-        {
-            Text = classId ?? "",
-            SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            PlaceholderText = "class id",
-        };
-        var modSpin = new SpinBox
-        {
-            MinValue = 0,
-            MaxValue = 10,
-            Step = 0.01,
-            Value = modifier ?? 1.0,
-            CustomMinimumSize = new Vector2(100, 0),
-        };
-        var rm = new Button { Text = "X" };
-        var cmr = new ClassModRow { ClassId = classEdit, Modifier = modSpin };
-        rm.Pressed += () => { card.ClassMods.Remove(cmr); row.QueueFree(); };
-
-        row.AddChild(classEdit);
-        row.AddChild(modSpin);
-        row.AddChild(rm);
-        card.ClassModifiersBox.AddChild(row);
-        card.ClassMods.Add(cmr);
-    }
+    // ==================== Apply / Revert ====================
 
     private void OnApplyPressed()
     {
@@ -288,7 +459,6 @@ public partial class StatsTab : Control
             {
                 var dict = new Dictionary<string, AdventurerStatInfo>();
                 foreach (var s in _stats) dict[s.Id] = s;
-
                 AdventurerDatabase.Install(stats: dict);
 
                 string suffix = warnings.Count > 0
@@ -305,7 +475,6 @@ public partial class StatsTab : Control
             return;
         }
 
-        // Обычный путь — без изменений
         try
         {
             var db = new AdventurerStatDatabase { Stats = _stats };
@@ -326,15 +495,10 @@ public partial class StatsTab : Control
             return;
         }
 
-        if (warnings.Count > 0)
-        {
-            SetStatus($"Applied ({_stats.Count}). Предупреждения: {string.Join("; ", warnings)}",
-                      StatusKind.Warning);
-        }
-        else
-        {
-            SetStatus($"Applied: {_stats.Count} статов записано", StatusKind.Ok);
-        }
+        SetStatus(warnings.Count > 0
+            ? $"Applied ({_stats.Count}). Предупреждения: {string.Join("; ", warnings)}"
+            : $"Applied: {_stats.Count} статов записано",
+            warnings.Count > 0 ? StatusKind.Warning : StatusKind.Ok);
     }
 
     private void OnRevertPressed()
@@ -362,29 +526,44 @@ public partial class StatsTab : Control
         s.Name = new LocalizedString { Ru = _nameRuEdit.Text, En = _nameEnEdit.Text };
         s.Description = new LocalizedString { Ru = _descRuEdit.Text, En = _descEnEdit.Text };
 
+        // Собираем skill id из ДРУГИХ статов, чтобы предупредить о переносах.
+        var takenByOtherStats = new HashSet<string>();
+        foreach (var otherStat in _stats)
+        {
+            if (ReferenceEquals(otherStat, s)) continue;
+            if (otherStat.Skills == null) continue;
+            foreach (var sk in otherStat.Skills)
+                if (sk?.Id != null) takenByOtherStats.Add(sk.Id);
+        }
+
         var skills = new List<SkillInfo>();
+        var seenSkillIds = new HashSet<string>();
+
         foreach (var card in _skillCards)
         {
-            string sid = card.SkillId.Text?.Trim();
+            string sid = ReadSkillId(card.SkillId);
             if (string.IsNullOrEmpty(sid)) continue;
+
+            if (!seenSkillIds.Add(sid))
+                warnings.Add($"дубликат скилла '{sid}' в этом стате");
+
+            if (takenByOtherStats.Contains(sid))
+                warnings.Add($"skill '{sid}' уже используется в другом стате");
 
             var skill = new SkillInfo
             {
                 Id = sid,
-                Name = new LocalizedString { Ru = card.NameRu.Text, En = card.NameEn.Text },
+                Name = new LocalizedString
+                {
+                    Ru = card.NameRu.Text,
+                    En = card.NameEn.Text,
+                },
                 StatModifier = NumericHelpers.Round4(card.StatModifier.Value),
                 ClassModifiers = new Dictionary<string, double>(),
             };
 
-            var seen = new HashSet<string>();
-            foreach (var cm in card.ClassMods)
-            {
-                string cid = cm.ClassId.Text?.Trim();
-                if (string.IsNullOrEmpty(cid)) continue;
-                if (!seen.Add(cid))
-                    warnings.Add($"skill '{sid}': дубликат classModifier '{cid}'");
-                skill.ClassModifiers[cid] = NumericHelpers.Round4(cm.Modifier.Value);
-            }
+            foreach (var kv in card.ClassModifierBoxes)
+                skill.ClassModifiers[kv.Key] = NumericHelpers.Round4(kv.Value.Value);
 
             skills.Add(skill);
         }

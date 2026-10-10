@@ -3,106 +3,74 @@
     {
       "id": "forest",
       "name": {
-        "ru": {
-          "nom": "лес",
-          "gen": "леса",
-          "acc": "лес",
-          "ins": "лесом",
-          "pre": "лесу"
-        },
+        "ru": { "nom": "лес", "gen": "леса", "dat": "лесу", "acc": "лес", "ins": "лесом", "pre": "лесу" },
         "en": "forest"
-      }
+      },
+      "difficultyModifier": 0,
+      "travelDaysModifier": 0
     },
     {
       "id": "mountains",
       "name": {
-        "ru": {
-          "nom": "горы",
-          "gen": "гор",
-          "acc": "горы",
-          "ins": "горами",
-          "pre": "горах"
-        },
+        "ru": { "nom": "горы", "gen": "гор", "dat": "горам", "acc": "горы", "ins": "горами", "pre": "горах" },
         "en": "mountains"
-      }
+      },
+      "difficultyModifier": 0,
+      "travelDaysModifier": 0
     },
     {
       "id": "swamps",
       "name": {
-        "ru": {
-          "nom": "болота",
-          "gen": "болот",
-          "acc": "болота",
-          "ins": "болотами",
-          "pre": "болотах"
-        },
+        "ru": { "nom": "болота", "gen": "болот", "dat": "болотам", "acc": "болота", "ins": "болотами", "pre": "болотах" },
         "en": "swamps"
-      }
+      },
+      "difficultyModifier": 0,
+      "travelDaysModifier": 0
     },
     {
       "id": "ancient_ruins",
       "name": {
-        "ru": {
-          "nom": "древние руины",
-          "gen": "древних руин",
-          "acc": "древние руины",
-          "ins": "древними руинами",
-          "pre": "древних руинах"
-        },
+        "ru": { "nom": "древние руины", "gen": "древних руин", "dat": "древним руинам", "acc": "древние руины", "ins": "древними руинами", "pre": "древних руинах" },
         "en": "ancient ruins"
-      }
+      },
+      "difficultyModifier": 0.2,
+      "travelDaysModifier": 1
     },
     {
       "id": "forgotten_catacombs",
       "name": {
-        "ru": {
-          "nom": "забытые катакомбы",
-          "gen": "забытых катакомб",
-          "acc": "забытые катакомбы",
-          "ins": "забытыми катакомбами",
-          "pre": "забытых катакомбах"
-        },
+        "ru": { "nom": "забытые катакомбы", "gen": "забытых катакомб", "dat": "забытым катакомбам", "acc": "забытые катакомбы", "ins": "забытыми катакомбами", "pre": "забытых катакомбах" },
         "en": "forgotten catacombs"
-      }
+      },
+      "difficultyModifier": 0.3,
+      "travelDaysModifier": 1
     },
     {
       "id": "cursed_halls",
       "name": {
-        "ru": {
-          "nom": "проклятые залы",
-          "gen": "проклятых залов",
-          "acc": "проклятые залы",
-          "ins": "проклятыми залами",
-          "pre": "проклятых залах"
-        },
+        "ru": { "nom": "проклятые залы", "gen": "проклятых залов", "dat": "проклятым залам", "acc": "проклятые залы", "ins": "проклятыми залами", "pre": "проклятых залах" },
         "en": "cursed halls"
-      }
+      },
+      "difficultyModifier": 0.4,
+      "travelDaysModifier": 1
     },
     {
       "id": "mountain_pass",
       "name": {
-        "ru": {
-          "nom": "горный перевал",
-          "gen": "горного перевала",
-          "acc": "горный перевал",
-          "ins": "горным перевалом",
-          "pre": "горном перевале"
-        },
+        "ru": { "nom": "горный перевал", "gen": "горного перевала", "dat": "горному перевалу", "acc": "горный перевал", "ins": "горным перевалом", "pre": "горном перевале" },
         "en": "mountain pass"
-      }
+      },
+      "difficultyModifier": 0.1,
+      "travelDaysModifier": 1
     },
     {
       "id": "steppe",
       "name": {
-        "ru": {
-          "nom": "степь",
-          "gen": "степи",
-          "acc": "степь",
-          "ins": "степью",
-          "pre": "степи"
-        },
+        "ru": { "nom": "степь", "gen": "степи", "dat": "степи", "acc": "степь", "ins": "степью", "pre": "степи" },
         "en": "steppe"
-      }
+      },
+      "difficultyModifier": 0,
+      "travelDaysModifier": 0
     }
   ]
 }
