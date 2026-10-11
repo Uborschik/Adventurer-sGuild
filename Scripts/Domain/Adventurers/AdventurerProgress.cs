@@ -1,5 +1,3 @@
-using AdventurersGuild.Data.Balance;
-
 namespace AdventurersGuild.Domain.Adventurers;
 
 public static class AdventurerProgress

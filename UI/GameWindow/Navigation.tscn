@@ -136,6 +136,7 @@ layout_mode = 2
 size_flags_vertical = 4
 tooltip_text = "Reports"
 script = ExtResource("2_4uhut")
+Window = 5
 
 [node name="Icon" type="TextureRect" parent="Navigation/Reports" unique_id=847902569]
 layout_mode = 1

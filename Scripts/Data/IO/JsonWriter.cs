@@ -1,10 +1,8 @@
-using System;
+namespace AdventurersGuild.Data.IO;
+
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Godot;
-
-namespace AdventurersGuild.Data.IO;
 
 public static class JsonWriter
 {
@@ -21,20 +19,12 @@ public static class JsonWriter
         },
     };
 
-    public static void Write<T>(string resPath, T data)
+    public static void Write<T>(string path, T data)
     {
+        FileSystem.EnsureReady();
+
         string json = JsonSerializer.Serialize(data, Opts);
-
-        using var file = FileAccess.Open(resPath, FileAccess.ModeFlags.Write);
-        if (file == null)
-        {
-            throw new InvalidOperationException(
-                $"JsonWriter: не удалось открыть '{resPath}' для записи " +
-                $"({FileAccess.GetOpenError()})");
-        }
-
-        file.StoreString(json);
-        file.Close();
+        FileSystem.Current.WriteAllText(path, json);
     }
 
     public static string ToJson<T>(T data) => JsonSerializer.Serialize(data, Opts);

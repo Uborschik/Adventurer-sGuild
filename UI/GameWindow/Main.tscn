@@ -5,7 +5,9 @@
 [ext_resource type="PackedScene" uid="uid://cfshp3jpfjndn" path="res://UI/TopBar/TopBar.tscn" id="3_etjah"]
 [ext_resource type="PackedScene" uid="uid://btxj6fchakec3" path="res://UI/RegisterWindow/RegisterWindow.tscn" id="5_mkeb2"]
 [ext_resource type="PackedScene" uid="uid://cjlxol4yrdrt2" path="res://UI/QuestBoard/QuestBoardWindow.tscn" id="6_48gek"]
+[ext_resource type="PackedScene" uid="uid://rjwyhniy5xe6" path="res://UI/ReportsWindow/ReportsWindow.tscn" id="6_gw2a1"]
 [ext_resource type="PackedScene" uid="uid://daigvagevjny4" path="res://UI/GameWindow/Navigation.tscn" id="6_ksudc"]
+[ext_resource type="PackedScene" uid="uid://cer8r8see8ft5" path="res://UI/ReportsWindow/ReportDayBlock.tscn" id="7_etjah"]
 
 [node name="GameWindow" type="Control" unique_id=2042129355]
 layout_mode = 3
@@ -39,9 +41,23 @@ visible = false
 layout_mode = 1
 
 [node name="QuestBoardWindow" parent="VBox/Windows" unique_id=1564079171 instance=ExtResource("6_48gek")]
+visible = false
 layout_mode = 1
 mouse_filter = 2
 Type = 2
+
+[node name="ReportsWindow" parent="VBox/Windows" unique_id=872722796 instance=ExtResource("6_gw2a1")]
+visible = false
+layout_mode = 1
+anchors_preset = 13
+anchor_top = 0.0
+anchor_bottom = 1.0
+offset_left = -196.0
+offset_top = 0.0
+offset_right = 196.0
+offset_bottom = 0.0
+ReportDayBlockPrefab = ExtResource("7_etjah")
+Type = 5
 
 [node name="Navigation" parent="VBox" unique_id=1097038778 instance=ExtResource("6_ksudc")]
 custom_maximum_size = Vector2(200, -1)

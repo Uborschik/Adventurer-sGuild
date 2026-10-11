@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using AdventurersGuild.Data.Adventurer;
-using AdventurersGuild.Data.Balance;
 
 namespace AdventurersGuild.Domain.Adventurers;
 

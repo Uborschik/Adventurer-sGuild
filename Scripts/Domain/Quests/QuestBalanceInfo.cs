@@ -57,6 +57,8 @@ public class SkillRollBalance
     public double PerRatio { get; set; } = 50;
     public double Min { get; set; } = 5;
     public double Max { get; set; } = 80;
+
+    public int RollMax { get; set; } = 100;
 }
 
 // === Раны ===

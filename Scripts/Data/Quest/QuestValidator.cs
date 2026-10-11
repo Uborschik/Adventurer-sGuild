@@ -9,9 +9,9 @@ using AdventurersGuild.Data.Adventurer;
 using AdventurersGuild.Domain.Adventurers;
 using AdventurersGuild.Domain.Quests;
 
-public static partial class QuestDatabase
+public static class QuestValidator
 {
-    private static void Validate()
+    public static void Validate()
     {
         int errors = 0;
 
@@ -25,9 +25,12 @@ public static partial class QuestDatabase
 
         if (errors == 0)
             Log.Info($"[QuestDB] Валидация: ok " +
-                     $"({Blueprints.Count} blueprint'ов, {Tags.Count} тегов, " +
-                     $"{Phases.Count} фаз, {Creatures.Count} существ, " +
-                     $"{Locations.Count} локаций, {Grades.Count} градаций)");
+                     $"({QuestDatabase.Blueprints.Count} blueprint'ов, " +
+                     $"{QuestDatabase.Tags.Count} тегов, " +
+                     $"{QuestDatabase.Phases.Count} фаз, " +
+                     $"{QuestDatabase.Creatures.Count} существ, " +
+                     $"{QuestDatabase.Locations.Count} локаций, " +
+                     $"{QuestDatabase.Grades.Count} градаций)");
         else
             Log.Error($"[QuestDB] Валидация: {errors} ошибок");
     }
@@ -37,7 +40,7 @@ public static partial class QuestDatabase
     private static int ValidateTags()
     {
         int errors = 0;
-        foreach (var tag in Tags.Values)
+        foreach (var tag in QuestDatabase.Tags.Values)
         {
             if (string.IsNullOrEmpty(tag.Id))
             {
@@ -58,11 +61,20 @@ public static partial class QuestDatabase
     private static int ValidateGrades()
     {
         int errors = 0;
-        foreach (var g in Grades)
+        foreach (var g in QuestDatabase.Grades)
         {
             if (string.IsNullOrEmpty(g.Name.Ru) || string.IsNullOrEmpty(g.Name.En))
             {
                 Log.Error($"[QuestDB] Градация '{g.Role}': неполное name");
+                errors++;
+            }
+        }
+
+        foreach (QuestGradeRole role in Enum.GetValues<QuestGradeRole>())
+        {
+            if (QuestDatabase.GradesByRole == null || !QuestDatabase.GradesByRole.ContainsKey(role))
+            {
+                Log.Error($"[QuestDB] Нет градации с ролью {role}");
                 errors++;
             }
         }
@@ -74,7 +86,7 @@ public static partial class QuestDatabase
     private static int ValidatePhases()
     {
         int errors = 0;
-        foreach (var p in Phases.Values)
+        foreach (var p in QuestDatabase.Phases.Values)
         {
             if (string.IsNullOrEmpty(p.Id))
             {
@@ -85,7 +97,7 @@ public static partial class QuestDatabase
 
             foreach (var tag in p.Tags)
             {
-                if (!Tags.ContainsKey(tag))
+                if (!QuestDatabase.Tags.ContainsKey(tag))
                 {
                     Log.Error($"[QuestDB] Фаза '{p.Id}': неизвестный тег '{tag}'");
                     errors++;
@@ -150,7 +162,7 @@ public static partial class QuestDatabase
     private static int ValidateCreatures()
     {
         int errors = 0;
-        foreach (var c in Creatures.Values)
+        foreach (var c in QuestDatabase.Creatures.Values)
         {
             if (string.IsNullOrEmpty(c.Name?.Ru?.Nom))
             {
@@ -212,7 +224,7 @@ public static partial class QuestDatabase
                     continue;
                 }
 
-                if (!Phases.TryGetValue(contribution.PhaseId, out var phase))
+                if (!QuestDatabase.Phases.TryGetValue(contribution.PhaseId, out var phase))
                 {
                     Log.Error($"[QuestDB] Creature '{c.Id}': contribution на неизвестную " +
                               $"фазу '{contribution.PhaseId}'");
@@ -229,7 +241,7 @@ public static partial class QuestDatabase
 
                 foreach (var tag in contribution.Tags)
                 {
-                    if (!Tags.ContainsKey(tag))
+                    if (!QuestDatabase.Tags.ContainsKey(tag))
                     {
                         Log.Error($"[QuestDB] Creature '{c.Id}': contribution '{contribution.PhaseId}' " +
                                   $"использует неизвестный тег '{tag}'");
@@ -252,7 +264,7 @@ public static partial class QuestDatabase
     private static int ValidateLocations()
     {
         int errors = 0;
-        foreach (var l in Locations.Values)
+        foreach (var l in QuestDatabase.Locations.Values)
         {
             if (string.IsNullOrEmpty(l.Name?.Ru?.Nom))
             {
@@ -273,7 +285,7 @@ public static partial class QuestDatabase
     private static int ValidateBlueprints()
     {
         int errors = 0;
-        foreach (var bp in Blueprints.Values)
+        foreach (var bp in QuestDatabase.Blueprints.Values)
         {
             if (string.IsNullOrEmpty(bp.Name.Ru) || string.IsNullOrEmpty(bp.Name.En))
             {
@@ -288,7 +300,6 @@ public static partial class QuestDatabase
                 continue;
             }
 
-            // Уникальность id ролей
             var seenIds = new HashSet<string>();
             foreach (var role in bp.Roles)
             {
@@ -299,7 +310,6 @@ public static partial class QuestDatabase
                 }
             }
 
-            // Теги роли существуют
             foreach (var role in bp.Roles)
             {
                 if (role.Tags == null || role.Tags.Count == 0)
@@ -311,7 +321,7 @@ public static partial class QuestDatabase
 
                 foreach (var tag in role.Tags)
                 {
-                    if (!Tags.ContainsKey(tag))
+                    if (!QuestDatabase.Tags.ContainsKey(tag))
                     {
                         Log.Error($"[QuestDB] Blueprint '{bp.Id}': роль '{role.Id}' " +
                                   $"использует неизвестный тег '{tag}'");
@@ -320,7 +330,6 @@ public static partial class QuestDatabase
                 }
             }
 
-            // Все Incoming.From существуют
             var byId = bp.Roles.ToDictionary(r => r.Id);
             foreach (var role in bp.Roles)
             {
@@ -335,7 +344,6 @@ public static partial class QuestDatabase
                 }
             }
 
-            // Start: ровно одна роль без incoming
             var starts = bp.Roles.Where(r => r.Incoming.Count == 0).ToList();
             if (starts.Count != 1)
             {
@@ -346,7 +354,6 @@ public static partial class QuestDatabase
             }
             var start = starts[0];
 
-            // End: минимум одна роль без outgoing
             var ends = bp.Roles.Where(r => r.Outgoing.Count == 0).ToList();
             if (ends.Count == 0)
             {
@@ -355,7 +362,6 @@ public static partial class QuestDatabase
                 continue;
             }
 
-            // DAG: нет циклов
             if (HasCycle(bp, start.Id))
             {
                 Log.Error($"[QuestDB] Blueprint '{bp.Id}': граф содержит цикл");
@@ -363,7 +369,6 @@ public static partial class QuestDatabase
                 continue;
             }
 
-            // Все роли достижимы из start
             var reachable = ReachableFrom(bp, start.Id);
             foreach (var role in bp.Roles)
             {
@@ -375,7 +380,6 @@ public static partial class QuestDatabase
                 }
             }
 
-            // Каждая required-роль доминирует все end
             foreach (var role in bp.Roles)
             {
                 if (!role.Required) continue;
@@ -472,7 +476,7 @@ public static partial class QuestDatabase
         var neededCases = new HashSet<string>();
         var pattern = new Regex(@"\{(\w+):(\w+)\}");
 
-        foreach (var bp in Blueprints.Values)
+        foreach (var bp in QuestDatabase.Blueprints.Values)
         {
             string ru = bp.Description.Ru;
             if (string.IsNullOrEmpty(ru)) continue;
@@ -492,14 +496,14 @@ public static partial class QuestDatabase
         if (neededCases.Count == 0) return 0;
 
         int errors = 0;
-        foreach (var c in Creatures.Values)
+        foreach (var c in QuestDatabase.Creatures.Values)
             foreach (var caseCode in neededCases)
                 if (string.IsNullOrEmpty(c.Name?.Ru?.Get(caseCode)))
                 {
                     Log.Error($"[QuestDB] Creature '{c.Id}': нет формы '{caseCode}'");
                     errors++;
                 }
-        foreach (var l in Locations.Values)
+        foreach (var l in QuestDatabase.Locations.Values)
             foreach (var caseCode in neededCases)
                 if (string.IsNullOrEmpty(l.Name?.Ru?.Get(caseCode)))
                 {

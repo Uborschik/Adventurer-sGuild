@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AdventurersGuild.Application.Adventurers;
+using AdventurersGuild.Application.Reports;
 using AdventurersGuild.Core;
 using AdventurersGuild.Data.Adventurer;
-using AdventurersGuild.Data.Balance;
 using AdventurersGuild.Data.Quest;
 using AdventurersGuild.Domain.Adventurers;
 using AdventurersGuild.Domain.Common;
@@ -21,6 +21,7 @@ public class QuestFlow
     private readonly QuestResolver resolver;
     private readonly GameClock clock;
     private readonly GuildBank bank;
+    private readonly ReportsRegistry reports;
 
     public event Action<QuestModel> Added;
     public event Action<QuestModel> Expired;
@@ -29,13 +30,21 @@ public class QuestFlow
 
     private readonly Random woundRng;
 
-    public QuestFlow(QuestRegistry registry, QuestFactory factory, QuestResolver resolver, GameClock clock, GuildBank bank, int? seed = null)
+    public QuestFlow(
+        QuestRegistry registry,
+        QuestFactory factory,
+        QuestResolver resolver,
+        GameClock clock,
+        GuildBank bank,
+        ReportsRegistry reports = null,
+        int? seed = null)
     {
         this.registry = registry ?? throw new ArgumentNullException(nameof(registry));
         this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
         this.resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
         this.clock = clock ?? throw new ArgumentNullException(nameof(clock));
         this.bank = bank ?? throw new ArgumentNullException(nameof(bank));
+        this.reports = reports;
 
         woundRng = seed.HasValue
             ? new Random(unchecked(seed.Value * 7 + 3))
@@ -88,6 +97,13 @@ public class QuestFlow
             a.SetStatus(StatusIds.Waiting);
 
         LogStart(quest, party);
+
+        if (reports != null)
+        {
+            var day = clock.Now.Day;
+            reports.Append(day, quest, ReportFormatter.QuestAccepted(quest));
+        }
+
         Started?.Invoke(quest);
         return true;
     }
@@ -101,7 +117,10 @@ public class QuestFlow
         RefreshBoard();
 
         if (now.Minute == 0 && now.Hour == 0)
+        {
             registry.TrimHistory(now, maxAgeDays: 30);
+            reports?.Trim(now);
+        }
     }
 
     private void ExpireOld(GameTime now)
@@ -134,7 +153,6 @@ public class QuestFlow
 
     private void ProcessQuest(QuestModel quest, GameTime now)
     {
-        // 1. Отправление
         if (quest.Status == QuestStatus.Pending)
         {
             if (now < quest.StartTime) return;
@@ -142,9 +160,10 @@ public class QuestFlow
             foreach (var a in quest.Party)
                 a.SetStatus(StatusIds.OnQuest);
             LogDepart(quest);
+
+            Report(quest.StartTime.Day, quest, ReportFormatter.QuestDeparted(quest));
         }
 
-        // 2. Лимит дней
         if (quest.DaysSpent >= QuestBalance.Active.MaxQuestDays)
         {
             Log.Info($"    QUEST ABANDONED after {quest.DaysSpent} days");
@@ -157,7 +176,6 @@ public class QuestFlow
 
         while (true)
         {
-            // Фаза идёт — ждём окончания
             if (quest.CurrentPhaseEndTime.HasValue)
             {
                 if (quest.CurrentPhaseEndTime.Value > now) break;
@@ -168,7 +186,6 @@ public class QuestFlow
                 continue;
             }
 
-            // Ночь — ждём окончания
             if (quest.IsResting)
             {
                 if (quest.RestEndTime.Value > now) break;
@@ -181,10 +198,8 @@ public class QuestFlow
                 continue;
             }
 
-            // Получить следующую фазу (ambient или основную)
             var next = SelectNextPhase(quest);
 
-            // Все фазы пройдены
             if (next == null)
             {
                 FinishQuest(quest, at);
@@ -192,7 +207,6 @@ public class QuestFlow
                 return;
             }
 
-            // Не влезает в день — начинаем ночь
             if (quest.MinutesUsedToday + next.DurationMinutes > GameTime.MinutesPerDaylight)
             {
                 Log.Info($"    DAY {quest.DaysSpent + 1} ends | rest {GameTime.MinutesPerNight}m");
@@ -201,7 +215,6 @@ public class QuestFlow
                 continue;
             }
 
-            // Начинаем фазу
             quest.CurrentPhaseEndTime = at + GameTime.FromMinutes(next.DurationMinutes);
             quest.LastProcessedAt = at;
             return;
@@ -215,11 +228,9 @@ public class QuestFlow
 
     private QuestPhaseInstance SelectNextPhase(QuestModel quest)
     {
-        // 1. Ambient вставляются блоком после первой основной фазы
         if (quest.AmbientIndex < quest.AmbientPhases.Count && ShouldInsertAmbient(quest))
             return quest.AmbientPhases[quest.AmbientIndex];
 
-        // 2. Основная фаза по CurrentRoleId
         if (string.IsNullOrEmpty(quest.CurrentRoleId)) return null;
 
         foreach (var phase in quest.Phases)
@@ -235,10 +246,8 @@ public class QuestFlow
 
         var last = quest.PhaseResults[^1];
 
-        // Внутри ambient-блока — продолжаем
         if (last.Phase.RoleId == null) return true;
 
-        // Только что закончили первую основную — начинаем блок
         return quest.AmbientIndex == 0;
     }
 
@@ -283,6 +292,18 @@ public class QuestFlow
             ? $" vs {quest.TargetId}"
             : "";
 
+        // === СНАЧАЛА пишем фазу и броски в отчёт ===
+        if (reports != null)
+        {
+            if (phase.RoleId == null)
+                Report(at.Day, quest, ReportFormatter.AmbientPhase(phase, outcome));
+            else
+                Report(at.Day, quest, ReportFormatter.Phase(phase, outcome));
+
+            ReportMany(at.Day, quest, ReportFormatter.Rolls(outcome));
+        }
+
+        // === ПОТОМ обрабатываем последствия ===
         if (passed)
         {
             Log.Info($"    DAY {quest.DaysSpent + 1} | '{tag}' OK   " +
@@ -290,38 +311,43 @@ public class QuestFlow
             LogRolls(outcome.Rolls);
             AdvanceAfterPhase(quest, phase, passed: true);
         }
-        else if (phase.Critical)
+        else
         {
             Log.Info($"    DAY {quest.DaysSpent + 1} | '{tag}' CRIT FAIL{targetTag} | quest ends");
             LogRolls(outcome.Rolls);
-            ApplyCombatOutcome(quest, at);
-            quest.CurrentRoleId = null;
-        }
-        else
-        {
-            Log.Info($"    DAY {quest.DaysSpent + 1} | '{tag}' FAIL | " +
-                     $"used={quest.MinutesUsedToday}/{GameTime.MinutesPerDaylight}m");
-            LogRolls(outcome.Rolls);
-            AdvanceAfterPhase(quest, phase, passed: false);
 
-            if (phase.DurationMinutes >= 240)
+            switch (phase.FailureConsequence)
             {
-                quest.MinutesUsedToday += 60;
-                Log.Info($"      +short_rest 60m");
+                case FailureConsequence.Combat:
+                    ApplyCombatOutcome(quest, at);
+                    quest.CurrentRoleId = null;
+                    break;
+
+                case FailureConsequence.Delay:
+                    if (phase.FailDelayMinutes > 0)
+                    {
+                        quest.MinutesUsedToday += phase.FailDelayMinutes;
+                        Log.Info($"      +delay {phase.FailDelayMinutes}m");
+                    }
+                    AdvanceAfterPhase(quest, phase, passed: false);
+                    break;
+
+                case FailureConsequence.None:
+                default:
+                    AdvanceAfterPhase(quest, phase, passed: false);
+                    break;
             }
         }
     }
 
     private static void AdvanceAfterPhase(QuestModel quest, QuestPhaseInstance phase, bool passed)
     {
-        // Ambient — просто сдвигаем счётчик
         if (phase.RoleId == null)
         {
             quest.AmbientIndex++;
             return;
         }
 
-        // Основная — переход по графу
         var transition = passed ? phase.NextOnPass : phase.NextOnFail;
 
         if (transition.HasValue)
@@ -385,6 +411,7 @@ public class QuestFlow
         if (!RollChance(attackChance))
         {
             Log.Info($"    NIGHT {quest.DaysSpent + 1} → peaceful");
+            Report(at.Day, quest, ReportFormatter.NightPeaceful());
             return;
         }
 
@@ -405,6 +432,7 @@ public class QuestFlow
         if (combatOutcome.Passed)
         {
             Log.Info($"    NIGHT {quest.DaysSpent + 1} → survived");
+            Report(at.Day, quest, ReportFormatter.NightAttacked(defended: true));
             var creature = !string.IsNullOrEmpty(quest.TargetId)
                 ? QuestDatabase.GetCreature(quest.TargetId)
                 : null;
@@ -413,6 +441,7 @@ public class QuestFlow
         else
         {
             Log.Info($"    NIGHT {quest.DaysSpent + 1} → defeated");
+            Report(at.Day, quest, ReportFormatter.NightAttacked(defended: false));
             ApplyCombatOutcome(quest, at);
             quest.CurrentRoleId = null;
             quest.AmbientIndex = quest.AmbientPhases.Count;
@@ -523,6 +552,7 @@ public class QuestFlow
 
                 Log.Info($"    {a.FullName,-24} esc {escapeChance,4:F0}% OK  " +
                          $"end={end,6:F1} inj={injuryShield,4:P0} → wounded {days}d");
+                Report(at.Day, quest, ReportFormatter.Wounded(a, days));
             }
             else
             {
@@ -532,6 +562,7 @@ public class QuestFlow
 
                 Log.Info($"    {a.FullName,-24} esc {escapeChance,4:F0}% FAIL " +
                          $"end={end,6:F1} inj={injuryShield,4:P0} → DIED");
+                Report(at.Day, quest, ReportFormatter.Died(a));
             }
         }
     }
@@ -554,6 +585,7 @@ public class QuestFlow
                 int days = woundRng.Next(success.Min, success.Max + 1);
                 a.SetStatus(StatusIds.Wounded, at + GameTime.FromDays(days));
                 Log.Info($"    {a.FullName,-24} light wound {days}d");
+                Report(at.Day, quest, ReportFormatter.Wounded(a, days));
             }
         }
     }
@@ -578,8 +610,14 @@ public class QuestFlow
 
         registry.CompleteToHistory(quest);
 
-        int totalXpGiven = DistributeExperience(quest);
+        int totalXpGiven = DistributeExperience(quest, at);
         LogCompletion(quest, totalXpGiven);
+
+        if (reports != null)
+        {
+            reports.Append(at.Day, quest, ReportFormatter.Finale(quest));
+            reports.MarkFinal(at.Day, quest);
+        }
 
         foreach (var a in quest.Party)
         {
@@ -594,9 +632,19 @@ public class QuestFlow
         Completed?.Invoke(quest);
     }
 
+    private void Report(int day, QuestModel quest, string line)
+    {
+        reports?.Append(day, quest, line);
+    }
+
+    private void ReportMany(int day, QuestModel quest, IEnumerable<string> lines)
+    {
+        reports?.AppendMany(day, quest, lines);
+    }
+
     // === Опыт ===
 
-    private int DistributeExperience(QuestModel quest)
+    private int DistributeExperience(QuestModel quest, GameTime at)
     {
         var phaseResults = quest.PhaseResults ?? new List<PhaseResult>();
         int totalExp = QuestCalculator.TotalExp(phaseResults);
@@ -657,9 +705,18 @@ public class QuestFlow
 
             totalXpGiven += xp;
 
-            Log.Info($"    {a.FullName,-24} {a.ClassId,-10} " +
-                     $"+{xp,3} XP  share={shares[a]:P0}  " +
-                     (leveled ? $"→ L{levelAfter}" : $"{a.Level.Experience,4}/{a.Level.ExpToNext,4}"));
+            if (leveled)
+            {
+                Log.Info($"    {a.FullName,-24} {a.ClassId,-10} " +
+                         $"+{xp,3} XP  share={shares[a]:P0}  → L{levelAfter}");
+                Report(at.Day, quest, ReportFormatter.LevelUp(a, levelBefore, levelAfter));
+            }
+            else
+            {
+                Log.Info($"    {a.FullName,-24} {a.ClassId,-10} " +
+                         $"+{xp,3} XP  share={shares[a]:P0}  " +
+                         $"{a.Level.Experience,4}/{a.Level.ExpToNext,4}");
+            }
         }
 
         XpStats.Record(quest.CodeLevel, totalXpGiven);

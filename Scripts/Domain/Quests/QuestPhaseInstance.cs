@@ -12,6 +12,8 @@ public class QuestPhaseInstance
     public int DurationMinutes { get; set; }
     public int ExpReward { get; set; }
     public bool Critical { get; set; }
+    public FailureConsequence FailureConsequence { get; set; } = FailureConsequence.None;
+    public int FailDelayMinutes { get; set; }
     public QuestTransition? NextOnPass { get; set; }
     public QuestTransition? NextOnFail { get; set; }
 }

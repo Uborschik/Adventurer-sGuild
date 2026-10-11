@@ -1,4 +1,4 @@
-using AdventurersGuild.Data.Balance;
+using AdventurersGuild.Domain.Adventurers;
 
 namespace AdventurersGuild.Core;
 

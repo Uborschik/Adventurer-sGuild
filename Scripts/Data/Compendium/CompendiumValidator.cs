@@ -1,17 +1,19 @@
 namespace AdventurersGuild.Data.Compendium;
 
 using System.Collections.Generic;
-using System.Linq;
 using AdventurersGuild.Core;
 using AdventurersGuild.Data.Quest;
+using AdventurersGuild.Domain.Compendium;
+using AdventurersGuild.Domain.Quests;
 
-public static partial class CompendiumDatabase
+public static class CompendiumValidator
 {
-    private static void Validate()
+    public static void Validate()
     {
+        var bestiary = CompendiumDatabase.Bestiary;
         int errors = 0;
 
-        if (Bestiary == null || Bestiary.Habitats == null || Bestiary.Habitats.Count == 0)
+        if (bestiary == null || bestiary.Habitats == null || bestiary.Habitats.Count == 0)
         {
             Log.Error("[CompendiumDB] Bestiary пустой");
             Log.Error($"[CompendiumDB] Валидация: 1 ошибок");
@@ -21,7 +23,7 @@ public static partial class CompendiumDatabase
         var coveredLocations = new HashSet<string>();
         var coveredCreatures = new HashSet<string>();
 
-        foreach (var habitat in Bestiary.Habitats)
+        foreach (var habitat in bestiary.Habitats)
         {
             if (string.IsNullOrEmpty(habitat.LocationId))
             {
@@ -84,7 +86,6 @@ public static partial class CompendiumDatabase
             }
         }
 
-        // Все локации покрыты
         foreach (var id in QuestDatabase.Locations.Keys)
         {
             if (!coveredLocations.Contains(id))
@@ -94,7 +95,6 @@ public static partial class CompendiumDatabase
             }
         }
 
-        // Все существа покрыты
         foreach (var id in QuestDatabase.Creatures.Keys)
         {
             if (!coveredCreatures.Contains(id))
@@ -106,7 +106,7 @@ public static partial class CompendiumDatabase
 
         if (errors == 0)
             Log.Info($"[CompendiumDB] Валидация: ok " +
-                     $"({Bestiary.Habitats.Count} локаций, " +
+                     $"({bestiary.Habitats.Count} локаций, " +
                      $"{coveredCreatures.Count} существ покрыто)");
         else
             Log.Error($"[CompendiumDB] Валидация: {errors} ошибок");

@@ -21,6 +21,8 @@ public class BlueprintRole
     public string Id { get; set; }
     public List<string> Tags { get; set; } = new();
     public bool Required { get; set; }
+    public FailureConsequence FailureConsequence { get; set; } = FailureConsequence.None;
+    public int FailDelayMinutes { get; set; }
     public List<BlueprintEdge> Incoming { get; set; } = new();
     public List<BlueprintOutgoing> Outgoing { get; set; } = new();
 }

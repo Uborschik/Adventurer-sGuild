@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using AdventurersGuild.Core;
 using AdventurersGuild.Core.Localization;
-using AdventurersGuild.Data.Balance;
-using AdventurersGuild.Data.Compendium;
 using AdventurersGuild.Data.Quest;
+using AdventurersGuild.Domain.Adventurers;
+using AdventurersGuild.Domain.Compendium;
 using AdventurersGuild.Domain.Quests;
 using AdventurersGuild.Infrastructure;
 

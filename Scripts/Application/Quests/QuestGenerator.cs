@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AdventurersGuild.Core;
 using AdventurersGuild.Data.Adventurer;
+using AdventurersGuild.Domain.Adventurers;
 using AdventurersGuild.Domain.Quests;
 
 public class QuestGenerator
@@ -90,9 +91,7 @@ public class QuestGenerator
 
     // === Построение фаз ===
 
-    private List<QuestPhaseInstance> BuildPhases(
-        QuestContext ctx,
-        Dictionary<string, RoleFill> fills)
+    private List<QuestPhaseInstance> BuildPhases(QuestContext ctx, Dictionary<string, RoleFill> fills)
     {
         var included = new HashSet<string>(fills.Keys);
         var byId = ctx.Blueprint.Roles.ToDictionary(r => r.Id);
@@ -121,6 +120,8 @@ public class QuestGenerator
                 DurationMinutes = fill.Contribution.Duration,
                 ExpReward = fill.Contribution.Exp,
                 Critical = role.Required,
+                FailureConsequence = role.FailureConsequence,
+                FailDelayMinutes = role.FailDelayMinutes,
                 NextOnPass = ResolveTransition(role, EdgeCondition.Pass, included, byId),
                 NextOnFail = ResolveTransition(role, EdgeCondition.Fail, included, byId),
             };

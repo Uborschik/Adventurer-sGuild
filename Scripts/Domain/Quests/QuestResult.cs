@@ -1,5 +1,3 @@
-using AdventurersGuild.Data.Quest;
-
 namespace AdventurersGuild.Domain.Quests;
 
 public readonly struct QuestResult

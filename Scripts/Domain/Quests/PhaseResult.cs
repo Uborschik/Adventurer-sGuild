@@ -1,7 +1,6 @@
 namespace AdventurersGuild.Domain.Quests;
 
 using System.Collections.Generic;
-using AdventurersGuild.Application.Quests;
 
 public struct PhaseResult
 {

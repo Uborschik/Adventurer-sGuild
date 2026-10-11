@@ -1,7 +1,8 @@
-using System.Collections.Generic;
-using AdventurersGuild.Data.Quest;
-
 namespace AdventurersGuild.Application.Quests;
+
+using System.Collections.Generic;
+using AdventurersGuild.Domain.Quests;
+
 
 public class QuestPrediction
 {

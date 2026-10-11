@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>12</LangVersion>
+    <RootNamespace>AdventurersGuild.Editor</RootNamespace>
+    <AssemblyName>AdventurersGuild.Editor</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AdventurersGuild.Domain\AdventurersGuild.Domain.csproj" />
+    <ProjectReference Include="..\AdventurersGuild.Data\AdventurersGuild.Data.csproj" />
+  </ItemGroup>
+</Project>

@@ -16,15 +16,21 @@
           "id": "tracking",
           "tags": ["tracking", "investigation"],
           "required": true,
+          "consequences": {
+            "onSuccess": [{ "delay": 240 }, { "gainExp": 10 }],
+            "onFail": [{ "delay": 240 }]
+          },
           "incoming": []
         },
         {
           "id": "combat",
           "tags": ["combat"],
           "required": true,
-          "incoming": [
-            { "from": "tracking", "condition": "any" }
-          ]
+          "consequences": {
+            "onSuccess": [{ "delay": 30 }, { "gainExp": 10 }],
+            "onFail": [{ "delay": 30 }, { "wound": { "chance": 30, "min": 1, "max": 2 } }]
+          },
+          "incoming": [{ "from": "tracking", "condition": "any" }]
         }
       ]
     },
@@ -44,12 +50,20 @@
           "id": "guard",
           "tags": ["guard"],
           "required": true,
+          "consequences": {
+            "onSuccess": [{ "delay": 120 }, { "gainExp": 10 }, { "gainGold": 10 }],
+            "onFail": [{ "delay": 120 }, { "wound": { "chance": 30, "min": 1, "max": 2 } }]
+          },
           "incoming": []
         },
         {
           "id": "social",
           "tags": ["social"],
           "required": false,
+          "consequences": {
+            "onSuccess": [{ "delay": 60 }, { "gainExp": 30 }, { "gainGlory": 10 }],
+            "onFail": [{ "delay": 40 }, { "gainGlory": -5 }]
+          },
           "incoming": [
             { "from": "guard", "condition": "any" }
           ]
@@ -72,12 +86,20 @@
           "id": "exploration",
           "tags": ["exploration", "investigation"],
           "required": true,
+          "consequences": {
+            "onSuccess": [{ "delay": 360 }, { "gainExp": 50 }, { "gainGold": { "chance": 15, "min": 1, "max": 30 } }, { "gainGlory": 10 } ],
+            "onFail": [{ "delay": 360 }, { "wound": { "chance": 30, "min": 1, "max": 2 } }]
+          },
           "incoming": []
         },
         {
           "id": "combat",
           "tags": ["combat"],
           "required": false,
+          "consequences": {
+            "onSuccess": [{ "delay": 30 }, { "gainExp": 10 }],
+            "onFail": [{ "delay": 30 }, { "wound": { "chance": 30, "min": 1, "max": 2 } }]
+          },
           "incoming": [
             { "from": "exploration", "condition": "any" }
           ]

@@ -4,17 +4,22 @@ using System.Collections.Generic;
 using System.Linq;
 using AdventurersGuild.Application.Adventurers;
 using AdventurersGuild.Application.Quests;
+using AdventurersGuild.Application.Reports;
 using AdventurersGuild.Core;
+using AdventurersGuild.Data;
 using AdventurersGuild.Data.Adventurer;
 using AdventurersGuild.Data.Balance;
 using AdventurersGuild.Data.Compendium;
+using AdventurersGuild.Data.IO;
 using AdventurersGuild.Data.Quest;
 using AdventurersGuild.Domain.Adventurers;
 using AdventurersGuild.Domain.Common;
 using AdventurersGuild.Domain.Quests;
+using AdventurersGuild.Infrastructure;
 using AdventurersGuild.Presentation.Adventurers;
 using AdventurersGuild.Presentation.Common;
 using AdventurersGuild.Presentation.Quests;
+using AdventurersGuild.Presentation.Reports;
 using Godot;
 
 public partial class GameWindow : Control
@@ -25,27 +30,31 @@ public partial class GameWindow : Control
     private QuestRegistry questRegistry;
     private QuestResolver questResolver;
     private QuestFlow questFlow;
+    private ReportsRegistry reportsRegistry;
     private AdventurerFactory adventurerFactory;
 
     private Status statusBar;
     private Navigation navigation;
     private RegisterWindow registerWindow;
     private QuestBoardWindow questBoardWindow;
+    private ReportsWindow reportsWindow;
 
     public GameWindow()
     {
-        Loc.Load();
+        FileSystem.Current = new GodotFileSystem();
+
+        LocLoader.Load();
         Loc.SetLanguage("ru");
 
         Log.InfoSink = GD.Print;
         Log.WarnSink = GD.PushWarning;
         Log.ErrorSink = GD.PushError;
 
-        AdventurerBalance.Load();
-        QuestBalance.Load();
-        AdventurerDatabase.Load();
-        QuestDatabase.Load();
-        CompendiumDatabase.Load();
+        AdventurerBalanceLoader.Load();
+        QuestBalanceLoader.Load();
+        AdventurerLoader.Load();
+        QuestLoader.Load();
+        CompendiumLoader.Load();
     }
 
     public override void _Ready()
@@ -82,6 +91,10 @@ public partial class GameWindow : Control
         var questFactory = new QuestFactory(generator, blueprints);
 
         questFlow = new QuestFlow(questRegistry, questFactory, questResolver, clock, bank);
+
+        reportsRegistry = new ReportsRegistry();
+
+        questFlow = new QuestFlow(questRegistry, questFactory, questResolver, clock, bank, reportsRegistry);
     }
 
     private bool CollectViews()
@@ -90,6 +103,7 @@ public partial class GameWindow : Control
         if (!this.TryGetInstance(out navigation)) return Fail("Navigation");
         if (!this.TryGetInstance(out registerWindow)) return Fail("Register");
         if (!this.TryGetInstance(out questBoardWindow)) return Fail("Quests");
+        if (!this.TryGetInstance(out reportsWindow)) return Fail("Reports");
         return true;
     }
 
@@ -104,6 +118,7 @@ public partial class GameWindow : Control
         statusBar.Bind(bank, clock);
         registerWindow?.Bind(adventurerRegistry, adventurerFactory);
         questBoardWindow?.Bind(adventurerRegistry, questRegistry, questFlow, questResolver);
+        reportsWindow?.Bind(reportsRegistry);
         BindNavigationButtons();
     }
 

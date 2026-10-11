@@ -1,18 +1,9 @@
-namespace AdventurersGuild.Data.Quest;
+namespace AdventurersGuild.Domain.Quests;
 
 using System.Collections.Generic;
 using AdventurersGuild.Core;
-using AdventurersGuild.Domain.Quests;
 
-public enum QuestGradeRole
-{
-    Disaster,
-    Failure,
-    Success,
-    Triumph
-}
-
-public static partial class QuestDatabase
+public static class QuestDatabase
 {
     public static IReadOnlyList<QuestGradeInfo> Grades { get; private set; }
     public static IReadOnlyDictionary<QuestGradeRole, QuestGradeInfo> GradesByRole { get; private set; }
@@ -21,6 +12,44 @@ public static partial class QuestDatabase
     public static IReadOnlyDictionary<string, LocationInfo> Locations { get; private set; }
     public static IReadOnlyDictionary<string, QuestPhaseTemplate> Phases { get; private set; }
     public static IReadOnlyDictionary<string, TagInfo> Tags { get; private set; }
+
+    // === Install ===
+
+    public static void Install(
+        IReadOnlyDictionary<string, TagInfo> tags,
+        IReadOnlyList<QuestGradeInfo> grades,
+        IReadOnlyDictionary<string, QuestPhaseTemplate> phases,
+        IReadOnlyDictionary<string, CreatureInfo> creatures,
+        IReadOnlyDictionary<string, LocationInfo> locations,
+        IReadOnlyDictionary<string, Blueprint> blueprints)
+    {
+        Tags = tags;
+        Phases = phases;
+        Creatures = creatures;
+        Locations = locations;
+        Blueprints = blueprints;
+
+        Grades = grades;
+        GradesByRole = BuildGradesByRole(grades);
+    }
+
+    private static IReadOnlyDictionary<QuestGradeRole, QuestGradeInfo> BuildGradesByRole(
+        IReadOnlyList<QuestGradeInfo> grades)
+    {
+        var byRole = new Dictionary<QuestGradeRole, QuestGradeInfo>();
+        if (grades == null) return byRole;
+
+        foreach (var g in grades)
+        {
+            if (!System.Enum.TryParse<QuestGradeRole>(g.Role, ignoreCase: true, out var role)) continue;
+            if (byRole.ContainsKey(role)) continue;
+            byRole[role] = g;
+        }
+
+        return byRole;
+    }
+
+    // === Lookup ===
 
     public static Blueprint GetBlueprint(string id) => Lookup(Blueprints, id, "blueprint");
 

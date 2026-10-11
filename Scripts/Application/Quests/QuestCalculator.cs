@@ -1,25 +1,10 @@
+namespace AdventurersGuild.Application.Quests;
+
 using System;
 using System.Collections.Generic;
 using AdventurersGuild.Data.Adventurer;
-using AdventurersGuild.Data.Balance;
-using AdventurersGuild.Data.Quest;
 using AdventurersGuild.Domain.Adventurers;
 using AdventurersGuild.Domain.Quests;
-
-namespace AdventurersGuild.Application.Quests;
-
-public struct SkillRollResult
-{
-    public string SkillId;
-    public string BestAdvName;
-    public double SkillValue;
-    public double Required;
-    public double Ratio;
-    public double Chance;
-    public double Roll;
-    public bool Passed;
-    public int SolutionIndex;
-}
 
 public struct PhaseOutcome
 {
@@ -69,12 +54,7 @@ public static class QuestCalculator
 
     // === Проверка фазы (командная) ===
 
-    public static PhaseOutcome EvaluatePhase(
-        QuestPhaseInstance phase,
-        IReadOnlyList<AdventurerModel> party,
-        int codeLevel,
-        Random rng,
-        double extraDc = 0)
+    public static PhaseOutcome EvaluatePhase(QuestPhaseInstance phase, IReadOnlyList<AdventurerModel> party, int codeLevel, Random rng, double extraDc = 0)
     {
         var outcome = new PhaseOutcome
         {
@@ -127,12 +107,12 @@ public static class QuestCalculator
                     }
 
                     double ratio = required > 0 ? bestSkill / required : 0;
-                    double chance = Math.Clamp(
-                        b.Base + (ratio - 1.0) * b.PerRatio,
-                        b.Min, b.Max);
+                    double chance = Math.Clamp(b.Base + (ratio - 1.0) * b.PerRatio, b.Min, b.Max);
 
-                    double rollValue = rng.NextDouble() * 100.0;
-                    bool passed = rollValue < chance;
+                    int rollMax = Math.Max(2, b.RollMax);
+                    int threshold = rollMax - (int)Math.Round(chance * rollMax / 100.0);
+                    int rollValue = rng.Next(1, rollMax + 1);
+                    bool passed = rollValue > threshold;
 
                     roll = new SkillRollResult
                     {
@@ -142,7 +122,9 @@ public static class QuestCalculator
                         Required = required,
                         Ratio = ratio,
                         Chance = chance,
+                        Threshold = threshold,
                         Roll = rollValue,
+                        RollMax = rollMax,
                         Passed = passed,
                         SolutionIndex = solIndex,
                     };
@@ -297,10 +279,7 @@ public static class QuestCalculator
 
     // === Ожидаемые броски (без rng, для UI / preview) ===
 
-    public static List<SkillRollResult> ExpectedRolls(
-        QuestPhaseInstance phase,
-        IReadOnlyList<AdventurerModel> party,
-        int codeLevel)
+    public static List<SkillRollResult> ExpectedRolls(QuestPhaseInstance phase, IReadOnlyList<AdventurerModel> party, int codeLevel)
     {
         var bestSolutionRolls = new List<SkillRollResult>();
         if (phase?.Solutions == null || party == null) return bestSolutionRolls;
@@ -334,11 +313,10 @@ public static class QuestCalculator
                 }
 
                 double ratio = required > 0 ? bestSkill / required : 0;
-                double chance = Math.Clamp(
-                    b.Base + (ratio - 1.0) * b.PerRatio,
-                    b.Min, b.Max);
+                double chance = Math.Clamp(b.Base + (ratio - 1.0) * b.PerRatio, b.Min, b.Max);
 
-                if (chance < solutionMinChance) solutionMinChance = chance;
+                int rollMax = Math.Max(2, b.RollMax);
+                int threshold = rollMax - (int)Math.Round(chance * rollMax / 100.0);
 
                 solutionRolls.Add(new SkillRollResult
                 {
@@ -348,7 +326,9 @@ public static class QuestCalculator
                     Required = required,
                     Ratio = ratio,
                     Chance = chance,
+                    Threshold = threshold,
                     Roll = 0,
+                    RollMax = rollMax,
                     Passed = chance >= 50,
                     SolutionIndex = solIndex,
                 });

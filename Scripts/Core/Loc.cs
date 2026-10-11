@@ -1,12 +1,10 @@
+namespace AdventurersGuild.Core;
+
 using System;
 using System.Collections.Generic;
-using AdventurersGuild.Data.IO;
-
-namespace AdventurersGuild.Core;
 
 public static class Loc
 {
-    private const string Path = "res://Resources/Data/Strings.json";
     private const string FallbackLang = "ru";
 
     private static Dictionary<string, Dictionary<string, string>> data;
@@ -14,11 +12,9 @@ public static class Loc
     public static string Language { get; private set; } = FallbackLang;
     public static event Action LanguageChanged;
 
-    public static void Load()
+    public static void Install(Dictionary<string, Dictionary<string, string>> strings)
     {
-        if (data != null) return;
-
-        data = JsonLoader.Load<Dictionary<string, Dictionary<string, string>>>(Path);
+        data = strings;
     }
 
     public static void SetLanguage(string lang)
@@ -33,7 +29,7 @@ public static class Loc
     {
         if (data == null)
         {
-            Log.Error("Loc.Load() не был вызван");
+            Log.Error("Loc.Install() не был вызван");
             return $"#{key}#";
         }
 
@@ -49,7 +45,7 @@ public static class Loc
 
     public static string FormatTime(GameTime time)
     {
-        var dayPart = Loc.Get("ui.day").Replace("{0}", time.Day.ToString());
+        var dayPart = Get("ui.day").Replace("{0}", time.Day.ToString());
         return $"{dayPart} · {time.Hour:D2}:{time.Minute:D2}";
     }
 
