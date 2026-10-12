@@ -1,0 +1,133 @@
+@page "/creatures/{Id}"
+@inject CreatureRepository Repo
+@inject NavigationManager Nav
+
+<PageTitle>Существо — @Id</PageTitle>
+
+<MudText Typo="Typo.h4">@(isNew ? "Новое существо" : $"Существо: {Id}")</MudText>
+
+@if (draft == null)
+{
+    <MudAlert Severity="Severity.Warning" Class="mt-4">Существо не найдено.</MudAlert>
+    <MudButton OnClick="@GoBack" Class="mt-2">← К списку</MudButton>
+}
+else
+{
+    <MudPaper Class="pa-4 mt-4">
+        <MudGrid Spacing="2">
+            <MudItem xs="12" sm="6">
+                <MudTextField T="string" @bind-Value="draft.Id" Label="Id"
+                              Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="6" sm="3">
+                <MudNumericField T="int" @bind-Value="draft.MinLvl" Label="Мин. уровень"
+                                 Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="6" sm="3">
+                <MudNumericField T="int" @bind-Value="draft.MaxLvl" Label="Макс. уровень"
+                                 Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+        </MudGrid>
+
+        <MudDivider Class="my-4" />
+
+        <LocalizedNounEditor Value="draft.Name" />
+
+        <MudDivider Class="my-4" />
+
+        <GrowthWeightsEditor Value="draft.GrowthWeights" />
+    </MudPaper>
+
+    <MudText Typo="Typo.h6" Class="mt-6">Contributions</MudText>
+
+    @for (int i = 0; i < draft.Contributions.Count; i++)
+    {
+        var c = draft.Contributions[i];
+        var idx = i;
+
+        <div class="mt-2">
+            <ContributionEditor @key="c"
+                                Value="@c"
+                                Index="@idx"
+                                OnRemove="@(() => draft.Contributions.Remove(c))" />
+        </div>
+    }
+
+    <MudButton Variant="Variant.Outlined"
+               StartIcon="@Icons.Material.Filled.Add"
+               OnClick="AddContribution"
+               Class="mt-2">
+        Добавить contribution
+    </MudButton>
+
+    @if (errors.Count > 0)
+    {
+        <MudAlert Severity="Severity.Error" Class="mt-4">
+            <MudText Typo="Typo.subtitle2">Ошибки валидации:</MudText>
+            <ul class="mb-0">
+                @foreach (var e in errors)
+                {
+                    <li>@e</li>
+                }
+            </ul>
+        </MudAlert>
+    }
+
+    <div class="d-flex gap-2 mt-4">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save">Сохранить</MudButton>
+        <MudButton Variant="Variant.Outlined" OnClick="GoBack">Отмена</MudButton>
+    </div>
+}
+
+@code {
+    [Parameter] public string Id { get; set; } = "";
+
+    private CreatureInfo draft;
+    private List<string> errors = new();
+    private bool isNew;
+
+    protected override void OnParametersSet()
+    {
+        errors.Clear();
+        isNew = Id == "__new__";
+
+        if (isNew)
+        {
+            draft = Repo.NewDraft();
+        }
+        else
+        {
+            var src = Repo.Get(Id);
+            draft = src == null ? null : CreatureRepository.Clone(src);
+        }
+    }
+
+    private void AddContribution()
+    {
+        draft.Contributions.Add(new CreatureContribution
+        {
+            Tags = new List<string>(),
+            PhaseId = "",
+            Duration = 60,
+            Exp = 10,
+            Weight = 10,
+        });
+    }
+
+    private void Save()
+    {
+        errors = Repo.Validate(draft).ToList();
+        if (errors.Count > 0) return;
+
+        var err = Repo.Save(draft, isNew);
+        if (err != null)
+        {
+            errors = err.Split('\n').ToList();
+            return;
+        }
+
+        Nav.NavigateTo("/creatures");
+    }
+
+    private void GoBack() => Nav.NavigateTo("/creatures");
+}

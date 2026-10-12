@@ -1,11 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>disable</ImplicitUsings>
+    <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>12</LangVersion>
     <RootNamespace>AdventurersGuild.Editor</RootNamespace>
     <AssemblyName>AdventurersGuild.Editor</AssemblyName>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MudBlazor" Version="8.*" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\AdventurersGuild.Domain\AdventurersGuild.Domain.csproj" />

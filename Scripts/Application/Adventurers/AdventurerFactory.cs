@@ -1,12 +1,11 @@
+namespace AdventurersGuild.Application.Adventurers;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using AdventurersGuild.Core;
 using AdventurersGuild.Core.Localization;
-using AdventurersGuild.Data.Adventurer;
 using AdventurersGuild.Domain.Adventurers;
-
-namespace AdventurersGuild.Application.Adventurers;
 
 public enum Gender { Male, Female }
 

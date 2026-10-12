@@ -1,0 +1,73 @@
+@* Переиспользуемый редактор LocalizedNoun *@
+
+<div class="d-flex flex-column gap-2">
+    <MudText Typo="Typo.subtitle2">Русский</MudText>
+
+    <MudGrid Spacing="2">
+        @foreach (var c in Cases)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <MudTextField T="string"
+                              @bind-Value:get="GetRu(c.Code)"
+                              @bind-Value:set="v => SetRu(c.Code, v)"
+                              Label="@c.Label"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense" />
+            </MudItem>
+        }
+    </MudGrid>
+
+    <MudText Typo="Typo.subtitle2" Class="mt-2">Английский</MudText>
+
+    <MudTextField T="string"
+                  @bind-Value:get="Value.En"
+                  @bind-Value:set="v => Value.En = v"
+                  Label="English"
+                  Variant="Variant.Outlined"
+                  Margin="Margin.Dense" />
+</div>
+
+@code {
+    [Parameter, EditorRequired] public LocalizedNoun Value { get; set; }
+
+    private static readonly (string Code, string Label)[] Cases = new[]
+    {
+        ("nom", "Именительный (кто? что?)"),
+        ("gen", "Родительный (кого? чего?)"),
+        ("dat", "Дательный (кому? чему?)"),
+        ("acc", "Винительный (кого? что?)"),
+        ("ins", "Творительный (кем? чем?)"),
+        ("pre", "Предложный (о ком? о чём?)"),
+    };
+
+    protected override void OnInitialized()
+    {
+        EnsureShape();
+    }
+
+    private string GetRu(string code)
+    {
+        EnsureShape();
+        return Value.Ru.Get(code) ?? "";
+    }
+
+    private void SetRu(string code, string v)
+    {
+        EnsureShape();
+        switch (code)
+        {
+            case "nom": Value.Ru.Nom = v; break;
+            case "gen": Value.Ru.Gen = v; break;
+            case "dat": Value.Ru.Dat = v; break;
+            case "acc": Value.Ru.Acc = v; break;
+            case "ins": Value.Ru.Ins = v; break;
+            case "pre": Value.Ru.Pre = v; break;
+        }
+    }
+
+    private void EnsureShape()
+    {
+        if (Value.Ru == null) Value.Ru = new NounForms();
+        Value.En ??= "";
+    }
+}
