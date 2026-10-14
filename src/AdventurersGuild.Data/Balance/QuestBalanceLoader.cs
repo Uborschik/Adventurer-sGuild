@@ -7,7 +7,7 @@ namespace AdventurersGuild.Data.Balance;
 
 public static class QuestBalanceLoader
 {
-    private const string Path = "Resources/Data/Quest/QuestBalance.json";
+    private const string Path = "resources/Data/Quest/QuestBalance.json";
 
     public static void Load(string activeId = "default")
     {

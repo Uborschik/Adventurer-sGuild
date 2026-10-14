@@ -8,7 +8,7 @@ using AdventurersGuild.Domain.Names;
 
 public static class AdventurerLoader
 {
-    private const string DataPath = "Resources/Data/Adventurer/";
+    private const string DataPath = "resources/Data/Adventurer/";
 
     public static void Load()
     {

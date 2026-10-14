@@ -9,7 +9,7 @@ using AdventurersGuild.Domain.Quests;
 
 public static class QuestLoader
 {
-    private const string DataPath = "Resources/Data/Quest/";
+    private const string DataPath = "resources/Data/Quest/";
 
     public static void Load()
     {

@@ -6,11 +6,11 @@ using AdventurersGuild.Data.IO;
 
 public static class LocLoader
 {
-    private const string Path = "Resources/Data/Strings.json";
+    private const string path = "resources/Data/Strings.json";
 
     public static void Load()
     {
-        var data = JsonLoader.Load<Dictionary<string, Dictionary<string, string>>>(Path);
+        var data = JsonLoader.Load<Dictionary<string, Dictionary<string, string>>>(path);
         Loc.Install(data);
     }
 }

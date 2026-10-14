@@ -10,7 +10,7 @@ using AdventurersGuild.Domain.Quests;
 
 public sealed class CreatureRepository
 {
-    private const string FilePath = "Resources/Data/Quest/Creatures.json";
+    private const string FilePath = "resources/Data/Quest/Creatures.json";
 
     private readonly List<CreatureInfo> items = new();
     private readonly DataLoader loader;

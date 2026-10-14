@@ -5,7 +5,7 @@ namespace AdventurersGuild.Infrastructure;
 
 public static class IconLoader
 {
-    private const string IconPath = "res://Resources/Sprites/Icons/";
+    private const string IconPath = "res://resources/Sprites/Icons/";
 
     private static readonly Dictionary<string, Texture2D> cache = new();
 

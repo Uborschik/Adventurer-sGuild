@@ -6,7 +6,7 @@ namespace AdventurersGuild.Data.Balance;
 
 public static class AdventurerBalanceLoader
 {
-    private const string Path = "Resources/Data/Adventurer/AdventurerBalance.json";
+    private const string Path = "resources/Data/Adventurer/AdventurerBalance.json";
 
     public static void Load()
     {

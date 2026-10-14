@@ -1,29 +1,47 @@
 @echo off
 setlocal
 
-set ROOT=F:\Godot_C#\Projects\AdventurersGuild
-set EDITOR=%ROOT%\AdventurersGuild.Editor
+cd /d "%~dp0.."
+echo [DEBUG] Current dir: %cd%
+set ROOT=%cd%
+set EDITOR=%ROOT%\src\AdventurersGuild.Editor
+echo [DEBUG] ROOT   = %ROOT%
+echo [DEBUG] EDITOR = %EDITOR%
+echo.
 
-echo [1/3] Stopping previous Editor instance (if any)...
-taskkill /IM AdventurersGuild.Editor.exe /F >nul 2>&1
-timeout /t 1 /nobreak >nul
-
-echo [2/3] Building...
-dotnet build "%EDITOR%\AdventurersGuild.Editor.csproj" -v quiet
-if errorlevel 1 (
+echo [DEBUG] Checking csproj exists...
+if not exist "%EDITOR%\AdventurersGuild.Editor.csproj" (
+    echo [ERROR] csproj NOT found at: %EDITOR%\AdventurersGuild.Editor.csproj
     echo.
-    echo Build failed. Press any key to exit.
-    pause >nul
+    echo Listing contents of src:
+    dir /b "%ROOT%\src"
+    pause
     exit /b 1
 )
+echo [DEBUG] csproj found OK.
+echo.
 
-echo [3/3] Starting Editor...
+echo [DEBUG] Killing old process (if any)...
+taskkill /IM AdventurersGuild.Editor.exe /F
+echo [DEBUG] taskkill errorlevel: %errorlevel%
+timeout /t 1 /nobreak >nul
 echo.
-echo    http://localhost:5000/
+
+echo [DEBUG] Building...
+dotnet build "%EDITOR%\AdventurersGuild.Editor.csproj"
+echo [DEBUG] build errorlevel: %errorlevel%
+if errorlevel 1 (
+    echo.
+    echo [ERROR] Build failed.
+    pause
+    exit /b 1
+)
 echo.
-echo To stop: press Ctrl+C or close this window.
-echo.
+
+echo [DEBUG] Starting Editor...
 cd /d "%EDITOR%"
 dotnet run --no-build --project "%EDITOR%\AdventurersGuild.Editor.csproj"
+echo [DEBUG] dotnet run errorlevel: %errorlevel%
 
+pause
 endlocal

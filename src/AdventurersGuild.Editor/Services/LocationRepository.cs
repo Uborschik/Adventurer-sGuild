@@ -9,7 +9,7 @@ using AdventurersGuild.Domain.Quests;
 
 public sealed class LocationRepository(DataLoader loader)
 {
-    private const string filePath = "Resources/Data/Quest/Locations.json";
+    private const string filePath = "resources/Data/Quest/Locations.json";
 
     private readonly List<LocationInfo> items = [];
     private readonly DataLoader loader = loader;

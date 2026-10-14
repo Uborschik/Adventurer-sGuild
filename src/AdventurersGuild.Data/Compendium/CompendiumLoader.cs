@@ -5,7 +5,7 @@ using AdventurersGuild.Domain.Compendium;
 
 public static class CompendiumLoader
 {
-    private const string DataPath = "Resources/Data/Compendium/";
+    private const string DataPath = "resources/Data/Compendium/";
 
     public static void Load()
     {

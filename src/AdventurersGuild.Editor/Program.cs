@@ -22,11 +22,11 @@ public static class Program
         builder.Services.AddSingleton<LocationRepository>();
         builder.Services.AddSingleton<CreatureRepository>();
 
-        var app = builder.Build();
+        WebApplication app = builder.Build();
 
         // Установить FileSystem до загрузки данных
-        string projectRoot = Path.GetFullPath(
-            Path.Combine(app.Environment.ContentRootPath, ".."));
+        var projectRoot = Path.GetFullPath(
+            Path.Combine(app.Environment.ContentRootPath, "..", "AdventurersGuild.Game"));
         FileSystem.Current = new SystemFileSystem(projectRoot);
 
         app.Services.GetRequiredService<DataLoader>().EnsureLoaded();

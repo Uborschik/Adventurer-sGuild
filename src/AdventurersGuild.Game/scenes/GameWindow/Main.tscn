@@ -1,13 +1,13 @@
 [gd_scene format=3 uid="uid://6nikdahyfs1d"]
 
-[ext_resource type="Theme" uid="uid://b2ilsxfe25nbm" path="res://Resources/Themes/Default.tres" id="1_ksudc"]
-[ext_resource type="Script" uid="uid://me85duhgr77w" path="res://Scripts/Presentation/Game/GameWindow.cs" id="2_gw2a1"]
-[ext_resource type="PackedScene" uid="uid://cfshp3jpfjndn" path="res://UI/TopBar/TopBar.tscn" id="3_etjah"]
-[ext_resource type="PackedScene" uid="uid://btxj6fchakec3" path="res://UI/RegisterWindow/RegisterWindow.tscn" id="5_mkeb2"]
-[ext_resource type="PackedScene" uid="uid://cjlxol4yrdrt2" path="res://UI/QuestBoard/QuestBoardWindow.tscn" id="6_48gek"]
-[ext_resource type="PackedScene" uid="uid://rjwyhniy5xe6" path="res://UI/ReportsWindow/ReportsWindow.tscn" id="6_gw2a1"]
-[ext_resource type="PackedScene" uid="uid://daigvagevjny4" path="res://UI/GameWindow/Navigation.tscn" id="6_ksudc"]
-[ext_resource type="PackedScene" uid="uid://cer8r8see8ft5" path="res://UI/ReportsWindow/ReportDayBlock.tscn" id="7_etjah"]
+[ext_resource type="Theme" uid="uid://b2ilsxfe25nbm" path="res://resources/Themes/Default.tres" id="1_ksudc"]
+[ext_resource type="Script" uid="uid://me85duhgr77w" path="res://scripts/Presentation/Game/GameWindow.cs" id="2_gw2a1"]
+[ext_resource type="PackedScene" uid="uid://cfshp3jpfjndn" path="res://scenes/TopBar/TopBar.tscn" id="3_etjah"]
+[ext_resource type="PackedScene" uid="uid://btxj6fchakec3" path="res://scenes/RegisterWindow/RegisterWindow.tscn" id="5_mkeb2"]
+[ext_resource type="PackedScene" uid="uid://cjlxol4yrdrt2" path="res://scenes/QuestBoard/QuestBoardWindow.tscn" id="6_48gek"]
+[ext_resource type="PackedScene" uid="uid://rjwyhniy5xe6" path="res://scenes/ReportsWindow/ReportsWindow.tscn" id="6_gw2a1"]
+[ext_resource type="PackedScene" uid="uid://daigvagevjny4" path="res://scenes/GameWindow/Navigation.tscn" id="6_ksudc"]
+[ext_resource type="PackedScene" uid="uid://cer8r8see8ft5" path="res://scenes/ReportsWindow/ReportDayBlock.tscn" id="7_etjah"]
 
 [node name="GameWindow" type="Control" unique_id=2042129355]
 layout_mode = 3

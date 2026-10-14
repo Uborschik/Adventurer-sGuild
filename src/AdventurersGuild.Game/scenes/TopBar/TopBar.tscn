@@ -1,10 +1,10 @@
 [gd_scene format=3 uid="uid://cfshp3jpfjndn"]
 
-[ext_resource type="Script" uid="uid://cxuxti4hqx5q4" path="res://Scripts/Presentation/Game/Status.cs" id="9_2g78a"]
-[ext_resource type="Texture2D" uid="uid://cgpryj8bhcrjb" path="res://Resources/Sprites/Icons/Interface/gold.tres" id="10_i8ydx"]
-[ext_resource type="Texture2D" uid="uid://cn8hd5mc47hfn" path="res://Resources/Sprites/Icons/Interface/glory.tres" id="11_k3wmv"]
-[ext_resource type="Texture2D" uid="uid://ci1ltfvdo7gpc" path="res://Resources/Sprites/Icons/Interface/day.tres" id="12_jphqr"]
-[ext_resource type="Texture2D" uid="uid://bljg73dxujgco" path="res://Resources/Sprites/Icons/Interface/hourglasses.tres" id="13_rdba7"]
+[ext_resource type="Script" uid="uid://cxuxti4hqx5q4" path="res://scripts/Presentation/Game/Status.cs" id="9_2g78a"]
+[ext_resource type="Texture2D" uid="uid://cgpryj8bhcrjb" path="res://resources/Sprites/Icons/Interface/gold.tres" id="10_i8ydx"]
+[ext_resource type="Texture2D" uid="uid://cn8hd5mc47hfn" path="res://resources/Sprites/Icons/Interface/glory.tres" id="11_k3wmv"]
+[ext_resource type="Texture2D" uid="uid://ci1ltfvdo7gpc" path="res://resources/Sprites/Icons/Interface/day.tres" id="12_jphqr"]
+[ext_resource type="Texture2D" uid="uid://bljg73dxujgco" path="res://resources/Sprites/Icons/Interface/hourglasses.tres" id="13_rdba7"]
 
 [node name="TopBar" type="PanelContainer" unique_id=546413600]
 anchors_preset = 10
