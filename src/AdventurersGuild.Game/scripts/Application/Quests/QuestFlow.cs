@@ -6,8 +6,6 @@ using System.Linq;
 using AdventurersGuild.Application.Adventurers;
 using AdventurersGuild.Application.Reports;
 using AdventurersGuild.Core;
-using AdventurersGuild.Data.Adventurer;
-using AdventurersGuild.Data.Quest;
 using AdventurersGuild.Domain.Adventurers;
 using AdventurersGuild.Domain.Common;
 using AdventurersGuild.Domain.Quests;

@@ -1,0 +1,163 @@
+@page "/compendium/{Kind}/{Id}"
+@inject CompendiumService Compendium
+@inject NavigationManager Nav
+
+<PageTitle>@(isNew ? "Новый" : Schema?.SingularTitle + " — " + Id)</PageTitle>
+
+@if (Schema is null)
+{
+    <MudAlert Severity="Severity.Error">Kind «@Kind» не зарегистрирован.</MudAlert>
+    return;
+}
+
+@if (!isNew && entry is null)
+{
+    <MudAlert Severity="Severity.Warning" Class="mt-4">Сущность не найдена.</MudAlert>
+    <MudButton OnClick="GoBack" Class="mt-2">← К списку</MudButton>
+    return;
+}
+
+<MudText Typo="Typo.h4">
+    @(isNew ? $"Новый {Schema.SingularTitle}" : $"{Schema.SingularTitle}: {Id}")
+</MudText>
+
+<div class="mt-4">
+    <EntityEditor Schema="Schema" Entity="workingJson" OnChanged="OnEntityChanged" />
+</div>
+
+<div class="d-flex gap-2 mt-2">
+    <MudButton Variant="Variant.Filled"
+               Color="Color.Primary"
+               OnClick="Save"
+               Disabled="@(!dirty)">
+        Сохранить
+    </MudButton>
+    <MudButton Variant="Variant.Outlined" OnClick="GoBack">Отмена</MudButton>
+</div>
+
+@code {
+    [Parameter] public string Kind { get; set; } = "";
+    [Parameter] public string Id { get; set; } = "";
+
+    private CompendiumEntry? entry;
+    private JsonObject workingJson = new();
+    private bool isNew;
+    private bool dirty;
+
+    private EntitySchema? Schema => TryGetSchema(Kind, out var s) ? s : null;
+
+    private bool TryGetSchema(string kind, out EntitySchema? schema)
+    {
+        try
+        {
+            schema = Compendium.Schema(kind);
+            return true;
+        }
+        catch
+        {
+            schema = null;
+            return false;
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        isNew = Id == "__new__";
+        dirty = false;
+
+        if (isNew)
+        {
+            entry = null;
+            workingJson = new JsonObject { ["id"] = "" };
+        }
+        else
+        {
+            entry = Compendium.Index.Get(Kind, Id);
+            workingJson = entry is null
+                ? new JsonObject()
+                : (JsonObject)entry.Json.DeepClone();
+        }
+    }
+
+    private void OnEntityChanged()
+    {
+        if (entry is null)
+        {
+            dirty = true;
+            return;
+        }
+        dirty = workingJson.ToJsonString() != entry.Json.ToJsonString();
+    }
+
+    private void Save()
+    {
+        if (Schema is null) return;
+
+        string newId = workingJson["id"]?.GetValue<string>() ?? "";
+
+        if (string.IsNullOrWhiteSpace(newId))
+        {
+            return; // TODO: snackbar
+        }
+
+        if (isNew)
+        {
+            if (Compendium.Index.Exists(Kind, newId)) return; // TODO: snackbar
+
+            var fresh = new CompendiumEntry
+            {
+                Kind = Kind,
+                Id = newId,
+                Json = workingJson,
+                DisplayName = ExtractDisplayName(workingJson, Schema),
+            };
+            fresh.SetInitialSnapshot();
+            Compendium.SaveNew(fresh);
+        }
+        else
+        {
+            if (entry is null) return;
+
+            // перезаписываем JSON существующего entry
+            var root = Compendium.Index.GetRoot(Kind);
+            if (root?[Schema.RootPath] is JsonArray array)
+            {
+                for (int i = 0; i < array.Count; i++)
+                {
+                    if (ReferenceEquals(array[i], entry.Json))
+                    {
+                        array[i] = workingJson;
+                        break;
+                    }
+                }
+            }
+
+            var updated = new CompendiumEntry
+            {
+                Kind = Kind,
+                Id = newId,
+                Json = workingJson,
+                DisplayName = ExtractDisplayName(workingJson, Schema),
+            };
+            updated.SetInitialSnapshot();
+            Compendium.Save(updated);
+        }
+
+        Nav.NavigateTo($"/compendium/{Kind}");
+    }
+
+    private void GoBack() => Nav.NavigateTo($"/compendium/{Kind}");
+
+    private static string ExtractDisplayName(JsonObject obj, EntitySchema schema)
+    {
+        var node = obj[schema.DisplayField];
+        if (node is JsonObject loc)
+        {
+            return loc["ru"]?.GetValue<string>()
+                ?? loc["en"]?.GetValue<string>()
+                ?? obj["id"]?.GetValue<string>()
+                ?? "?";
+        }
+        return obj["id"]?.GetValue<string>() ?? "?";
+    }
+}

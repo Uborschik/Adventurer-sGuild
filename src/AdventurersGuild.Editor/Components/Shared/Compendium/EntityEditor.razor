@@ -1,0 +1,81 @@
+@namespace AdventurersGuild.Editor.Components.Shared.Compendium
+@inject CompendiumService Compendium
+
+<MudForm @ref="_form">
+    @foreach (var group in Schema.GroupedFields)
+    {
+        <MudPaper Class="pa-4 mb-4" Elevation="0" Outlined="true">
+            <MudText Typo="Typo.h6" Class="mb-3">@group.Key</MudText>
+
+            <MudGrid Spacing="2">
+                @foreach (var field in group.OrderBy(f => f.Order))
+                {
+                    <MudItem xs="12" md="@field.Width">
+                        <FieldRenderer Field="field"
+                                       Node="Entity[field.Name]"
+                                       ValueChanged="@(v => SetField(field, v))"
+                                       ReadOnly="ReadOnly" />
+                    </MudItem>
+                }
+            </MudGrid>
+        </MudPaper>
+    }
+</MudForm>
+
+@code {
+    [Parameter, EditorRequired] public EntitySchema Schema { get; set; } = default!;
+    [Parameter, EditorRequired] public JsonObject Entity { get; set; } = default!;
+    [Parameter] public bool ReadOnly { get; set; }
+    [Parameter] public EventCallback OnChanged { get; set; }
+
+    private MudForm _form = default!;
+
+    protected override void OnParametersSet()
+    {
+        EnsureFieldsExist();
+    }
+
+    private void EnsureFieldsExist()
+    {
+        foreach (var field in Schema.Fields)
+        {
+            if (!Entity.ContainsKey(field.Name))
+                Entity[field.Name] = CreateDefault(field);
+        }
+    }
+
+    private static JsonNode CreateDefault(FieldSchema field) => field.Type switch
+    {
+        CompendiumFieldType.Id => JsonValue.Create(""),
+        CompendiumFieldType.Localized => new JsonObject { ["ru"] = "", ["en"] = "" },
+        CompendiumFieldType.Number => JsonValue.Create(0),
+        CompendiumFieldType.Bool => JsonValue.Create(false),
+        _ => JsonValue.Create(""),
+    };
+
+    private async Task SetField(FieldSchema field, JsonNode? value)
+    {
+        if (value is null)
+        {
+            Entity.Remove(field.Name);
+        }
+        else if (ReferenceEquals(value, Entity[field.Name]))
+        {
+            // тот же узел — просто перерисовать
+        }
+        else if (value.Parent is not null)
+        {
+            // узел уже где-то в дереве — клонируем
+            Entity[field.Name] = value.DeepClone();
+        }
+        else
+        {
+            Entity[field.Name] = value;
+        }
+
+        await OnChanged.InvokeAsync();
+        StateHasChanged();
+    }
+
+    public Task ValidateAsync() => _form.Validate();
+}

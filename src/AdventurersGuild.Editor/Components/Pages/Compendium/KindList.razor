@@ -1,0 +1,84 @@
+@page "/compendium/{Kind}"
+@inject CompendiumService Compendium
+@inject NavigationManager Nav
+
+<PageTitle>@Schema?.PluralTitle</PageTitle>
+
+@if (Schema is null)
+{
+    <MudAlert Severity="Severity.Error" Class="mt-4">
+        Kind «@Kind» не зарегистрирован.
+    </MudAlert>
+    return;
+}
+
+<MudText Typo="Typo.h4">@Schema.PluralTitle</MudText>
+
+<div class="d-flex justify-end mt-4 mb-2">
+    <MudButton Variant="Variant.Filled"
+               Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.Add"
+               OnClick="CreateNew">
+        Новый
+    </MudButton>
+</div>
+
+<MudTable Items="@Entries" Dense="true" Hover="true" Bordered="true">
+    <HeaderContent>
+        <MudTh>ID</MudTh>
+        <MudTh>Название</MudTh>
+        <MudTh Style="width:220px"></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>@context.Id</MudTd>
+        <MudTd>@context.DisplayName</MudTd>
+        <MudTd>
+            <MudButton Size="Size.Small" OnClick="@(() => Edit(context.Id))">Редактировать</MudButton>
+            <MudButton Size="Size.Small" Color="Color.Error" OnClick="@(() => ConfirmDelete(context))">Удалить</MudButton>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    [Parameter] public string Kind { get; set; } = "";
+
+    [Inject] public IDialogService DialogService { get; set; } = default!;
+
+    private EntitySchema? Schema =>
+        Compendium.Index.CountOf(Kind) >= 0 && TryGetSchema(Kind, out var s) ? s : null;
+
+    private IReadOnlyList<CompendiumEntry> Entries =>
+        Compendium.Index.AllOfKind(Kind).OrderBy(e => e.Id).ToList();
+
+    private bool TryGetSchema(string kind, out EntitySchema? schema)
+    {
+        try
+        {
+            schema = Compendium.Schema(kind);
+            return true;
+        }
+        catch
+        {
+            schema = null;
+            return false;
+        }
+    }
+
+    private void CreateNew() => Nav.NavigateTo($"/compendium/{Kind}/__new__");
+
+    private void Edit(string id) => Nav.NavigateTo($"/compendium/{Kind}/{id}");
+
+    private async Task ConfirmDelete(CompendiumEntry entry)
+    {
+        bool? ok = await DialogService.ShowMessageBox(
+            "Удалить",
+            $"Удалить «{entry.DisplayName}» ({entry.Id})?",
+            yesText: "Удалить", cancelText: "Отмена");
+
+        if (ok == true)
+        {
+            Compendium.Delete(entry);
+            StateHasChanged();
+        }
+    }
+}

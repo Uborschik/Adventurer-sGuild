@@ -5,6 +5,7 @@
     <LangVersion>12</LangVersion>
     <RootNamespace>AdventurersGuild.Editor</RootNamespace>
     <AssemblyName>AdventurersGuild.Editor</AssemblyName>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
