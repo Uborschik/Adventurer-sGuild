@@ -1,5 +1,4 @@
 using AdventurersGuild.Data.IO;
-using AdventurersGuild.Editor.Infrastructure;
 using AdventurersGuild.Editor.Services;
 using MudBlazor.Services;
 
@@ -24,10 +23,7 @@ public static class Program
 
         WebApplication app = builder.Build();
 
-        // Установить FileSystem до загрузки данных
-        var projectRoot = Path.GetFullPath(
-            Path.Combine(app.Environment.ContentRootPath, "..", "AdventurersGuild.Game"));
-        FileSystem.Current = new SystemFileSystem(projectRoot);
+        FileSystem.Current = new SystemFileSystem();
 
         app.Services.GetRequiredService<DataLoader>().EnsureLoaded();
 

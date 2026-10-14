@@ -1,16 +1,15 @@
-namespace AdventurersGuild.Editor.Infrastructure;
+namespace AdventurersGuild.Data.IO;
 
 using System;
 using System.IO;
-using AdventurersGuild.Data.IO;
 
 public sealed class SystemFileSystem : IFileSystem
 {
     private readonly string root;
 
-    public SystemFileSystem(string root)
+    public SystemFileSystem()
     {
-        this.root = root ?? throw new ArgumentNullException(nameof(root));
+        root = AppContext.BaseDirectory;
     }
 
     public bool Exists(string relativePath)

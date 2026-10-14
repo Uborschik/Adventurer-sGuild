@@ -9,5 +9,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AdventurersGuild.Domain\AdventurersGuild.Domain.csproj" />
+    <ProjectReference Include="..\AdventurersGuild.Content\AdventurersGuild.Content.csproj" />
   </ItemGroup>
 </Project>

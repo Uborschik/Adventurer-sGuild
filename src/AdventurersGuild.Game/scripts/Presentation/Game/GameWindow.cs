@@ -15,7 +15,6 @@ using AdventurersGuild.Data.Quest;
 using AdventurersGuild.Domain.Adventurers;
 using AdventurersGuild.Domain.Common;
 using AdventurersGuild.Domain.Quests;
-using AdventurersGuild.Infrastructure;
 using AdventurersGuild.Presentation.Adventurers;
 using AdventurersGuild.Presentation.Common;
 using AdventurersGuild.Presentation.Quests;
@@ -41,7 +40,7 @@ public partial class GameWindow : Control
 
     public GameWindow()
     {
-        FileSystem.Current = new GodotFileSystem();
+        FileSystem.Current = new SystemFileSystem();
 
         LocLoader.Load();
         Loc.SetLanguage("ru");

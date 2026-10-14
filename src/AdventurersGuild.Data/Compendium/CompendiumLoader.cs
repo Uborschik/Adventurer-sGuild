@@ -5,11 +5,11 @@ using AdventurersGuild.Domain.Compendium;
 
 public static class CompendiumLoader
 {
-    private const string DataPath = "resources/Data/Compendium/";
+    private const string dataPath = "Data/Compendium/";
 
     public static void Load()
     {
-        var bestiary = JsonLoader.Load<BestiaryDatabase>(DataPath + "Bestiary.json");
+        var bestiary = JsonLoader.Load<BestiaryDatabase>(dataPath + "Bestiary.json");
         CompendiumDatabase.Install(bestiary);
 
         CompendiumValidator.Validate();

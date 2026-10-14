@@ -9,7 +9,7 @@ using AdventurersGuild.Domain.Quests;
 
 public static class QuestLoader
 {
-    private const string DataPath = "resources/Data/Quest/";
+    private const string dataPath = "Data/Quest/";
 
     public static void Load()
     {
@@ -27,13 +27,13 @@ public static class QuestLoader
 
     private static IReadOnlyDictionary<string, TagInfo> LoadTags()
     {
-        return JsonLoader.Load<TagDatabase>(DataPath + "Tags.json")
+        return JsonLoader.Load<TagDatabase>(dataPath + "Tags.json")
             .Tags.ToDictionary(t => t.Id);
     }
 
     private static IReadOnlyList<QuestGradeInfo> LoadGrades()
     {
-        var gradeList = JsonLoader.Load<QuestGradeDatabase>(DataPath + "QuestGrades.json").Grades;
+        var gradeList = JsonLoader.Load<QuestGradeDatabase>(dataPath + "QuestGrades.json").Grades;
 
         foreach (var grade in gradeList)
         {
@@ -46,25 +46,25 @@ public static class QuestLoader
 
     private static IReadOnlyDictionary<string, QuestPhaseTemplate> LoadPhases()
     {
-        var db = JsonLoader.Load<QuestPhaseDatabase>(DataPath + "QuestPhases.json");
+        var db = JsonLoader.Load<QuestPhaseDatabase>(dataPath + "QuestPhases.json");
         return db.Phases.ToDictionary(p => p.Id);
     }
 
     private static IReadOnlyDictionary<string, CreatureInfo> LoadCreatures()
     {
-        var list = JsonLoader.Load<CreatureDatabase>(DataPath + "Creatures.json").Creatures;
+        var list = JsonLoader.Load<CreatureDatabase>(dataPath + "Creatures.json").Creatures;
         return list.ToDictionary(c => c.Id);
     }
 
     private static IReadOnlyDictionary<string, LocationInfo> LoadLocations()
     {
-        var list = JsonLoader.Load<LocationDatabase>(DataPath + "Locations.json").Locations;
+        var list = JsonLoader.Load<LocationDatabase>(dataPath + "Locations.json").Locations;
         return list.ToDictionary(l => l.Id);
     }
 
     private static IReadOnlyDictionary<string, Blueprint> LoadBlueprints()
     {
-        var list = JsonLoader.Load<BlueprintDatabase>(DataPath + "Blueprints.json").Blueprints;
+        var list = JsonLoader.Load<BlueprintDatabase>(dataPath + "Blueprints.json").Blueprints;
         var dict = list.ToDictionary(b => b.Id);
 
         foreach (var bp in dict.Values)

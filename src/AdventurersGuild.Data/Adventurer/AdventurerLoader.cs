@@ -8,7 +8,7 @@ using AdventurersGuild.Domain.Names;
 
 public static class AdventurerLoader
 {
-    private const string DataPath = "resources/Data/Adventurer/";
+    private const string dataPath = "Data/Adventurer/";
 
     public static void Load()
     {
@@ -27,25 +27,25 @@ public static class AdventurerLoader
     }
 
     private static Dictionary<string, AdventurerClassInfo> LoadClasses()
-        => JsonLoader.Load<AdventurerClassDatabase>(DataPath + "AdventurerClasses.json")
+        => JsonLoader.Load<AdventurerClassDatabase>(dataPath + "AdventurerClasses.json")
             .Classes.ToDictionary(c => c.Id);
 
     private static Dictionary<string, AdventurerRaceInfo> LoadRaces()
-        => JsonLoader.Load<AdventurerRaceDatabase>(DataPath + "AdventurerRaces.json")
+        => JsonLoader.Load<AdventurerRaceDatabase>(dataPath + "AdventurerRaces.json")
             .Races.ToDictionary(r => r.Id);
 
     private static Dictionary<string, AdventurerStatInfo> LoadStats()
-        => JsonLoader.Load<AdventurerStatDatabase>(DataPath + "AdventurerStats.json")
+        => JsonLoader.Load<AdventurerStatDatabase>(dataPath + "AdventurerStats.json")
             .Stats.ToDictionary(s => s.Id);
 
     private static Dictionary<string, AdventurerStatusInfo> LoadStatuses()
-        => JsonLoader.Load<AdventurerStatusDatabase>(DataPath + "AdventurerStatuses.json")
+        => JsonLoader.Load<AdventurerStatusDatabase>(dataPath + "AdventurerStatuses.json")
             .Statuses.ToDictionary(s => s.Id);
 
     private static IReadOnlyList<AdventurerTemplateInfo> LoadTemplates()
-        => JsonLoader.Load<AdventurerTemplateDatabase>(DataPath + "AdventurerTemplates.json")
+        => JsonLoader.Load<AdventurerTemplateDatabase>(dataPath + "AdventurerTemplates.json")
             .Templates;
 
     private static NameDatabase LoadNames()
-        => JsonLoader.Load<NameDatabase>(DataPath + "AdventurerNames.json");
+        => JsonLoader.Load<NameDatabase>(dataPath + "AdventurerNames.json");
 }

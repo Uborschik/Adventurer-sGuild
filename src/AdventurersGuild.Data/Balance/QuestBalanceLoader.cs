@@ -7,11 +7,11 @@ namespace AdventurersGuild.Data.Balance;
 
 public static class QuestBalanceLoader
 {
-    private const string Path = "resources/Data/Quest/QuestBalance.json";
+    private const string path = "Data/Quest/QuestBalance.json";
 
     public static void Load(string activeId = "default")
     {
-        var db = JsonLoader.Load<QuestBalanceDatabase>(Path);
+        var db = JsonLoader.Load<QuestBalanceDatabase>(path);
         var all = db.Profiles.ToDictionary(p => p.Id);
 
         if (!all.TryGetValue(activeId, out var profile))

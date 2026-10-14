@@ -6,7 +6,7 @@ using AdventurersGuild.Data.IO;
 
 public static class LocLoader
 {
-    private const string path = "resources/Data/Strings.json";
+    private const string path = "Data/Strings.json";
 
     public static void Load()
     {

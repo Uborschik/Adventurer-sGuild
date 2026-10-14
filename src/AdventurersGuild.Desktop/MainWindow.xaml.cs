@@ -5,7 +5,6 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using AdventurersGuild.Data.IO;
-using AdventurersGuild.Editor.Infrastructure;
 using AdventurersGuild.Editor.Services;
 using Microsoft.AspNetCore.Components.WebView;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,8 +36,7 @@ public partial class MainWindow : Window
         services.AddWpfBlazorWebView();
         services.AddMudServices();
 
-        string projectRoot = FindProjectRoot();
-        FileSystem.Current = new SystemFileSystem(projectRoot);
+        FileSystem.Current = new SystemFileSystem();
 
         services.AddSingleton<DataLoader>();
         services.AddSingleton<LocationRepository>();
@@ -48,22 +46,6 @@ public partial class MainWindow : Window
         sp.GetRequiredService<DataLoader>().EnsureLoaded();
 
         Resources.Add("services", sp);
-    }
-
-    private static string FindProjectRoot()
-    {
-        var dir = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
-
-        while (dir != null)
-        {
-            if (File.Exists(Path.Combine(dir.FullName, "AdventurersGuild.sln")))
-                return dir.FullName;
-            dir = dir.Parent;
-        }
-
-        throw new InvalidOperationException(
-            "Не удалось найти корень проекта (AdventurersGuild.sln) " +
-            $"от {AppDomain.CurrentDomain.BaseDirectory}");
     }
 
     private void OnBlazorInitialized(object? sender, BlazorWebViewInitializedEventArgs e)

@@ -6,11 +6,11 @@ namespace AdventurersGuild.Data.Balance;
 
 public static class AdventurerBalanceLoader
 {
-    private const string Path = "resources/Data/Adventurer/AdventurerBalance.json";
+    private const string path = "Data/Adventurer/AdventurerBalance.json";
 
     public static void Load()
     {
-        var profile = JsonLoader.Load<AdventurerBalanceProfile>(Path);
+        var profile = JsonLoader.Load<AdventurerBalanceProfile>(path);
         Validate(profile);
         AdventurerBalance.SetActiveProfile(profile);
         Log.Info($"[AdventurerBalance] загружен: maxLevel={profile.MaxLevel}, " +
