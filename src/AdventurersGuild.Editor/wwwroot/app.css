@@ -1,0 +1,30 @@
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --ag-tile-bg: #6a6b6e;
+
+    --ag-text-strong: #1f2937;
+    --ag-text-muted: #4b5563;
+
+    --ag-on-dark-strong: #ffffff;
+    --ag-on-dark-muted: #d1d5db;
+    --ag-on-dark-line: #9ca3af;
+}
+
+.form-section {
+    padding: 16px;
+    margin-bottom: 16px;
+    border-radius: 4px;
+    background: var(--ag-tile-bg);
+
+    --mud-palette-surface: var(--ag-tile-bg);
+
+--mud-palette-text-primary: var(--ag-on-dark-strong);
+--mud-palette-text-secondary: var(--ag-on-dark-muted);
+--mud-palette-lines-default: var(--ag-on-dark-line);
+
+    color: #ffffff;
+}

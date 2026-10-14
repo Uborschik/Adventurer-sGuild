@@ -16,7 +16,7 @@
     <Compile Remove="AdventurersGuild.Desktop\**\*.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="AdventurersGuild.Domain\AdventurersGuild.Domain.csproj" />
-    <ProjectReference Include="AdventurersGuild.Data\AdventurersGuild.Data.csproj" />
+    <ProjectReference Include="..\AdventurersGuild.Domain\AdventurersGuild.Domain.csproj" />
+    <ProjectReference Include="..\AdventurersGuild.Data\AdventurersGuild.Data.csproj" />
   </ItemGroup>
 </Project>
