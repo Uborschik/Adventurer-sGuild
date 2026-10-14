@@ -1,0 +1,58 @@
+{
+  "stats": [
+    {
+      "id": "str",
+      "name": { "ru": "Сила", "en": "Strength" },
+      "description": {
+        "ru": "Ближний бой, мощь, грубая физическая сила.",
+        "en": "Melee combat, power, raw physical might."
+      },
+      "icon": "stat/str"
+    },
+    {
+      "id": "dex",
+      "name": { "ru": "Ловкость", "en": "Dexterity" },
+      "description": {
+        "ru": "Точность, скрытность, скорость реакции.",
+        "en": "Precision, stealth, reaction speed."
+      },
+      "icon": "stat/dex"
+    },
+    {
+      "id": "end",
+      "name": { "ru": "Стойкость", "en": "Endurance" },
+      "description": {
+        "ru": "Выносливость, сопротивляемость ранам и смерти.",
+        "en": "Fortitude, resistance to injury and death."
+      },
+      "icon": "stat/end"
+    },
+    {
+      "id": "int",
+      "name": { "ru": "Интеллект", "en": "Intelligence" },
+      "description": {
+        "ru": "Знания, магия, анализ и исследование.",
+        "en": "Knowledge, magic, analysis and investigation."
+      },
+      "icon": "stat/int"
+    },
+    {
+      "id": "wis",
+      "name": { "ru": "Мудрость", "en": "Wisdom" },
+      "description": {
+        "ru": "Восприятие, интуиция, выживание в дикой природе.",
+        "en": "Perception, intuition, wilderness survival."
+      },
+      "icon": "stat/wis"
+    },
+    {
+      "id": "cha",
+      "name": { "ru": "Харизма", "en": "Charisma" },
+      "description": {
+        "ru": "Убеждение, лидерство, воля.",
+        "en": "Persuasion, leadership, force of will."
+      },
+      "icon": "stat/cha"
+    }
+  ]
+}

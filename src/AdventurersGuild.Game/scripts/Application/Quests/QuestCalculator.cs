@@ -49,7 +49,7 @@ public static class QuestCalculator
             && skill.ClassModifiers.TryGetValue(a.ClassId, out var cm))
             classMod = cm;
 
-        return statValue * skill.StatModifier * classMod;
+        return statValue * classMod;
     }
 
     // === Проверка фазы (командная) ===

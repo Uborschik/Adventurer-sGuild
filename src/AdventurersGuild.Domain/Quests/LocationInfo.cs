@@ -13,5 +13,5 @@ public class LocationInfo
 
 public class LocationDatabase
 {
-    public List<LocationInfo> Locations { get; set; } = new();
+    public List<LocationInfo> Locations { get; set; } = [];
 }

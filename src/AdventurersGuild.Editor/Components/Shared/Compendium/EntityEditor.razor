@@ -48,8 +48,19 @@
     {
         CompendiumFieldType.Id => JsonValue.Create(""),
         CompendiumFieldType.Localized => new JsonObject { ["ru"] = "", ["en"] = "" },
-        CompendiumFieldType.Number => JsonValue.Create(0),
         CompendiumFieldType.Bool => JsonValue.Create(false),
+        CompendiumFieldType.Enum => JsonValue.Create(""),
+        CompendiumFieldType.Reference => JsonValue.Create(""),
+        CompendiumFieldType.Number => JsonValue.Create(0),
+        CompendiumFieldType.LocalizedCase => new JsonObject
+        {
+            ["ru"] = new JsonObject
+            {
+                ["nom"] = "", ["gen"] = "", ["dat"] = "",
+                ["acc"] = "", ["ins"] = "", ["pre"] = "",
+            },
+            ["en"] = "",
+        },
         _ => JsonValue.Create(""),
     };
 

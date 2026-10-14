@@ -13,7 +13,7 @@ public static class Program
 {
     public static void Main(string[] args)
     {
-        var builder = WebApplication.CreateBuilder(args);
+        WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
         builder.WebHost.UseStaticWebAssets();
 
@@ -25,10 +25,12 @@ public static class Program
         builder.Services.AddSingleton<DataLoader>();
         builder.Services.AddSingleton<LocationRepository>();
         builder.Services.AddSingleton<CreatureRepository>();
-        builder.Services.AddSingleton<SchemaRegistry>(_ =>
+        builder.Services.AddSingleton(_ =>
         {
             var reg = new SchemaRegistry();
             reg.Register(TagSchema.Build());
+            reg.Register(LocationSchema.Build());
+            reg.Register(GradeSchema.Build());
             return reg;
         });
 

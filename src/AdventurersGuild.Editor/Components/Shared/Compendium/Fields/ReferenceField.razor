@@ -1,0 +1,76 @@
+@namespace AdventurersGuild.Editor.Components.Shared.Compendium.Fields
+@inject CompendiumService Compendium
+
+<MudAutocomplete T="string"
+                 Value="@CurrentValue"
+                 ValueChanged="@OnValueChanged"
+                 SearchFunc="Search"
+                 ToStringFunc="@DisplayName"
+                 Label="@Field.Label"
+                 HelperText="@(error ?? Field.Hint)"
+                 Variant="Variant.Outlined"
+                 Margin="Margin.Dense"
+                 Required="@Field.Required"
+                 ReadOnly="@ReadOnly"
+                 Error="@(error != null)"
+                 ErrorText="@error"
+                 ResetValueOnEmptyText="true"
+                 CoerceText="false"
+                 CoerceValue="false" />
+
+@code {
+    [Parameter, EditorRequired] public FieldSchema Field { get; set; } = default!;
+    [Parameter] public JsonNode? Node { get; set; }
+    [Parameter] public EventCallback<JsonNode?> ValueChanged { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
+
+    private string? error;
+
+    private string CurrentValue => Node?.GetValue<string>() ?? "";
+
+    private async Task OnValueChanged(string? v)
+    {
+        v ??= "";
+        error = ValidateRef(v);
+        await ValueChanged.InvokeAsync(JsonValue.Create(v));
+    }
+
+    private Task<IEnumerable<string>> Search(string value, CancellationToken token)
+    {
+        if (string.IsNullOrEmpty(Field.TargetKind))
+            return Task.FromResult(Enumerable.Empty<string>());
+
+        var items = Compendium.Index.AllOfKind(Field.TargetKind);
+
+        var result = string.IsNullOrEmpty(value)
+            ? items.Take(50).Select(e => e.Id)
+            : items
+                .Where(e => e.Id.Contains(value, StringComparison.OrdinalIgnoreCase)
+                         || e.DisplayName.Contains(value, StringComparison.OrdinalIgnoreCase))
+                .Take(50)
+                .Select(e => e.Id);
+
+        return Task.FromResult(result);
+    }
+
+    private string DisplayName(string id)
+    {
+        if (string.IsNullOrEmpty(id)) return "";
+        if (string.IsNullOrEmpty(Field.TargetKind)) return id;
+
+        var entry = Compendium.Index.Get(Field.TargetKind, id);
+        return entry?.DisplayName ?? id;
+    }
+
+    private string? ValidateRef(string id)
+    {
+        if (string.IsNullOrEmpty(id))
+            return Field.Required ? "Обязательное поле" : null;
+        if (string.IsNullOrEmpty(Field.TargetKind)) return null;
+
+        if (!Compendium.Index.Exists(Field.TargetKind, id))
+            return $"«{id}» не найден в {Field.TargetKind}";
+
+        return null;
+    }
+}

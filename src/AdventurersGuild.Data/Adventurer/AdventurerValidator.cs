@@ -1,5 +1,6 @@
 namespace AdventurersGuild.Data.Adventurer;
 
+using System.Collections.Generic;
 using AdventurersGuild.Core;
 using AdventurersGuild.Domain.Adventurers;
 
@@ -7,8 +8,8 @@ public static class AdventurerValidator
 {
     public static void Validate()
     {
-        var db = AdventurerDatabase.Classes;   // для удобства чтения
-        int errors = 0;
+        IReadOnlyDictionary<string, AdventurerClassInfo> db = AdventurerDatabase.Classes;   // для удобства чтения
+        var errors = 0;
 
         // === Расы ===
         foreach (var race in AdventurerDatabase.Races.Values)
@@ -59,7 +60,7 @@ public static class AdventurerValidator
         }
 
         // === Классы ===
-        foreach (var cls in AdventurerDatabase.Classes.Values)
+        foreach (AdventurerClassInfo cls in AdventurerDatabase.Classes.Values)
         {
             if (string.IsNullOrEmpty(cls.PrimaryStat) || !AdventurerDatabase.Stats.ContainsKey(cls.PrimaryStat))
             {
@@ -104,7 +105,7 @@ public static class AdventurerValidator
                         Log.Warn($"[AdventurerDB] Класс '{cls.Id}': нет веса для '{statId}', будет 0.20");
                 }
 
-                foreach (var kv in cls.GrowthWeights)
+                foreach (KeyValuePair<string, double> kv in cls.GrowthWeights)
                 {
                     if (!AdventurerDatabase.Stats.ContainsKey(kv.Key))
                     {
@@ -133,7 +134,7 @@ public static class AdventurerValidator
         }
 
         // === Шаблоны ===
-        foreach (var t in AdventurerDatabase.Templates)
+        foreach (AdventurerTemplateInfo t in AdventurerDatabase.Templates)
         {
             if (t.MinLevel < 1)
             {
@@ -166,11 +167,24 @@ public static class AdventurerValidator
     {
         int errors = 0;
 
-        foreach (var stat in AdventurerDatabase.Stats.Values)
+        if (AdventurerDatabase.Skills == null || AdventurerDatabase.Skills.Count == 0)
         {
-            if (stat.Skills == null || stat.Skills.Count == 0)
+            Log.Error("[AdventurerDB] Навыки не загружены");
+            return;
+        }
+
+        foreach (var skill in AdventurerDatabase.Skills.Values)
+        {
+            if (string.IsNullOrEmpty(skill.StatId))
             {
-                Log.Error($"[AdventurerDB] Стат '{stat.Id}': нет навыков");
+                Log.Error($"[AdventurerDB] Навык '{skill.Id}': не задан statId");
+                errors++;
+                continue;
+            }
+
+            if (!AdventurerDatabase.Stats.ContainsKey(skill.StatId))
+            {
+                Log.Error($"[AdventurerDB] Навык '{skill.Id}': стат '{skill.StatId}' не найден");
                 errors++;
             }
         }
@@ -210,16 +224,10 @@ public static class AdventurerValidator
                     errors++;
                 }
             }
-
-            if (cls.PrimarySkill == cls.SecondarySkill && !string.IsNullOrEmpty(cls.PrimarySkill))
-            {
-                Log.Error($"[AdventurerDB] Класс '{cls.Id}': primarySkill == secondarySkill");
-                errors++;
-            }
         }
 
         if (errors == 0)
-            Log.Info($"[AdventurerDB] Валидация навыков: ok ({AdventurerDatabase.SkillCount} навыков)");
+            Log.Info($"[AdventurerDB] Валидация навыков: ok ({AdventurerDatabase.Skills.Count} навыков)");
         else
             Log.Error($"[AdventurerDB] Валидация навыков: {errors} ошибок");
     }

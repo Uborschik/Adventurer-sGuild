@@ -15,6 +15,26 @@
         <LocalizedField Field="Field" Node="Node" ValueChanged="ValueChanged" ReadOnly="ReadOnly" />
         break;
 
+    case CompendiumFieldType.Number:
+        <NumberField Field="Field" Node="Node" ValueChanged="ValueChanged" ReadOnly="ReadOnly" />
+        break;
+
+    case CompendiumFieldType.Bool:
+        <BoolField Field="Field" Node="Node" ValueChanged="ValueChanged" ReadOnly="ReadOnly" />
+        break;
+
+    case CompendiumFieldType.Enum:
+        <EnumField Field="Field" Node="Node" ValueChanged="ValueChanged" ReadOnly="ReadOnly" />
+        break;
+
+    case CompendiumFieldType.Reference:
+        <ReferenceField Field="Field" Node="Node" ValueChanged="ValueChanged" ReadOnly="ReadOnly" />
+        break;
+        
+    case CompendiumFieldType.LocalizedCase:
+        <LocalizedCaseField Field="Field" Node="Node" ValueChanged="ValueChanged" ReadOnly="ReadOnly" />
+        break;
+
     default:
         <MudAlert Severity="Severity.Warning" Dense="true">
             Поле «@Field.Name»: тип @Field.Type ещё не поддержан.

@@ -1,0 +1,77 @@
+@namespace AdventurersGuild.Editor.Components.Shared.Compendium
+@inject SchemaRegistry Schemas
+@inject NavigationManager Nav
+
+<MudNavMenu Bordered="true" Rounded="true" Class="pa-2">
+
+    <MudNavLink Href="/compendium"
+                Match="NavLinkMatch.All"
+                Icon="@Icons.Material.Filled.Home">
+        Обзор
+    </MudNavLink>
+
+    @foreach (var section in Sections)
+    {
+        <MudNavGroup Title="@section.Name"
+                     Icon="@SectionIcon(section.Name)"
+                     Expanded="true">
+
+            @foreach (var schema in section.Schemas)
+            {
+                <MudNavLink Href="@($"/compendium/{schema.Kind}")"
+                            Match="NavLinkMatch.Prefix"
+                            Icon="@KindIcon(schema.Kind)">
+                    @schema.PluralTitle
+                </MudNavLink>
+            }
+
+        </MudNavGroup>
+    }
+
+    <MudNavGroup Title="Инструменты"
+                 Icon="@Icons.Material.Filled.Build"
+                 Expanded="false">
+        <MudNavLink Href="/tools/xp" Icon="@Icons.Material.Filled.TrendingUp">
+            XP-кривые
+        </MudNavLink>
+        <MudNavLink Href="/tools/stats" Icon="@Icons.Material.Filled.BarChart">
+            Статы по уровням
+        </MudNavLink>
+        <MudNavLink Href="/tools/validation" Icon="@Icons.Material.Filled.Rule">
+            Валидация
+        </MudNavLink>
+    </MudNavGroup>
+
+</MudNavMenu>
+
+@code {
+    private sealed record SectionGroup(string Name, int Order, List<EntitySchema> Schemas);
+
+    private IReadOnlyList<SectionGroup> Sections =>
+        Schemas.All
+            .GroupBy(s => s.Section ?? "Прочее")
+            .Select(g => new SectionGroup(
+                g.Key,
+                g.Min(s => s.Order),
+                g.OrderBy(s => s.Order).ToList()))
+            .OrderBy(g => g.Order)
+            .ToList();
+
+    private static string SectionIcon(string section) => section switch
+    {
+        "Приключенцы" => Icons.Material.Filled.People,
+        "Мир"         => Icons.Material.Filled.Public,
+        "Квесты"      => Icons.Material.Filled.Map,
+        _             => Icons.Material.Filled.Folder,
+    };
+
+    private static string KindIcon(string kind) => kind switch
+    {
+        "tag"      => Icons.Material.Filled.Label,
+        "location" => Icons.Material.Filled.Place,
+        "class"    => Icons.Material.Filled.Shield,
+        "race"     => Icons.Material.Filled.Diversity1,
+        "creature" => Icons.Material.Filled.Pets,
+        _          => Icons.Material.Filled.Circle,
+    };
+}

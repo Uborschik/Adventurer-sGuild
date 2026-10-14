@@ -7,43 +7,42 @@
 
 <MudLayout>
     <MudAppBar Elevation="1" Fixed="true" Class="app-drag-bar">
-    <MudIconButton Icon="@Icons.Material.Filled.Menu"
-                   Color="Color.Inherit"
-                   Edge="Edge.Start"
-                   OnClick="@(() => drawerOpen = !drawerOpen)" />
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       Edge="Edge.Start"
+                       OnClick="@(() => drawerOpen = !drawerOpen)" />
 
-    <div class="drag-region"
-         @onmousedown="StartDrag"
-         @ondblclick="ToggleMaximizeApp">
-        <MudText Typo="Typo.h6">Adventurer's Guild — Editor</MudText>
-    </div>
+        <div class="drag-region"
+             @onmousedown="StartDrag"
+             @ondblclick="ToggleMaximizeApp">
+            <MudText Typo="Typo.h6">Adventurer's Guild — Editor</MudText>
+        </div>
 
-    <MudSpacer />
+        <MudSpacer />
 
-    <MudIconButton Icon="@Icons.Material.Filled.Remove"
-                   Color="Color.Inherit"
-                   OnClick="MinimizeApp"
-                   title="Свернуть" />
-    <MudIconButton Icon="@Icons.Material.Filled.CropSquare"
-                   Color="Color.Inherit"
-                   OnClick="ToggleMaximizeApp"
-                   title="Развернуть" />
-    <MudIconButton Icon="@Icons.Material.Filled.Close"
-                   Color="Color.Inherit"
-                   OnClick="CloseApp"
-                   title="Закрыть" />
-</MudAppBar>
+        <MudIconButton Icon="@Icons.Material.Filled.Remove"
+                       Color="Color.Inherit"
+                       OnClick="MinimizeApp"
+                       title="Свернуть" />
+        <MudIconButton Icon="@Icons.Material.Filled.CropSquare"
+                       Color="Color.Inherit"
+                       OnClick="ToggleMaximizeApp"
+                       title="Развернуть" />
+        <MudIconButton Icon="@Icons.Material.Filled.Close"
+                       Color="Color.Inherit"
+                       OnClick="CloseApp"
+                       title="Закрыть" />
+    </MudAppBar>
 
-    <MudDrawer @bind-Open="drawerOpen" Elevation="1" ClipMode="DrawerClipMode.Always">
-        <MudNavMenu>
-            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Обзор</MudNavLink>
-            <MudNavLink Href="/locations" Icon="@Icons.Material.Filled.Place">Локации</MudNavLink>
-            <MudNavLink Href="/creatures" Icon="@Icons.Material.Filled.Pets">Существа</MudNavLink>
-        </MudNavMenu>
+    <MudDrawer @bind-Open="drawerOpen"
+               Elevation="1"
+               ClipMode="DrawerClipMode.Always"
+               Width="280px">
+        <SchemaSidebar />
     </MudDrawer>
 
     <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+        <MudContainer MaxWidth="MaxWidth.False" Class="pa-4">
             @Body
         </MudContainer>
     </MudMainContent>
@@ -68,7 +67,7 @@
     private async Task CloseApp()
     {
         try { await JS.InvokeVoidAsync("appWindow.close"); }
-        catch { /* в браузере нет — игнорируем */ }
+        catch { }
     }
 
     private async Task MinimizeApp()

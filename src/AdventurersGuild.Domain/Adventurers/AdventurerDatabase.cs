@@ -9,6 +9,7 @@ public static class AdventurerDatabase
     public static IReadOnlyDictionary<string, AdventurerClassInfo> Classes { get; private set; }
     public static IReadOnlyDictionary<string, AdventurerRaceInfo> Races { get; private set; }
     public static IReadOnlyDictionary<string, AdventurerStatInfo> Stats { get; private set; }
+    public static IReadOnlyDictionary<string, SkillInfo> Skills { get; private set; }
     public static IReadOnlyDictionary<string, AdventurerStatusInfo> Statuses { get; private set; }
     public static IReadOnlyList<AdventurerTemplateInfo> Templates { get; private set; }
     public static NameDatabase Names { get; private set; }
@@ -24,6 +25,7 @@ public static class AdventurerDatabase
         IReadOnlyDictionary<string, AdventurerClassInfo> classes = null,
         IReadOnlyDictionary<string, AdventurerRaceInfo> races = null,
         IReadOnlyDictionary<string, AdventurerStatInfo> stats = null,
+        IReadOnlyDictionary<string, SkillInfo> skills = null,
         IReadOnlyDictionary<string, AdventurerStatusInfo> statuses = null,
         IReadOnlyList<AdventurerTemplateInfo> templates = null,
         NameDatabase names = null)
@@ -31,6 +33,7 @@ public static class AdventurerDatabase
         if (classes != null) Classes = classes;
         if (races != null) Races = races;
         if (stats != null) Stats = stats;
+        if (skills != null) Skills = skills;
         if (statuses != null) Statuses = statuses;
         if (templates != null) Templates = templates;
         if (names != null) Names = names;
@@ -40,33 +43,28 @@ public static class AdventurerDatabase
 
     private static void BuildSkillIndex()
     {
-        skillToStat = new Dictionary<string, string>();
-        skillsById = new Dictionary<string, SkillInfo>();
+        skillToStat = [];
 
-        if (Stats == null) return;
+        if (skillsById == null) return;
 
-        foreach (var stat in Stats.Values)
+        foreach (KeyValuePair<string, SkillInfo> kv in skillsById)
         {
-            if (stat.Skills == null || stat.Skills.Count == 0)
+            SkillInfo skill = kv.Value;
+            if (skill == null || string.IsNullOrEmpty(skill.Id)) continue;
+
+            if (string.IsNullOrEmpty(skill.StatId))
             {
-                Log.Warn($"[AdventurerDB] Стат '{stat.Id}': нет навыков");
+                Log.Warn($"[AdventurerDB] Навык '{skill.Id}': не задан statId");
                 continue;
             }
 
-            foreach (var skill in stat.Skills)
+            if (skillToStat.ContainsKey(skill.Id))
             {
-                if (skill == null || string.IsNullOrEmpty(skill.Id)) continue;
-
-                if (skillToStat.ContainsKey(skill.Id))
-                {
-                    Log.Warn($"[AdventurerDB] Навык '{skill.Id}' привязан к нескольким статам: " +
-                             $"'{skillToStat[skill.Id]}' и '{stat.Id}'");
-                    continue;
-                }
-
-                skillToStat[skill.Id] = stat.Id;
-                skillsById[skill.Id] = skill;
+                Log.Warn($"[AdventurerDB] Навык '{skill.Id}' дублируется");
+                continue;
             }
+
+            skillToStat[skill.Id] = skill.StatId;
         }
     }
 
@@ -96,38 +94,38 @@ public static class AdventurerDatabase
 
     public static string ClassName(string id)
     {
-        var c = GetClass(id);
+        AdventurerClassInfo c = GetClass(id);
         return c?.Name.Get(Loc.Language) ?? id;
     }
 
     public static string RaceName(string id)
     {
-        var r = GetRace(id);
+        AdventurerRaceInfo r = GetRace(id);
         return r?.Name.Get(Loc.Language) ?? id;
     }
 
     public static string StatName(string id)
     {
-        var s = GetStat(id);
+        AdventurerStatInfo s = GetStat(id);
         return s?.Name.Get(Loc.Language) ?? id;
     }
 
     public static string StatDescription(string id)
     {
-        var s = GetStat(id);
+        AdventurerStatInfo s = GetStat(id);
         return s?.Description.Get(Loc.Language) ?? "";
     }
 
     public static string StatusName(string id)
     {
-        var s = GetStatus(id);
+        AdventurerStatusInfo s = GetStatus(id);
         return s?.Name.Get(Loc.Language) ?? id;
     }
 
     public static bool IsFree(AdventurerModel a)
     {
         if (a == null) return false;
-        var info = GetStatus(a.StatusId);
+        AdventurerStatusInfo info = GetStatus(a.StatusId);
         return info == null || !info.BlocksAssignment;
     }
 

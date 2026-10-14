@@ -64,14 +64,23 @@ public sealed class CompendiumJsonLoader
 
     private static string ExtractDisplayName(JsonObject obj, EntitySchema schema)
     {
-        var node = obj[schema.DisplayField];
-        if (node is JsonObject localized)
+        JsonNode? node = obj[schema.DisplayField];
+
+        if (node is JsonValue val)
+            return val.GetValue<string>() ?? obj["id"]?.GetValue<string>() ?? "?";
+
+        if (node is JsonObject loc)
         {
-            return localized["ru"]?.GetValue<string>()
-                ?? localized["en"]?.GetValue<string>()
-                ?? obj["id"]?.GetValue<string>()
-                ?? "?";
+            JsonNode? ru = loc["ru"];
+
+            if (ru is JsonValue rv) return rv.GetValue<string>() ?? "?";
+            if (ru is JsonObject ro) return ro["nom"]?.GetValue<string>() ?? "?";
+
+            JsonNode? en = loc["en"];
+
+            if (en is JsonValue ev) return ev.GetValue<string>() ?? "?";
         }
+
         return obj["id"]?.GetValue<string>() ?? "?";
     }
 }

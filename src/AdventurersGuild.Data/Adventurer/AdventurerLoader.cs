@@ -12,14 +12,15 @@ public static class AdventurerLoader
 
     public static void Load()
     {
-        var classes = LoadClasses();
-        var races = LoadRaces();
-        var stats = LoadStats();
-        var statuses = LoadStatuses();
-        var templates = LoadTemplates();
-        var names = LoadNames();
+        Dictionary<string, AdventurerClassInfo> classes = LoadClasses();
+        Dictionary<string, AdventurerRaceInfo> races = LoadRaces();
+        Dictionary<string, AdventurerStatInfo> stats = LoadStats();
+        Dictionary<string, SkillInfo> skills = LoadSkills();
+        Dictionary<string, AdventurerStatusInfo> statuses = LoadStatuses();
+        IReadOnlyList<AdventurerTemplateInfo> templates = LoadTemplates();
+        NameDatabase names = LoadNames();
 
-        AdventurerDatabase.Install(classes, races, stats, statuses, templates, names);
+        AdventurerDatabase.Install(classes, races, stats, skills, statuses, templates, names);
 
         AdventurerValidator.Validate();
         AdventurerValidator.ValidateNames();
@@ -35,8 +36,12 @@ public static class AdventurerLoader
             .Races.ToDictionary(r => r.Id);
 
     private static Dictionary<string, AdventurerStatInfo> LoadStats()
-        => JsonLoader.Load<AdventurerStatDatabase>(dataPath + "AdventurerStats.json")
+        => JsonLoader.Load<AdventurerStatDatabase>(dataPath + "Stats.json")
             .Stats.ToDictionary(s => s.Id);
+
+    private static Dictionary<string, SkillInfo> LoadSkills()
+        => JsonLoader.Load<AdventurerSkillDatabase>(dataPath + "Skills.json")
+            .Skills.ToDictionary(s => s.Id);
 
     private static Dictionary<string, AdventurerStatusInfo> LoadStatuses()
         => JsonLoader.Load<AdventurerStatusDatabase>(dataPath + "AdventurerStatuses.json")
