@@ -35,6 +35,10 @@
         <LocalizedCaseField Field="Field" Node="Node" ValueChanged="ValueChanged" ReadOnly="ReadOnly" />
         break;
 
+    case CompendiumFieldType.Dictionary:
+    <DictionaryEditor Field="Field" Node="Node" ValueChanged="ValueChanged" ReadOnly="ReadOnly" />
+    break;
+
     default:
         <MudAlert Severity="Severity.Warning" Dense="true">
             Поле «@Field.Name»: тип @Field.Type ещё не поддержан.

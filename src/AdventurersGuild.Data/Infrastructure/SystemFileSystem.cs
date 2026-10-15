@@ -12,6 +12,11 @@ public sealed class SystemFileSystem : IFileSystem
         root = AppContext.BaseDirectory;
     }
 
+    public SystemFileSystem(string root)
+    {
+        this.root = root ?? throw new ArgumentNullException(nameof(root));
+    }
+
     public bool Exists(string relativePath)
         => File.Exists(Path.Combine(root, relativePath));
 

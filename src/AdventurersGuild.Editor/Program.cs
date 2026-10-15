@@ -25,12 +25,14 @@ public static class Program
         builder.Services.AddSingleton<DataLoader>();
         builder.Services.AddSingleton<LocationRepository>();
         builder.Services.AddSingleton<CreatureRepository>();
-        builder.Services.AddSingleton(_ =>
+        builder.Services.AddSingleton<SchemaRegistry>(_ =>
         {
             var reg = new SchemaRegistry();
+            reg.Register(StatSchema.Build());
             reg.Register(TagSchema.Build());
             reg.Register(LocationSchema.Build());
             reg.Register(GradeSchema.Build());
+            reg.Register(TestSchema.Build());
             return reg;
         });
 
@@ -40,7 +42,12 @@ public static class Program
 
         WebApplication app = builder.Build();
 
-        FileSystem.Current = new SystemFileSystem();
+        var contentRoot = Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory,
+            "..", "..", "..", "..",
+            "AdventurersGuild.Content"));
+
+        FileSystem.Current = new SystemFileSystem(contentRoot);
 
         app.Services.GetRequiredService<DataLoader>().EnsureLoaded();
         app.Services.GetRequiredService<CompendiumService>().LoadAll();

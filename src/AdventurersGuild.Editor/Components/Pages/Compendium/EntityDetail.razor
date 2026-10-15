@@ -60,8 +60,17 @@
         }
     }
 
+    private string? lastKind;
+    private string? lastId;
+
     protected override void OnParametersSet()
     {
+        // Срабатывает только при смене маршрута
+        if (lastKind == Kind && lastId == Id) return;
+
+        lastKind = Kind;
+        lastId = Id;
+
         isNew = Id == "__new__";
         dirty = false;
 
@@ -84,9 +93,12 @@
         if (entry is null)
         {
             dirty = true;
+            StateHasChanged();
             return;
         }
+
         dirty = workingJson.ToJsonString() != entry.Json.ToJsonString();
+        StateHasChanged();
     }
 
     private void Save()
@@ -118,29 +130,15 @@
         {
             if (entry is null) return;
 
-            // перезаписываем JSON существующего entry
-            var root = Compendium.Index.GetRoot(Kind);
-            if (root?[Schema.RootPath] is JsonArray array)
+            // Мутируем entry.Json in place — он уже в дереве, никаких переприсваиваний
+            entry.Json.Clear();
+            foreach (var kv in workingJson.ToList())
             {
-                for (int i = 0; i < array.Count; i++)
-                {
-                    if (ReferenceEquals(array[i], entry.Json))
-                    {
-                        array[i] = workingJson;
-                        break;
-                    }
-                }
+                entry.Json[kv.Key] = kv.Value?.DeepClone();
             }
 
-            var updated = new CompendiumEntry
-            {
-                Kind = Kind,
-                Id = newId,
-                Json = workingJson,
-                DisplayName = ExtractDisplayName(workingJson, Schema),
-            };
-            updated.SetInitialSnapshot();
-            Compendium.Save(updated);
+            entry.DisplayName = ExtractDisplayName(entry.Json, Schema);
+            Compendium.Save(entry);
         }
 
         Nav.NavigateTo($"/compendium/{Kind}");
