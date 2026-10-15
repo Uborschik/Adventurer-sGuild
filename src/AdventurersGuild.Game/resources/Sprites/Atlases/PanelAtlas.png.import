@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://fgncp831nueg"
-path="res://.godot/imported/PanelAtlas.png-da8a3ed5808ef11d2c76ada516fd455d.ctex"
+path="res://.godot/imported/PanelAtlas.png-77c0a38418ee2a30e78d8f2c23eb4b7a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resources/Sprites/Atlases/PanelAtlas.png"
-dest_files=["res://.godot/imported/PanelAtlas.png-da8a3ed5808ef11d2c76ada516fd455d.ctex"]
+source_file="res://resources/sprites/atlases/PanelAtlas.png"
+dest_files=["res://.godot/imported/PanelAtlas.png-77c0a38418ee2a30e78d8f2c23eb4b7a.ctex"]
 
 [params]
 

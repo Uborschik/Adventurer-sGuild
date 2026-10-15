@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cpgdsr8a3rym6"
-path="res://.godot/imported/RaceAtlas.png-f83356fe385f3620182977857c27ab3f.ctex"
+path="res://.godot/imported/RaceAtlas.png-c706ba09e762deef12f86d7aea529774.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resources/Sprites/Atlases/RaceAtlas.png"
-dest_files=["res://.godot/imported/RaceAtlas.png-f83356fe385f3620182977857c27ab3f.ctex"]
+source_file="res://resources/sprites/atlases/RaceAtlas.png"
+dest_files=["res://.godot/imported/RaceAtlas.png-c706ba09e762deef12f86d7aea529774.ctex"]
 
 [params]
 

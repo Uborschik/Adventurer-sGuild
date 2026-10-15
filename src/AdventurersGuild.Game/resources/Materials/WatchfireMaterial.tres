@@ -1,6 +1,6 @@
 [gd_resource type="ShaderMaterial" format=3 uid="uid://crmjq6bubh24d"]
 
-[ext_resource type="Shader" uid="uid://bec761dwylj62" path="res://resources/Shaders/Watchfire.gdshader" id="1_ilrb2"]
+[ext_resource type="Shader" uid="uid://bec761dwylj62" path="res://resources/shaders/Watchfire.gdshader" id="1_ilrb2"]
 
 [resource]
 resource_local_to_scene = true

@@ -3,12 +3,12 @@
 importer="font_data_dynamic"
 type="FontFile"
 uid="uid://ctoddssodsoaf"
-path="res://.godot/imported/PublicPixel.ttf-7f0306e0a8fa2485f08b170a3702d262.fontdata"
+path="res://.godot/imported/PublicPixel.ttf-a6e8f71b8c8e9440ed4e37bb6b772076.fontdata"
 
 [deps]
 
-source_file="res://resources/Fonts/PublicPixel.ttf"
-dest_files=["res://.godot/imported/PublicPixel.ttf-7f0306e0a8fa2485f08b170a3702d262.fontdata"]
+source_file="res://resources/fonts/PublicPixel.ttf"
+dest_files=["res://.godot/imported/PublicPixel.ttf-a6e8f71b8c8e9440ed4e37bb6b772076.fontdata"]
 
 [params]
 

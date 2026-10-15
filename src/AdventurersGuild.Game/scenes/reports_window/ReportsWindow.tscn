@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://rjwyhniy5xe6"]
 
-[ext_resource type="Script" uid="uid://onpvmrywsajm" path="res://Scripts/Presentation/Reports/ReportsWindow.cs" id="1_mx0a7"]
+[ext_resource type="Script" uid="uid://onpvmrywsajm" path="res://scripts/presentation/reports/ReportsWindow.cs" id="1_mx0a7"]
 
 [node name="ReportsWindow" type="PanelContainer" unique_id=1295045385]
 custom_minimum_size = Vector2(420, 292)

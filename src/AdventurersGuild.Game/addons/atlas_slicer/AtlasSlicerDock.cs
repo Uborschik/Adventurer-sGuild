@@ -10,8 +10,8 @@ public partial class AtlasSlicerDock : VBoxContainer
     private const int BrowseButtonWidth = 64;
     private const int FieldHeight = 24;
 
-    private const string DefaultAtlasFolder = "res://Resources/Sprites/Atlases/";
-    private const string DefaultOutputPath = "res://Resources/Sprites/";
+    private const string DefaultAtlasFolder = "res://resources/sprites/atlases/";
+    private const string DefaultOutputPath = "res://resources/sprites/";
     private const string DefaultPrefix = "icon_";
     private const int DefaultTileSize = 16;
 

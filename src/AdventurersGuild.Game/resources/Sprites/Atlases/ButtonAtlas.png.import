@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://txgnyohygvfy"
-path="res://.godot/imported/ButtonAtlas.png-1051cdd2307b97c6f2392045d89e380e.ctex"
+path="res://.godot/imported/ButtonAtlas.png-3afd220af965130bbdef18d48638d4ef.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resources/Sprites/Atlases/ButtonAtlas.png"
-dest_files=["res://.godot/imported/ButtonAtlas.png-1051cdd2307b97c6f2392045d89e380e.ctex"]
+source_file="res://resources/sprites/atlases/ButtonAtlas.png"
+dest_files=["res://.godot/imported/ButtonAtlas.png-3afd220af965130bbdef18d48638d4ef.ctex"]
 
 [params]
 

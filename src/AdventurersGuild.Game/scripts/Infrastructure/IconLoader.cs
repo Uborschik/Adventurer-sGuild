@@ -5,9 +5,9 @@ namespace AdventurersGuild.Infrastructure;
 
 public static class IconLoader
 {
-    private const string IconPath = "res://resources/Sprites/Icons/";
+    private const string iconPath = "res://resources/sprites/icons/";
 
-    private static readonly Dictionary<string, Texture2D> cache = new();
+    private static readonly Dictionary<string, Texture2D> cache = [];
 
     public static Texture2D Get(string category, string id)
     {
@@ -24,11 +24,13 @@ public static class IconLoader
 
     private static Texture2D Load(string category, string id)
     {
-        string path = $"{IconPath}{category}/{id}.tres";
+        string cat = category.ToLowerInvariant();
+
+        string path = $"{iconPath}{cat}/{id}.tres";
         if (ResourceLoader.Exists(path))
             return GD.Load<Texture2D>(path);
 
-        string fallback = $"{IconPath}{category}/_default.tres";
+        string fallback = $"{iconPath}{cat}/_default.tres";
         if (ResourceLoader.Exists(fallback))
             return GD.Load<Texture2D>(fallback);
 

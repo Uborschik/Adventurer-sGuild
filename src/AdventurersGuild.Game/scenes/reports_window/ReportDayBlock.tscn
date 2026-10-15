@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cer8r8see8ft5"]
 
-[ext_resource type="Script" uid="uid://baq6c63amaxbc" path="res://Scripts/Presentation/Reports/ReportDayBlock.cs" id="1_uf3l8"]
+[ext_resource type="Script" uid="uid://baq6c63amaxbc" path="res://scripts/presentation/reports/ReportDayBlock.cs" id="1_uf3l8"]
 
 [node name="ReportDayBlock" type="VBoxContainer" unique_id=585658853]
 anchors_preset = 15
