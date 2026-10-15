@@ -13,13 +13,14 @@ public sealed class EntitySchema
     public required string RootPath { get; init; }
 
     public required IReadOnlyList<FieldSchema> Fields { get; init; }
-    /// <summary>Имя поля-идентификатора. По умолчанию "id".</summary>
-    public string IdField { get; init; } = "id";
     public string? Section { get; init; }
     public int Order { get; init; }
 
     /// <summary>Поле для отображения в списке. По умолчанию "name".</summary>
     public string DisplayField { get; init; } = "name";
+
+    /// <summary>Имя поля-идентификатора. По умолчанию "id".</summary>
+    public string IdField { get; init; } = "id";
 
     public IEnumerable<IGrouping<string, FieldSchema>> GroupedFields =>
         Fields

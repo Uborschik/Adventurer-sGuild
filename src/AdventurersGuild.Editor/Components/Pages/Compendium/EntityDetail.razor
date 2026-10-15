@@ -151,13 +151,13 @@
     private static string ExtractDisplayName(JsonObject obj, EntitySchema schema)
     {
         var node = obj[schema.DisplayField];
-        if (node is JsonObject loc)
+        if (node is JsonObject localized)
         {
-            return loc["ru"]?.GetValue<string>()
-                ?? loc["en"]?.GetValue<string>()
-                ?? obj["id"]?.GetValue<string>()
+            return localized["ru"]?.GetValue<string>()
+                ?? localized["en"]?.GetValue<string>()
+                ?? obj[schema.IdField]?.GetValue<string>()
                 ?? "?";
         }
-        return obj["schema.IdField"]?.GetValue<string>() ?? "?";
+        return obj[schema.IdField]?.GetValue<string>() ?? "?";
     }
 }
