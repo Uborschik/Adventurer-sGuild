@@ -25,7 +25,7 @@ public class QuestResolver
         return new QuestResult(role, gold, glory, exp, failed, "...");
     }
 
-    public QuestPrediction Predict(QuestModel quest, IReadOnlyList<AdventurerModel> party)
+    public QuestPrediction Predict(QuestModel quest, IReadOnlyList<UnitModel> party)
     {
         var prediction = new QuestPrediction();
 

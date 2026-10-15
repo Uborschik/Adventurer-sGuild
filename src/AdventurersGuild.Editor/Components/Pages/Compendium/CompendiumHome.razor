@@ -1,0 +1,23 @@
+@page "/compendium"
+@inject SchemaRegistry Schemas
+@inject CompendiumService Compendium
+@inject NavigationManager Nav
+
+<PageTitle>Compendium</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">Compendium</MudText>
+
+<MudGrid>
+    @foreach (var schema in Schemas.All)
+    {
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Class="pa-4" Outlined="true" Elevation="0"
+                      Style="cursor:pointer;"
+                      @onclick="@(() => Nav.NavigateTo($"/compendium/{schema.Kind}"))">
+                <MudText Typo="Typo.subtitle2">@schema.SingularTitle</MudText>
+                <MudText Typo="Typo.h5">@Compendium.Index.CountOf(schema.Kind)</MudText>
+                <MudText Typo="Typo.caption">@schema.PluralTitle</MudText>
+            </MudPaper>
+        </MudItem>
+    }
+</MudGrid>

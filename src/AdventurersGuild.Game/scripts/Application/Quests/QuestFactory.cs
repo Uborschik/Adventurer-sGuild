@@ -177,7 +177,7 @@ public class QuestFactory
             Location = location,
             AmbientPool = BuildAmbientPool(location, target),
             CodeLevel = codeLevel,
-            AdventurerBalance = AdventurerBalance.Active,
+            LevelBalance = LevelBalance.Active,
         };
     }
 

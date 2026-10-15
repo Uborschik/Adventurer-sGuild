@@ -8,7 +8,7 @@ namespace AdventurersGuild.Presentation.Adventurers;
 public partial class AdventurerBoard : Control
 {
     private AdventurerList adventurerList;
-    private AdventurerRegistry adventurerRegistry;
+    private UnitRegistry adventurerRegistry;
 
     public AdventurerList AdventurerList => adventurerList;
 
@@ -29,14 +29,14 @@ public partial class AdventurerBoard : Control
             adventurerRegistry.Removed += adventurerList.Remove;
     }
 
-    public void Bind(AdventurerRegistry adventurerRegistry)
+    public void Bind(UnitRegistry adventurerRegistry)
     {
         this.adventurerRegistry = adventurerRegistry;
 
         adventurerRegistry.Removed += adventurerList.Remove;
     }
 
-    public void Add(AdventurerModel model)
+    public void Add(UnitModel model)
     {
         if (adventurerRegistry.TryAdd(model))
         {
@@ -51,5 +51,5 @@ public partial class AdventurerBoard : Control
         }
     }
     public void Refresh() => adventurerList.Refresh(adventurerRegistry.All);
-    public void Refresh(IReadOnlyList<AdventurerModel> hired) => adventurerList.Refresh(hired);
+    public void Refresh(IReadOnlyList<UnitModel> hired) => adventurerList.Refresh(hired);
 }

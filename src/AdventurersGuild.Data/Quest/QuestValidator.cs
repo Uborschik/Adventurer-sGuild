@@ -129,7 +129,7 @@ public static class QuestValidator
                         continue;
                     }
 
-                    if (!AdventurerDatabase.IsValidSkill(check.Skill))
+                    if (!UnitDatabase.IsValidSkill(check.Skill))
                     {
                         Log.Error($"[QuestDB] Фаза '{p.Id}': неизвестный навык '{check.Skill}'");
                         errors++;

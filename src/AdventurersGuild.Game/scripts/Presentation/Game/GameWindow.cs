@@ -23,14 +23,14 @@ using Godot;
 
 public partial class GameWindow : Control
 {
-    private AdventurerRegistry adventurerRegistry;
+    private UnitRegistry adventurerRegistry;
     private GuildBank bank;
     private GameClock clock;
     private QuestRegistry questRegistry;
     private QuestResolver questResolver;
     private QuestFlow questFlow;
     private ReportsRegistry reportsRegistry;
-    private AdventurerFactory adventurerFactory;
+    private UnitFactory adventurerFactory;
 
     private Status statusBar;
     private Navigation navigation;
@@ -49,9 +49,9 @@ public partial class GameWindow : Control
         Log.WarnSink = GD.PushWarning;
         Log.ErrorSink = GD.PushError;
 
-        AdventurerBalanceLoader.Load();
+        LevelBalanceLoader.Load();
         QuestBalanceLoader.Load();
-        AdventurerLoader.Load();
+        UnitLoader.Load();
         QuestLoader.Load();
         CompendiumLoader.Load();
     }
@@ -77,13 +77,13 @@ public partial class GameWindow : Control
 
     private void CreateModels()
     {
-        adventurerRegistry = new AdventurerRegistry();
+        adventurerRegistry = new UnitRegistry();
         questRegistry = new QuestRegistry();
         questResolver = new QuestResolver();
         bank = new GuildBank();
         clock = new GameClock(GameTime.Zero);
 
-        adventurerFactory = new AdventurerFactory();
+        adventurerFactory = new UnitFactory();
 
         var generator = new QuestGenerator(QuestDatabase.Phases);
         var blueprints = QuestDatabase.Blueprints.Values.ToList();

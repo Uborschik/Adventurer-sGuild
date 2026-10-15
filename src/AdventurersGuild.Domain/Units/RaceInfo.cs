@@ -3,7 +3,7 @@ using AdventurersGuild.Core.Localization;
 
 namespace AdventurersGuild.Domain.Adventurers;
 
-public class AdventurerRaceInfo
+public class RaceInfo
 {
     public string Id { get; set; }
     public LocalizedString Name { get; set; }
@@ -20,5 +20,5 @@ public class RaceWeightInfo
 
 public class AdventurerRaceDatabase
 {
-    public List<AdventurerRaceInfo> Races { get; set; } = new();
+    public List<RaceInfo> Races { get; set; } = new();
 }

@@ -10,7 +10,7 @@ namespace AdventurersGuild.Presentation.Quests;
 
 public partial class PartySelect : Control
 {
-    private AdventurerRegistry adventurerRegistry;
+    private UnitRegistry adventurerRegistry;
     private QuestFlow questFlow;
     private QuestResolver questResolver;
 
@@ -47,7 +47,7 @@ public partial class PartySelect : Control
             questFlow.Completed -= OnQuestCompleted;
     }
 
-    public void Bind(AdventurerRegistry adventurerRegistry, QuestFlow questFlow, QuestResolver questResolver)
+    public void Bind(UnitRegistry adventurerRegistry, QuestFlow questFlow, QuestResolver questResolver)
     {
         this.adventurerRegistry = adventurerRegistry;
         this.questFlow = questFlow;

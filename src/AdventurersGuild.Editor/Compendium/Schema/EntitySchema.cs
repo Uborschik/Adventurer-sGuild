@@ -13,7 +13,8 @@ public sealed class EntitySchema
     public required string RootPath { get; init; }
 
     public required IReadOnlyList<FieldSchema> Fields { get; init; }
-
+    /// <summary>Имя поля-идентификатора. По умолчанию "id".</summary>
+    public string IdField { get; init; } = "id";
     public string? Section { get; init; }
     public int Order { get; init; }
 

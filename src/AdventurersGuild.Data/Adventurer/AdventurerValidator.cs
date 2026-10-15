@@ -4,15 +4,15 @@ using System.Collections.Generic;
 using AdventurersGuild.Core;
 using AdventurersGuild.Domain.Adventurers;
 
-public static class AdventurerValidator
+public static class UnitValidator
 {
     public static void Validate()
     {
-        IReadOnlyDictionary<string, AdventurerClassInfo> db = AdventurerDatabase.Classes;   // для удобства чтения
+        IReadOnlyDictionary<string, ClassInfo> db = UnitDatabase.Classes;   // для удобства чтения
         var errors = 0;
 
         // === Расы ===
-        foreach (var race in AdventurerDatabase.Races.Values)
+        foreach (var race in UnitDatabase.Races.Values)
         {
             if (race.Weight == null)
             {
@@ -33,7 +33,7 @@ public static class AdventurerValidator
 
             foreach (var classId in race.Weight.Classes.Keys)
             {
-                if (!AdventurerDatabase.Classes.ContainsKey(classId))
+                if (!UnitDatabase.Classes.ContainsKey(classId))
                 {
                     Log.Error($"[AdventurerDB] Раса '{race.Id}': неизвестный класс '{classId}'");
                     errors++;
@@ -44,7 +44,7 @@ public static class AdventurerValidator
             {
                 foreach (var statId in race.StatBonuses.Keys)
                 {
-                    if (!AdventurerDatabase.Stats.ContainsKey(statId))
+                    if (!UnitDatabase.Stats.ContainsKey(statId))
                     {
                         Log.Error($"[AdventurerDB] Раса '{race.Id}': неизвестный стат '{statId}' в statBonuses");
                         errors++;
@@ -60,15 +60,15 @@ public static class AdventurerValidator
         }
 
         // === Классы ===
-        foreach (AdventurerClassInfo cls in AdventurerDatabase.Classes.Values)
+        foreach (ClassInfo cls in UnitDatabase.Classes.Values)
         {
-            if (string.IsNullOrEmpty(cls.PrimaryStat) || !AdventurerDatabase.Stats.ContainsKey(cls.PrimaryStat))
+            if (string.IsNullOrEmpty(cls.PrimaryStat) || !UnitDatabase.Stats.ContainsKey(cls.PrimaryStat))
             {
                 Log.Error($"[AdventurerDB] Класс '{cls.Id}': primaryStat '{cls.PrimaryStat}' не найден");
                 errors++;
             }
 
-            if (string.IsNullOrEmpty(cls.SecondaryStat) || !AdventurerDatabase.Stats.ContainsKey(cls.SecondaryStat))
+            if (string.IsNullOrEmpty(cls.SecondaryStat) || !UnitDatabase.Stats.ContainsKey(cls.SecondaryStat))
             {
                 Log.Error($"[AdventurerDB] Класс '{cls.Id}': secondaryStat '{cls.SecondaryStat}' не найден");
                 errors++;
@@ -107,7 +107,7 @@ public static class AdventurerValidator
 
                 foreach (KeyValuePair<string, double> kv in cls.GrowthWeights)
                 {
-                    if (!AdventurerDatabase.Stats.ContainsKey(kv.Key))
+                    if (!UnitDatabase.Stats.ContainsKey(kv.Key))
                     {
                         Log.Error($"[AdventurerDB] Класс '{cls.Id}': неизвестный стат '{kv.Key}' в growthWeights");
                         errors++;
@@ -134,7 +134,7 @@ public static class AdventurerValidator
         }
 
         // === Шаблоны ===
-        foreach (AdventurerTemplateInfo t in AdventurerDatabase.Templates)
+        foreach (UnitTemplateInfo t in UnitDatabase.Templates)
         {
             if (t.MinLevel < 1)
             {
@@ -152,11 +152,11 @@ public static class AdventurerValidator
         // === Итог ===
         if (errors == 0)
             Log.Info($"[AdventurerDB] Валидация: ok " +
-                     $"({AdventurerDatabase.Classes.Count} классов, " +
-                     $"{AdventurerDatabase.Races.Count} рас, " +
-                     $"{AdventurerDatabase.Stats.Count} статов, " +
-                     $"{AdventurerDatabase.Statuses.Count} статусов, " +
-                     $"{AdventurerDatabase.Templates.Count} шаблонов)");
+                     $"({UnitDatabase.Classes.Count} классов, " +
+                     $"{UnitDatabase.Races.Count} рас, " +
+                     $"{UnitDatabase.Stats.Count} статов, " +
+                     $"{UnitDatabase.Statuses.Count} статусов, " +
+                     $"{UnitDatabase.Templates.Count} шаблонов)");
         else
             Log.Error($"[AdventurerDB] Валидация: {errors} ошибок");
     }
@@ -167,13 +167,13 @@ public static class AdventurerValidator
     {
         int errors = 0;
 
-        if (AdventurerDatabase.Skills == null || AdventurerDatabase.Skills.Count == 0)
+        if (UnitDatabase.Skills == null || UnitDatabase.Skills.Count == 0)
         {
             Log.Error("[AdventurerDB] Навыки не загружены");
             return;
         }
 
-        foreach (var skill in AdventurerDatabase.Skills.Values)
+        foreach (var skill in UnitDatabase.Skills.Values)
         {
             if (string.IsNullOrEmpty(skill.StatId))
             {
@@ -182,18 +182,18 @@ public static class AdventurerValidator
                 continue;
             }
 
-            if (!AdventurerDatabase.Stats.ContainsKey(skill.StatId))
+            if (!UnitDatabase.Stats.ContainsKey(skill.StatId))
             {
                 Log.Error($"[AdventurerDB] Навык '{skill.Id}': стат '{skill.StatId}' не найден");
                 errors++;
             }
         }
 
-        foreach (var cls in AdventurerDatabase.Classes.Values)
+        foreach (var cls in UnitDatabase.Classes.Values)
         {
             if (!string.IsNullOrEmpty(cls.PrimarySkill))
             {
-                string statId = AdventurerDatabase.StatForSkill(cls.PrimarySkill);
+                string statId = UnitDatabase.StatForSkill(cls.PrimarySkill);
 
                 if (statId == null)
                 {
@@ -210,7 +210,7 @@ public static class AdventurerValidator
 
             if (!string.IsNullOrEmpty(cls.SecondarySkill))
             {
-                string statId = AdventurerDatabase.StatForSkill(cls.SecondarySkill);
+                string statId = UnitDatabase.StatForSkill(cls.SecondarySkill);
 
                 if (statId == null)
                 {
@@ -227,7 +227,7 @@ public static class AdventurerValidator
         }
 
         if (errors == 0)
-            Log.Info($"[AdventurerDB] Валидация навыков: ok ({AdventurerDatabase.Skills.Count} навыков)");
+            Log.Info($"[AdventurerDB] Валидация навыков: ok ({UnitDatabase.Skills.Count} навыков)");
         else
             Log.Error($"[AdventurerDB] Валидация навыков: {errors} ошибок");
     }
@@ -236,7 +236,7 @@ public static class AdventurerValidator
     {
         int errors = 0;
 
-        foreach (var stat in AdventurerDatabase.Stats.Values)
+        foreach (var stat in UnitDatabase.Stats.Values)
         {
             if (string.IsNullOrEmpty(stat.Name.Ru) || string.IsNullOrEmpty(stat.Name.En))
             {
@@ -250,7 +250,7 @@ public static class AdventurerValidator
             }
         }
 
-        foreach (var race in AdventurerDatabase.Races.Values)
+        foreach (var race in UnitDatabase.Races.Values)
         {
             if (string.IsNullOrEmpty(race.Name.Ru) || string.IsNullOrEmpty(race.Name.En))
             {
@@ -259,7 +259,7 @@ public static class AdventurerValidator
             }
         }
 
-        foreach (var cls in AdventurerDatabase.Classes.Values)
+        foreach (var cls in UnitDatabase.Classes.Values)
         {
             if (string.IsNullOrEmpty(cls.Name.Ru) || string.IsNullOrEmpty(cls.Name.En))
             {
@@ -268,7 +268,7 @@ public static class AdventurerValidator
             }
         }
 
-        foreach (var status in AdventurerDatabase.Statuses.Values)
+        foreach (var status in UnitDatabase.Statuses.Values)
         {
             if (string.IsNullOrEmpty(status.Name.Ru) || string.IsNullOrEmpty(status.Name.En))
             {
@@ -277,7 +277,7 @@ public static class AdventurerValidator
             }
         }
 
-        var names = AdventurerDatabase.Names;
+        var names = UnitDatabase.Names;
         if (names == null)
         {
             Log.Error("[AdventurerDB] Names не загружен");
@@ -302,8 +302,8 @@ public static class AdventurerValidator
             errors++;
         }
 
-        int total = AdventurerDatabase.Stats.Count + AdventurerDatabase.Races.Count
-                  + AdventurerDatabase.Classes.Count + AdventurerDatabase.Statuses.Count;
+        int total = UnitDatabase.Stats.Count + UnitDatabase.Races.Count
+                  + UnitDatabase.Classes.Count + UnitDatabase.Statuses.Count;
 
         if (errors == 0)
             Log.Info($"[AdventurerDB] Валидация имён: ok ({total} сущностей, " +

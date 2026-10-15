@@ -8,7 +8,7 @@ public class CreatureStats
 {
     private readonly Dictionary<string, double> values = new();
 
-    public CreatureStats(CreatureInfo creature, int codeLevel, AdventurerBalanceProfile balance)
+    public CreatureStats(CreatureInfo creature, int codeLevel, LevelBalanceProfile balance)
     {
         double refMax = balance.StatStartPool + (codeLevel - 1) * balance.StatBaseSlope;
 

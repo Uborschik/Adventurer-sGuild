@@ -62,7 +62,7 @@ public class QuestFlow
 
     // === Внешний API ===
 
-    public bool StartQuest(QuestModel quest, IReadOnlyList<AdventurerModel> party)
+    public bool StartQuest(QuestModel quest, IReadOnlyList<UnitModel> party)
     {
         if (quest == null) return false;
         if (quest.Status != QuestStatus.Available) return false;
@@ -79,7 +79,7 @@ public class QuestFlow
 
         quest.Status = QuestStatus.Pending;
         registry.TakeFromBoard(quest);
-        quest.Party = new List<AdventurerModel>(party);
+        quest.Party = new List<UnitModel>(party);
         quest.StartTime = GameTime.NextDayStart(clock.Now);
         quest.LastProcessedAt = quest.StartTime;
         quest.CurrentRoleId = quest.StartRoleId;
@@ -456,7 +456,7 @@ public class QuestFlow
             : null;
         if (target == null) return null;
 
-        var balance = AdventurerBalance.Active;
+        var balance = LevelBalance.Active;
         var stats = new CreatureStats(target, nightLevel, balance);
         double refMax = balance.StatStartPool + (nightLevel - 1) * balance.StatBaseSlope;
 
@@ -503,7 +503,7 @@ public class QuestFlow
 
         if (check.Resistance == null || check.Resistance.Count == 0)
         {
-            string statId = AdventurerDatabase.StatForSkill(check.Skill);
+            string statId = UnitDatabase.StatForSkill(check.Skill);
             if (statId == null) return -1;
             return stats.Get(statId) / refMax;
         }
@@ -554,7 +554,7 @@ public class QuestFlow
             }
             else
             {
-                var deadStatus = AdventurerDatabase.GetStatus(StatusIds.Dead);
+                var deadStatus = UnitDatabase.GetStatus(StatusIds.Dead);
                 var days = deadStatus?.AutoRemoveAfterDays ?? 4;
                 a.SetStatus(StatusIds.Dead, at + GameTime.FromDays(days));
 
@@ -593,7 +593,7 @@ public class QuestFlow
         foreach (var a in quest.Party)
         {
             if (a.HasStatus(StatusIds.Dead)) continue;
-            var deadStatus = AdventurerDatabase.GetStatus(StatusIds.Dead);
+            var deadStatus = UnitDatabase.GetStatus(StatusIds.Dead);
             var days = deadStatus?.AutoRemoveAfterDays ?? 4;
             a.SetStatus(StatusIds.Dead, at + GameTime.FromDays(days));
         }
@@ -660,7 +660,7 @@ public class QuestFlow
 
         var shares = QuestCalculator.ContributionShares(aliveParty, phaseResults, quest.CodeLevel);
 
-        var exact = new List<(AdventurerModel a, int xp, double frac)>();
+        var exact = new List<(UnitModel a, int xp, double frac)>();
         int distributed = 0;
 
         foreach (var a in aliveParty)
@@ -680,7 +680,7 @@ public class QuestFlow
 
         exact.Sort((x, y) => y.frac.CompareTo(x.frac));
 
-        var xpByAdv = new Dictionary<AdventurerModel, int>();
+        var xpByAdv = new Dictionary<UnitModel, int>();
         foreach (var (a, fl, _) in exact) xpByAdv[a] = fl;
         for (int i = 0; i < exact.Count && remainder > 0; i++)
         {
@@ -696,7 +696,7 @@ public class QuestFlow
 
             int levelBefore = a.Level.Number;
 
-            AdventurerProgress.AddExperience(a, xp);
+            UnitProgress.AddExperience(a, xp);
 
             int levelAfter = a.Level.Number;
             bool leveled = levelAfter > levelBefore;
@@ -723,7 +723,7 @@ public class QuestFlow
 
     // === Утилиты ===
 
-    private static double EnduranceOf(AdventurerModel a)
+    private static double EnduranceOf(UnitModel a)
     {
         if (a?.Stats == null) return 0;
         return a.Stats.TryGetValue(StatIds.Endurance, out var end) ? end : 0;
@@ -742,7 +742,7 @@ public class QuestFlow
 
     // === Логи ===
 
-    private static void LogStart(QuestModel quest, IReadOnlyList<AdventurerModel> party)
+    private static void LogStart(QuestModel quest, IReadOnlyList<UnitModel> party)
     {
         string name = quest.Name ?? "";
         if (name.Length > 24) name = name[..24];
@@ -834,6 +834,6 @@ public class QuestFlow
         // TODO: правильное распределение уровней квестов. Пока — уровень 1.
         int baseLevel = 1;
         int roll = woundRng.Next(0, 1);
-        return Math.Clamp(baseLevel + roll, 1, AdventurerBalance.MaxLevel);
+        return Math.Clamp(baseLevel + roll, 1, LevelBalance.MaxLevel);
     }
 }

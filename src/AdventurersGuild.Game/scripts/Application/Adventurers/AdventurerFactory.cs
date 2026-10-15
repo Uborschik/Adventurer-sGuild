@@ -9,44 +9,44 @@ using AdventurersGuild.Domain.Adventurers;
 
 public enum Gender { Male, Female }
 
-public class AdventurerFactory(int? seed = null)
+public class UnitFactory(int? seed = null)
 {
     private readonly Random rng = seed.HasValue ? new Random(seed.Value) : new Random();
 
-    public AdventurerModel Create(string raceId, string classId, int lvl)
+    public UnitModel Create(string raceId, string classId, int lvl)
     {
         var stats = StatGrowth.AtLevel(classId, raceId, lvl);
 
         var gender = rng.Next(2) == 0 ? Gender.Male : Gender.Female;
-        var firstPool = gender == Gender.Male ? AdventurerDatabase.Names.FirstNamesMale : AdventurerDatabase.Names.FirstNamesFemale;
+        var firstPool = gender == Gender.Male ? UnitDatabase.Names.FirstNamesMale : UnitDatabase.Names.FirstNamesFemale;
 
         var first = Pick(firstPool).Get(Loc.Language);
-        var last = Pick(AdventurerDatabase.Names.Surnames).Get(Loc.Language);
+        var last = Pick(UnitDatabase.Names.Surnames).Get(Loc.Language);
         var id = Guid.NewGuid().ToString("N");
 
-        var model = new AdventurerModel(id, first, last, classId, raceId, stats, lvl);
+        var model = new UnitModel(id, first, last, classId, raceId, stats, lvl);
 
         LogAdventurer(model, classId, raceId);
 
         return model;
     }
 
-    public AdventurerModel Create(string templateId = "recruit")
+    public UnitModel Create(string templateId = "recruit")
     {
         var template = FindTemplate(templateId);
 
         if (template == null)
         {
-            if (AdventurerDatabase.Templates.Count == 0)
+            if (UnitDatabase.Templates.Count == 0)
             {
-                Log.Error("[AdventurerFactory] Нет шаблонов");
+                Log.Error("[UnitFactory] Нет шаблонов");
                 return null;
             }
-            template = AdventurerDatabase.Templates[0];
+            template = UnitDatabase.Templates[0];
         }
 
         var raceId = PickRaceByPopulation();
-        var race = AdventurerDatabase.GetRace(raceId);
+        var race = UnitDatabase.GetRace(raceId);
 
         if (race == null) return null;
 
@@ -59,32 +59,32 @@ public class AdventurerFactory(int? seed = null)
         var stats = StatGrowth.AtLevel(classId, raceId, level);
 
         var gender = rng.Next(2) == 0 ? Gender.Male : Gender.Female;
-        var firstPool = gender == Gender.Male ? AdventurerDatabase.Names.FirstNamesMale : AdventurerDatabase.Names.FirstNamesFemale;
+        var firstPool = gender == Gender.Male ? UnitDatabase.Names.FirstNamesMale : UnitDatabase.Names.FirstNamesFemale;
 
         var first = Pick(firstPool).Get(Loc.Language);
-        var last = Pick(AdventurerDatabase.Names.Surnames).Get(Loc.Language);
+        var last = Pick(UnitDatabase.Names.Surnames).Get(Loc.Language);
         var id = Guid.NewGuid().ToString("N");
 
-        return new AdventurerModel(id, first, last, classId, raceId, stats, level);
+        return new UnitModel(id, first, last, classId, raceId, stats, level);
     }
 
     private string PickRaceByPopulation()
     {
         var total = 0;
 
-        foreach (var r in AdventurerDatabase.Races.Values)
+        foreach (var r in UnitDatabase.Races.Values)
             total += r.Weight?.Population ?? 0;
 
         if (total <= 0)
         {
-            Log.Error("[AdventurerFactory] Нет рас с population > 0");
+            Log.Error("[UnitFactory] Нет рас с population > 0");
             return null;
         }
 
         var roll = rng.Next(total);
         var acc = 0;
 
-        foreach (var r in AdventurerDatabase.Races.Values)
+        foreach (var r in UnitDatabase.Races.Values)
         {
             acc += r.Weight?.Population ?? 0;
             if (roll < acc) return r.Id;
@@ -93,9 +93,9 @@ public class AdventurerFactory(int? seed = null)
         return null;
     }
 
-    private AdventurerTemplateInfo FindTemplate(string id)
+    private UnitTemplateInfo FindTemplate(string id)
     {
-        foreach (var t in AdventurerDatabase.Templates)
+        foreach (var t in UnitDatabase.Templates)
             if (t.Id == id) return t;
         return null;
     }
@@ -104,7 +104,7 @@ public class AdventurerFactory(int? seed = null)
     {
         if (weights == null || weights.Count == 0)
         {
-            Log.Error("[AdventurerFactory] PickByWeight: пустой словарь");
+            Log.Error("[UnitFactory] PickByWeight: пустой словарь");
             return null;
         }
 
@@ -137,7 +137,7 @@ public class AdventurerFactory(int? seed = null)
         return pool[rng.Next(pool.Count)];
     }
 
-    private static void LogAdventurer(AdventurerModel a, string classId, string raceId)
+    private static void LogAdventurer(UnitModel a, string classId, string raceId)
     {
         var stats = string.Join(" ",
             StatIds.All.Select(s => $"{s}={a.Stats[s]:F2}"));

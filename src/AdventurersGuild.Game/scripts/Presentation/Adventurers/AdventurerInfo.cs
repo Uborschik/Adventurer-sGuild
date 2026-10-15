@@ -31,7 +31,7 @@ public partial class AdventurerInfo : Control
         Clear();
     }
 
-    public void SetAdventurer(AdventurerModel model)
+    public void SetAdventurer(UnitModel model)
     {
         if (model == null) { Clear(); return; }
 
@@ -43,7 +43,7 @@ public partial class AdventurerInfo : Control
             var lbl = statLabels[i];
             var stat = StatIds.All[i];
 
-            lbl.Text = $"{AdventurerDatabase.StatName(stat)}: {(int)model.Stats[stat]}";
+            lbl.Text = $"{UnitDatabase.StatName(stat)}: {(int)model.Stats[stat]}";
         }
     }
 

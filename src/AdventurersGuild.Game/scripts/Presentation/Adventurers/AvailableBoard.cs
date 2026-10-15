@@ -22,7 +22,7 @@ public partial class AvailableBoard : PanelContainer
         adventurerList.Clear();
     }
 
-    public void Add(AdventurerModel model) => adventurerList?.Add(model);
+    public void Add(UnitModel model) => adventurerList?.Add(model);
     public void Remove(string id) => adventurerList?.Remove(id);
-    public void Refresh(IReadOnlyList<AdventurerModel> available) => adventurerList?.Refresh(available);
+    public void Refresh(IReadOnlyList<UnitModel> available) => adventurerList?.Refresh(available);
 }

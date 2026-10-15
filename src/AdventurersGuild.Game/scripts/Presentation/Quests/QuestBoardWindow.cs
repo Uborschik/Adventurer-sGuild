@@ -10,7 +10,7 @@ namespace AdventurersGuild.Presentation.Quests;
 
 public partial class QuestBoardWindow : InteractableWindow
 {
-    private AdventurerRegistry adventurerRegistry;
+    private UnitRegistry adventurerRegistry;
     private QuestRegistry questRegistry;
     private QuestFlow questFlow;
 
@@ -57,7 +57,7 @@ public partial class QuestBoardWindow : InteractableWindow
         }
     }
 
-    public void Bind(AdventurerRegistry adventurerRegistry, QuestRegistry questRegistry, QuestFlow questFlow, QuestResolver questResolver)
+    public void Bind(UnitRegistry adventurerRegistry, QuestRegistry questRegistry, QuestFlow questFlow, QuestResolver questResolver)
     {
         this.adventurerRegistry = adventurerRegistry;
         this.questRegistry = questRegistry;
@@ -108,7 +108,7 @@ public partial class QuestBoardWindow : InteractableWindow
         partySelect.HandleAdventurerClick(id);
     }
 
-    private void OnSelectAdventure(AdventurerModel model)
+    private void OnSelectAdventure(UnitModel model)
     {
         adventurerInfo.SetAdventurer(model);
     }

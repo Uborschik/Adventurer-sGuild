@@ -158,6 +158,6 @@
                 ?? obj["id"]?.GetValue<string>()
                 ?? "?";
         }
-        return obj["id"]?.GetValue<string>() ?? "?";
+        return obj["schema.IdField"]?.GetValue<string>() ?? "?";
     }
 }

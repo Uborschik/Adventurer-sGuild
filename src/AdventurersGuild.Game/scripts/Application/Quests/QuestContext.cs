@@ -11,8 +11,8 @@ public class QuestContext
     public required LocationInfo Location { get; init; }
     public required IReadOnlyList<AmbientCandidate> AmbientPool { get; init; }
     public required int CodeLevel { get; init; }
-    public required AdventurerBalanceProfile AdventurerBalance { get; init; }
+    public required LevelBalanceProfile LevelBalance { get; init; }
 
     public double ReferenceMaxStat =>
-        AdventurerBalance.StatStartPool + (CodeLevel - 1) * AdventurerBalance.StatBaseSlope;
+        LevelBalance.StatStartPool + (CodeLevel - 1) * LevelBalance.StatBaseSlope;
 }

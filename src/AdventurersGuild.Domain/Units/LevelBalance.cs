@@ -3,18 +3,18 @@ using AdventurersGuild.Core;
 
 namespace AdventurersGuild.Domain.Adventurers;
 
-public static class AdventurerBalance
+public static class LevelBalance
 {
-    private static AdventurerBalanceProfile active;
+    private static LevelBalanceProfile active;
 
-    public static AdventurerBalanceProfile Active
+    public static LevelBalanceProfile Active
     {
         get
         {
             if (active == null)
             {
-                Log.Warn("[AdventurerBalance] Active == null, использую дефолты");
-                active = new AdventurerBalanceProfile();
+                Log.Warn("[LevelBalance] Active == null, использую дефолты");
+                active = new LevelBalanceProfile();
             }
             return active;
         }
@@ -41,7 +41,7 @@ public static class AdventurerBalance
         };
     }
 
-    public static void SetActiveProfile(AdventurerBalanceProfile profile)
+    public static void SetActiveProfile(LevelBalanceProfile profile)
     {
         if (profile != null) active = profile;
     }

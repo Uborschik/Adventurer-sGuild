@@ -3,7 +3,7 @@ using AdventurersGuild.Core.Localization;
 
 namespace AdventurersGuild.Domain.Adventurers;
 
-public class AdventurerClassInfo
+public class ClassInfo
 {
     public string Id { get; set; }
     public LocalizedString Name { get; set; }
@@ -17,5 +17,5 @@ public class AdventurerClassInfo
 
 public class AdventurerClassDatabase
 {
-    public List<AdventurerClassInfo> Classes { get; set; } = new();
+    public List<ClassInfo> Classes { get; set; } = new();
 }

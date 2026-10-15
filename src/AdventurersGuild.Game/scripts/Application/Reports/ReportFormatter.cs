@@ -80,7 +80,7 @@ public static class ReportFormatter
                 ? "[color=#7ad67a]✓[/color]"
                 : "[color=#ff6b6b]✗[/color]";
 
-            string skillName = AdventurerDatabase.GetSkill(r.SkillId)?.Name.Get(Loc.Language)
+            string skillName = UnitDatabase.GetSkill(r.SkillId)?.Name.Get(Loc.Language)
                                ?? r.SkillId;
             string adv = ExtractFirstName(r.BestAdvName);
 
@@ -93,13 +93,13 @@ public static class ReportFormatter
 
     // === Травмы / смерть / level up ===
 
-    public static string Wounded(AdventurerModel a, int days)
+    public static string Wounded(UnitModel a, int days)
         => $"  [color=#ffb84d]⚠[/color] {a.FirstName} ранен на {days} д.\n";
 
-    public static string Died(AdventurerModel a)
+    public static string Died(UnitModel a)
         => $"  [color=#ff6b6b]☠[/color] {a.FirstName} погиб.\n";
 
-    public static string LevelUp(AdventurerModel a, int oldLevel, int newLevel)
+    public static string LevelUp(UnitModel a, int oldLevel, int newLevel)
         => $"  [color=#ffe066]★[/color] {a.FirstName} достиг L{newLevel}\n";
 
     // === Ночь ===

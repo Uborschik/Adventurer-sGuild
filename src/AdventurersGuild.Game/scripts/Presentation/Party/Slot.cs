@@ -44,7 +44,7 @@ public partial class Slot : Control
         }
     }
 
-    public void SetContent(AdventurerModel data, Texture2D tex)
+    public void SetContent(UnitModel data, Texture2D tex)
     {
         if (icon != null) icon.Texture = data != null ? tex : null;
         TooltipText = data?.FullName ?? "";

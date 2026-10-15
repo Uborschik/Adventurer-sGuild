@@ -15,6 +15,7 @@ public static class GradeSchema
         Order = 20,
         File = "Data/Quest/QuestGrades.json",
         RootPath = "grades",
+        IdField = "role",
         DisplayField = "role",
 
         Fields = new[]

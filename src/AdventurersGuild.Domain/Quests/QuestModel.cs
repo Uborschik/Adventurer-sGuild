@@ -61,7 +61,7 @@ public class QuestModel
     public QuestStatus Status { get; set; } = QuestStatus.Available;
 
     // === Партия ===
-    public List<AdventurerModel> Party { get; set; }
+    public List<UnitModel> Party { get; set; }
     public GameTime StartTime { get; set; }
 
     // === Финал ===

@@ -1,6 +1,6 @@
 namespace AdventurersGuild.Domain.Adventurers;
 
-public class AdventurerBalanceProfile
+public class LevelBalanceProfile
 {
     public int MaxLevel { get; set; } = 60;
     public int ExpCapLvl1 { get; set; } = 45;

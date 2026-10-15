@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace AdventurersGuild.Domain.Adventurers;
 
-public class AdventurerTemplateInfo
+public class UnitTemplateInfo
 {
     public string Id { get; set; }
     public int MinLevel { get; set; }
@@ -11,5 +11,5 @@ public class AdventurerTemplateInfo
 
 public class AdventurerTemplateDatabase
 {
-    public List<AdventurerTemplateInfo> Templates { get; set; } = new();
+    public List<UnitTemplateInfo> Templates { get; set; } = new();
 }

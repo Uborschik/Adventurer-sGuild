@@ -1,8 +1,8 @@
 namespace AdventurersGuild.Domain.Adventurers;
 
-public static class AdventurerProgress
+public static class UnitProgress
 {
-    public static void AddExperience(AdventurerModel model, int amount)
+    public static void AddExperience(UnitModel model, int amount)
     {
         if (model == null || amount <= 0) return;
 
@@ -11,18 +11,18 @@ public static class AdventurerProgress
 
         while (model.Level.CanLevelUp)
         {
-            if (model.Level.Number >= AdventurerBalance.MaxLevel) break;
+            if (model.Level.Number >= LevelBalance.MaxLevel) break;
             LevelUp(model);
         }
     }
 
-    private static void LevelUp(AdventurerModel model)
+    private static void LevelUp(UnitModel model)
     {
         var current = model.Level;
 
         int newNumber = current.Number + 1;
         int overflow = current.Experience - current.ExpToNext;
-        int newExpToNext = AdventurerBalance.ExpCapFor(newNumber);
+        int newExpToNext = LevelBalance.ExpCapFor(newNumber);
 
         var newLevel = current.SetAfterLevelUp(newNumber, overflow, newExpToNext);
         model.SetLevel(newLevel);

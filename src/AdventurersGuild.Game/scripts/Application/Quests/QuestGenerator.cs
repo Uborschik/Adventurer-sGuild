@@ -23,7 +23,7 @@ public class QuestGenerator
     {
         if (ctx == null || rng == null) return null;
 
-        var targetStats = new CreatureStats(ctx.Target, ctx.CodeLevel, ctx.AdventurerBalance);
+        var targetStats = new CreatureStats(ctx.Target, ctx.CodeLevel, ctx.LevelBalance);
 
         var fills = FillRoles(ctx, targetStats);
         if (fills == null) return null;
@@ -177,7 +177,7 @@ public class QuestGenerator
 
             if (!phases.TryGetValue(contribution.PhaseId, out var template)) continue;
 
-            var stats = new CreatureStats(candidate.Creature, ctx.CodeLevel, ctx.AdventurerBalance);
+            var stats = new CreatureStats(candidate.Creature, ctx.CodeLevel, ctx.LevelBalance);
             var solutions = BuildSolutions(template, stats, ctx.ReferenceMaxStat);
 
             output.Add(new QuestPhaseInstance
@@ -230,7 +230,7 @@ public class QuestGenerator
 
         if (check.Resistance == null || check.Resistance.Count == 0)
         {
-            string statId = AdventurerDatabase.StatForSkill(check.Skill);
+            string statId = UnitDatabase.StatForSkill(check.Skill);
             if (statId == null) return -1;
             return stats.Get(statId) / refMax;
         }

@@ -9,13 +9,13 @@ public static class StatGrowth
 
     public static Dictionary<string, double> AtLevel(string classId, string raceId, int level = 1)
     {
-        var cls = AdventurerDatabase.GetClass(classId);
-        var race = AdventurerDatabase.GetRace(raceId);
+        var cls = UnitDatabase.GetClass(classId);
+        var race = UnitDatabase.GetRace(raceId);
 
         if (cls == null || race == null)
             return new Dictionary<string, double>();
 
-        var p = AdventurerBalance.Active;
+        var p = LevelBalance.Active;
         int levelsAboveOne = Math.Max(0, level - 1);
 
         var result = new Dictionary<string, double>();

@@ -4,7 +4,7 @@ using AdventurersGuild.Core;
 
 namespace AdventurersGuild.Domain.Adventurers;
 
-public class AdventurerModel
+public class UnitModel
 {
     public event Action StatusChanged;
     public event Action ProgressChanged;
@@ -21,7 +21,7 @@ public class AdventurerModel
 
     public string FullName => $"{FirstName} {LastName}";
 
-    public AdventurerModel(string id, string firstName, string lastName, string classId, string raceId, Dictionary<string, double> stats, int level)
+    public UnitModel(string id, string firstName, string lastName, string classId, string raceId, Dictionary<string, double> stats, int level)
     {
         Id = id;
         FirstName = firstName;

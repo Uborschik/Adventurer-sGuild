@@ -13,12 +13,12 @@ public partial class Slots : Control
 {
     private const int MaxPartySize = 4;
 
-    public event Action<AdventurerModel> SelectedAdventurer;
+    public event Action<UnitModel> SelectedAdventurer;
     public event Action PartyChanged;
 
     private Slot[] slots;
 
-    private readonly AdventurerModel[] party = new AdventurerModel[MaxPartySize];
+    private readonly UnitModel[] party = new UnitModel[MaxPartySize];
     private int selectedSlot = -1;
 
     public int Count
@@ -59,7 +59,7 @@ public partial class Slots : Control
         }
     }
 
-    public void Add(AdventurerModel model)
+    public void Add(UnitModel model)
     {
         if (model == null) return;
         if (model.StatusId != StatusIds.Free) return;
@@ -75,9 +75,9 @@ public partial class Slots : Control
         NotifyChanged();
     }
 
-    public List<AdventurerModel> BuildParty()
+    public List<UnitModel> BuildParty()
     {
-        var list = new List<AdventurerModel>();
+        var list = new List<UnitModel>();
         foreach (var p in party) if (p != null) list.Add(p);
         return list;
     }
@@ -89,7 +89,7 @@ public partial class Slots : Control
         for (int i = 0; i < party.Length; i++)
         {
             if (party[i] == null) continue;
-            if (AdventurerDatabase.IsFree(party[i])) continue;
+            if (UnitDatabase.IsFree(party[i])) continue;
 
             party[i].SetStatus(StatusIds.Free);
             party[i] = null;

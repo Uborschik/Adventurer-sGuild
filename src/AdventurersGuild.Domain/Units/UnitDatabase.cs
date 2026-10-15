@@ -4,30 +4,29 @@ using System.Collections.Generic;
 using AdventurersGuild.Core;
 using AdventurersGuild.Domain.Names;
 
-public static class AdventurerDatabase
+public static class UnitDatabase
 {
-    public static IReadOnlyDictionary<string, AdventurerClassInfo> Classes { get; private set; }
-    public static IReadOnlyDictionary<string, AdventurerRaceInfo> Races { get; private set; }
-    public static IReadOnlyDictionary<string, AdventurerStatInfo> Stats { get; private set; }
+    public static IReadOnlyDictionary<string, ClassInfo> Classes { get; private set; }
+    public static IReadOnlyDictionary<string, RaceInfo> Races { get; private set; }
+    public static IReadOnlyDictionary<string, StatInfo> Stats { get; private set; }
     public static IReadOnlyDictionary<string, SkillInfo> Skills { get; private set; }
-    public static IReadOnlyDictionary<string, AdventurerStatusInfo> Statuses { get; private set; }
-    public static IReadOnlyList<AdventurerTemplateInfo> Templates { get; private set; }
+    public static IReadOnlyDictionary<string, StatusInfo> Statuses { get; private set; }
+    public static IReadOnlyList<UnitTemplateInfo> Templates { get; private set; }
     public static NameDatabase Names { get; private set; }
 
-    private static Dictionary<string, string> skillToStat;
-    private static Dictionary<string, SkillInfo> skillsById;
+    private static Dictionary<string, string> skillToStat = [];
 
     public static int SkillCount => skillToStat?.Count ?? 0;
 
     // === Install ===
 
     public static void Install(
-        IReadOnlyDictionary<string, AdventurerClassInfo> classes = null,
-        IReadOnlyDictionary<string, AdventurerRaceInfo> races = null,
-        IReadOnlyDictionary<string, AdventurerStatInfo> stats = null,
+        IReadOnlyDictionary<string, ClassInfo> classes = null,
+        IReadOnlyDictionary<string, RaceInfo> races = null,
+        IReadOnlyDictionary<string, StatInfo> stats = null,
         IReadOnlyDictionary<string, SkillInfo> skills = null,
-        IReadOnlyDictionary<string, AdventurerStatusInfo> statuses = null,
-        IReadOnlyList<AdventurerTemplateInfo> templates = null,
+        IReadOnlyDictionary<string, StatusInfo> statuses = null,
+        IReadOnlyList<UnitTemplateInfo> templates = null,
         NameDatabase names = null)
     {
         if (classes != null) Classes = classes;
@@ -43,13 +42,13 @@ public static class AdventurerDatabase
 
     private static void BuildSkillIndex()
     {
-        skillToStat = [];
+        skillToStat = new();
 
-        if (skillsById == null) return;
+        if (Skills == null) return;
 
-        foreach (KeyValuePair<string, SkillInfo> kv in skillsById)
+        foreach (var kv in Skills)
         {
-            SkillInfo skill = kv.Value;
+            var skill = kv.Value;
             if (skill == null || string.IsNullOrEmpty(skill.Id)) continue;
 
             if (string.IsNullOrEmpty(skill.StatId))
@@ -70,10 +69,10 @@ public static class AdventurerDatabase
 
     // === Lookups ===
 
-    public static AdventurerClassInfo GetClass(string id) => Lookup(Classes, id, "класс");
-    public static AdventurerRaceInfo GetRace(string id) => Lookup(Races, id, "раса");
-    public static AdventurerStatInfo GetStat(string id) => Lookup(Stats, id, "стат");
-    public static AdventurerStatusInfo GetStatus(string id) => Lookup(Statuses, id, "статус");
+    public static ClassInfo GetClass(string id) => Lookup(Classes, id, "класс");
+    public static RaceInfo GetRace(string id) => Lookup(Races, id, "раса");
+    public static StatInfo GetStat(string id) => Lookup(Stats, id, "стат");
+    public static StatusInfo GetStatus(string id) => Lookup(Statuses, id, "статус");
 
     public static string StatForSkill(string skillId)
     {
@@ -84,7 +83,7 @@ public static class AdventurerDatabase
     public static SkillInfo GetSkill(string skillId)
     {
         if (string.IsNullOrEmpty(skillId)) return null;
-        return skillsById != null && skillsById.TryGetValue(skillId, out var s) ? s : null;
+        return Skills != null && Skills.TryGetValue(skillId, out var s) ? s : null;
     }
 
     public static bool IsValidSkill(string skillId)
@@ -94,38 +93,38 @@ public static class AdventurerDatabase
 
     public static string ClassName(string id)
     {
-        AdventurerClassInfo c = GetClass(id);
+        ClassInfo c = GetClass(id);
         return c?.Name.Get(Loc.Language) ?? id;
     }
 
     public static string RaceName(string id)
     {
-        AdventurerRaceInfo r = GetRace(id);
+        RaceInfo r = GetRace(id);
         return r?.Name.Get(Loc.Language) ?? id;
     }
 
     public static string StatName(string id)
     {
-        AdventurerStatInfo s = GetStat(id);
+        StatInfo s = GetStat(id);
         return s?.Name.Get(Loc.Language) ?? id;
     }
 
     public static string StatDescription(string id)
     {
-        AdventurerStatInfo s = GetStat(id);
+        StatInfo s = GetStat(id);
         return s?.Description.Get(Loc.Language) ?? "";
     }
 
     public static string StatusName(string id)
     {
-        AdventurerStatusInfo s = GetStatus(id);
+        StatusInfo s = GetStatus(id);
         return s?.Name.Get(Loc.Language) ?? id;
     }
 
-    public static bool IsFree(AdventurerModel a)
+    public static bool IsFree(UnitModel a)
     {
         if (a == null) return false;
-        AdventurerStatusInfo info = GetStatus(a.StatusId);
+        StatusInfo info = GetStatus(a.StatusId);
         return info == null || !info.BlocksAssignment;
     }
 

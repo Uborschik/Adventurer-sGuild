@@ -4,14 +4,14 @@ using AdventurersGuild.Core;
 
 namespace AdventurersGuild.Domain.Adventurers;
 
-public class AdventurerRegistry
+public class UnitRegistry
 {
     public event Action<string> Added;
     public event Action<string> Removed;
 
-    private readonly List<AdventurerModel> data = [];
+    private readonly List<UnitModel> data = [];
 
-    public IReadOnlyList<AdventurerModel> All => data;
+    public IReadOnlyList<UnitModel> All => data;
     public int Count => data.Count;
 
     public void Tick(GameTime now)
@@ -31,7 +31,7 @@ public class AdventurerRegistry
         }
     }
 
-    public bool TryAdd(AdventurerModel model)
+    public bool TryAdd(UnitModel model)
     {
         if (model == null) return false;
         if (Contains(model.Id)) return false;
@@ -51,7 +51,7 @@ public class AdventurerRegistry
         return true;
     }
 
-    public AdventurerModel GetById(string id)
+    public UnitModel GetById(string id)
     {
         foreach (var a in data)
             if (a.Id == id) return a;

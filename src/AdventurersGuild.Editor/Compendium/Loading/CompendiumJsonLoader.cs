@@ -47,7 +47,7 @@ public sealed class CompendiumJsonLoader
         {
             if (item is not JsonObject itemObj) continue;
 
-            string id = itemObj["id"]?.GetValue<string>() ?? "";
+            string id = itemObj[schema.IdField]?.GetValue<string>() ?? "";
             if (string.IsNullOrEmpty(id)) continue;
 
             var entry = new CompendiumEntry
@@ -67,7 +67,7 @@ public sealed class CompendiumJsonLoader
         JsonNode? node = obj[schema.DisplayField];
 
         if (node is JsonValue val)
-            return val.GetValue<string>() ?? obj["id"]?.GetValue<string>() ?? "?";
+            return val.GetValue<string>() ?? obj[schema.IdField]?.GetValue<string>() ?? "?";
 
         if (node is JsonObject loc)
         {
@@ -81,6 +81,6 @@ public sealed class CompendiumJsonLoader
             if (en is JsonValue ev) return ev.GetValue<string>() ?? "?";
         }
 
-        return obj["id"]?.GetValue<string>() ?? "?";
+        return obj[schema.IdField]?.GetValue<string>() ?? "?";
     }
 }

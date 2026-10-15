@@ -16,9 +16,9 @@ public sealed class DataLoader
 
         // FileSystem.Current должен быть установлен хостом до вызова.
         LocLoader.Load();
-        AdventurerBalanceLoader.Load();
+        LevelBalanceLoader.Load();
         QuestBalanceLoader.Load();
-        AdventurerLoader.Load();
+        UnitLoader.Load();
         QuestLoader.Load();
         CompendiumLoader.Load();
 

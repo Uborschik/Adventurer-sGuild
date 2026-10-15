@@ -24,5 +24,5 @@ public readonly struct Level
         => new(newNumber, newExperience, newExpToNext);
 
     public static Level New(int number)
-        => new(number, 0, AdventurerBalance.ExpCapFor(number));
+        => new(number, 0, LevelBalance.ExpCapFor(number));
 }

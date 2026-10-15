@@ -20,11 +20,11 @@ public static class QuestCalculator
 
     public static double ReferenceMaxStatQuest(int codeLevel)
     {
-        var ab = AdventurerBalance.Active;
+        var ab = LevelBalance.Active;
         return ab.StatStartPool + (codeLevel - 1) * ab.StatBaseSlope;
     }
 
-    public static double EffectiveStat(AdventurerModel a, string statId)
+    public static double EffectiveStat(UnitModel a, string statId)
     {
         if (a?.Stats == null) return 0;
         if (!a.Stats.TryGetValue(statId, out var v)) return 0;
@@ -32,14 +32,14 @@ public static class QuestCalculator
         return woundedFactor * v;
     }
 
-    public static double SkillValue(AdventurerModel a, string skillId)
+    public static double SkillValue(UnitModel a, string skillId)
     {
         if (a?.Stats == null) return 0;
 
-        var skill = AdventurerDatabase.GetSkill(skillId);
+        var skill = UnitDatabase.GetSkill(skillId);
         if (skill == null) return 0;
 
-        string statId = AdventurerDatabase.StatForSkill(skillId);
+        string statId = UnitDatabase.StatForSkill(skillId);
         if (statId == null) return 0;
 
         double statValue = EffectiveStat(a, statId);
@@ -54,7 +54,7 @@ public static class QuestCalculator
 
     // === Проверка фазы (командная) ===
 
-    public static PhaseOutcome EvaluatePhase(QuestPhaseInstance phase, IReadOnlyList<AdventurerModel> party, int codeLevel, Random rng, double extraDc = 0)
+    public static PhaseOutcome EvaluatePhase(QuestPhaseInstance phase, IReadOnlyList<UnitModel> party, int codeLevel, Random rng, double extraDc = 0)
     {
         var outcome = new PhaseOutcome
         {
@@ -92,7 +92,7 @@ public static class QuestCalculator
                     double required = (rawDc + extraDc) * refMax;
 
                     double bestSkill = 0;
-                    AdventurerModel bestAdv = null;
+                    UnitModel bestAdv = null;
 
                     foreach (var a in party)
                     {
@@ -209,7 +209,7 @@ public static class QuestCalculator
 
     // === Contribution ===
 
-    public static double Contribution(AdventurerModel a, List<PhaseResult> results, int codeLevel)
+    public static double Contribution(UnitModel a, List<PhaseResult> results, int codeLevel)
     {
         if (a == null || results == null || results.Count == 0) return 0;
 
@@ -247,12 +247,12 @@ public static class QuestCalculator
         return baseScore + phaseScore;
     }
 
-    public static Dictionary<AdventurerModel, double> ContributionShares(
-        IReadOnlyList<AdventurerModel> party,
+    public static Dictionary<UnitModel, double> ContributionShares(
+        IReadOnlyList<UnitModel> party,
         List<PhaseResult> results,
         int codeLevel)
     {
-        var result = new Dictionary<AdventurerModel, double>();
+        var result = new Dictionary<UnitModel, double>();
         if (party == null || party.Count == 0) return result;
 
         double total = 0;
@@ -279,7 +279,7 @@ public static class QuestCalculator
 
     // === Ожидаемые броски (без rng, для UI / preview) ===
 
-    public static List<SkillRollResult> ExpectedRolls(QuestPhaseInstance phase, IReadOnlyList<AdventurerModel> party, int codeLevel)
+    public static List<SkillRollResult> ExpectedRolls(QuestPhaseInstance phase, IReadOnlyList<UnitModel> party, int codeLevel)
     {
         var bestSolutionRolls = new List<SkillRollResult>();
         if (phase?.Solutions == null || party == null) return bestSolutionRolls;
@@ -303,7 +303,7 @@ public static class QuestCalculator
                 double required = kv.Value * refMax;
 
                 double bestSkill = 0;
-                AdventurerModel bestAdv = null;
+                UnitModel bestAdv = null;
 
                 foreach (var a in party)
                 {
@@ -344,7 +344,7 @@ public static class QuestCalculator
         return bestSolutionRolls;
     }
 
-    public static double ComputeEscapeChance(AdventurerModel a, CreatureInfo creature, int codeLevel)
+    public static double ComputeEscapeChance(UnitModel a, CreatureInfo creature, int codeLevel)
     {
         var b = B;
 

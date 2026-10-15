@@ -19,9 +19,9 @@ public partial class RegisterWindow : InteractableWindow
     private AdventurerBoard adventurerBoard;
     private Control control;
 
-    private readonly List<AdventurerModel> candidates = [];
-    private AdventurerRegistry adventurerRegistry;
-    private AdventurerFactory adventurerFactory;
+    private readonly List<UnitModel> candidates = [];
+    private UnitRegistry adventurerRegistry;
+    private UnitFactory adventurerFactory;
     private Button hire;
     private Button reject;
 
@@ -65,7 +65,7 @@ public partial class RegisterWindow : InteractableWindow
         adventurerBoard?.AdventurerList?.Deselect();
     }
 
-    public void Bind(AdventurerRegistry adventurerRegistry, AdventurerFactory adventurerFactory)
+    public void Bind(UnitRegistry adventurerRegistry, UnitFactory adventurerFactory)
     {
         this.adventurerFactory = adventurerFactory;
         this.adventurerRegistry = adventurerRegistry;
@@ -102,7 +102,7 @@ public partial class RegisterWindow : InteractableWindow
         adventurerInfo.SetAdventurer(model);
     }
 
-    private void OnRemove(AdventurerModel model)
+    private void OnRemove(UnitModel model)
     {
         adventurerBoard.AdventurerList.Remove(model.Id);
     }
@@ -143,7 +143,7 @@ public partial class RegisterWindow : InteractableWindow
         adventurerInfo.Clear();
     }
 
-    private AdventurerModel FindModel(string id)
+    private UnitModel FindModel(string id)
     {
         foreach (var c in candidates)
             if (c.Id == id) return c;
@@ -164,7 +164,7 @@ public partial class RegisterWindow : InteractableWindow
 
     private void TestAllRacesAndClasses()
     {
-        var classIds = AdventurerDatabase.Classes.Keys.ToList();
+        var classIds = UnitDatabase.Classes.Keys.ToList();
 
         foreach (var classId in classIds)
         {

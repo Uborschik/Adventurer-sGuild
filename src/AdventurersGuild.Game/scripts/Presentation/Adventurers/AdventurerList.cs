@@ -11,7 +11,7 @@ public partial class AdventurerList : SceneListBase
 
     protected override PackedScene RowScene => RowPrefab;
 
-    public void Add(AdventurerModel model)
+    public void Add(UnitModel model)
     {
         var row = CreateRow();
 
@@ -36,7 +36,7 @@ public partial class AdventurerList : SceneListBase
         row.QueueFree();
     }
 
-    public void Refresh(IReadOnlyList<AdventurerModel> items)
+    public void Refresh(IReadOnlyList<UnitModel> items)
     {
         Clear();
         foreach (var m in items)

@@ -13,7 +13,7 @@ public abstract partial class AdventurerRowBase : SceneListRow, IAdventurerRow
     protected Label NameLabel { get; private set; }
     protected Label LevelLabel { get; private set; }
 
-    protected AdventurerModel Bound { get; private set; }
+    protected UnitModel Bound { get; private set; }
 
     public override void _Ready()
     {
@@ -34,7 +34,7 @@ public abstract partial class AdventurerRowBase : SceneListRow, IAdventurerRow
         Unsubscribe();
     }
 
-    public virtual void Bind(AdventurerModel model)
+    public virtual void Bind(UnitModel model)
     {
         Unsubscribe();
 
@@ -89,7 +89,7 @@ public abstract partial class AdventurerRowBase : SceneListRow, IAdventurerRow
     }
 
     protected virtual string BuildTooltip()
-        => $"{Bound.FullName} · {AdventurerDatabase.ClassName(Bound.ClassId)} · " +
+        => $"{Bound.FullName} · {UnitDatabase.ClassName(Bound.ClassId)} · " +
            $"ур. {Bound.Level.Number} · оп. {Bound.Level.Experience}/{Bound.Level.ExpToNext}";
 
     protected override void RefreshState()
