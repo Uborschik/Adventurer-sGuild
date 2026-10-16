@@ -1,5 +1,4 @@
 @namespace AdventurersGuild.Editor.Components.Shared.Compendium
-@inject SchemaRegistry Schemas
 
 <MudNavMenu Bordered="true" Rounded="true" Class="pa-2">
 
@@ -14,20 +13,6 @@
         <NavNode Node="node" />
     }
 
-    <MudNavGroup Title="Инструменты"
-                 Icon="@Icons.Material.Filled.Build"
-                 Expanded="false">
-        <MudNavLink Href="/tools/xp" Icon="@Icons.Material.Filled.TrendingUp">
-            XP-кривые
-        </MudNavLink>
-        <MudNavLink Href="/tools/stats" Icon="@Icons.Material.Filled.BarChart">
-            Статы по уровням
-        </MudNavLink>
-        <MudNavLink Href="/tools/validation" Icon="@Icons.Material.Filled.Rule">
-            Валидация
-        </MudNavLink>
-    </MudNavGroup>
-
 </MudNavMenu>
 
 @code {
@@ -38,36 +23,20 @@
         Root = BuildTree();
     }
 
-    private static readonly Dictionary<string, int> NodeOrders = new()
-    {
-        ["Мир"]       = 10,
-        ["Квесты"]    = 20,
-        ["Прочее"]    = 30,
-
-        ["Статы"]     = 1,
-        ["Фазы"]      = 2,
-        ["Локации"]   = 3,
-        ["Бестиарий"] = 5,
-
-        ["Виды"]      = 1,
-
-        ["Гуманоиды"] = 1,
-        ["Звери"]     = 2,
-
-        ["Расы"]      = 1,
-        ["Классы"]    = 2,
-        ["Роли"]      = 3,
-    };
-
-    private int GetOrder(string nodeName, int fallback) => NodeOrders.TryGetValue(nodeName, out var o) ? o : fallback;
-
     private NavNodeModel BuildTree()
     {
         var root = new NavNodeModel { Name = "", Order = 0 };
-
-        foreach (var schema in Schemas.All)
+        var nodeOrders = new Dictionary<string, int>
         {
-            var section = string.IsNullOrEmpty(schema.Section) ? "Прочее" : schema.Section;
+            ["Мир"]   = 10,
+            ["Расы"]  = 20,
+            ["Квесты"] = 30,
+            ["Прочее"] = 90,
+        };
+
+        foreach (var kind in Kinds.All)
+        {
+            var section = string.IsNullOrEmpty(kind.Section) ? "Прочее" : kind.Section;
             var segments = section.Split('/', StringSplitOptions.RemoveEmptyEntries);
 
             var current = root;
@@ -79,15 +48,15 @@
                     existing = new NavNodeModel
                     {
                         Name = seg,
-                        Order = GetOrder(seg, schema.Order),
+                        Order = nodeOrders.TryGetValue(seg, out var o) ? o : kind.Order,
                     };
                     current.Children.Add(existing);
                 }
                 current = existing;
             }
 
-            if (current.Schema == null)
-                current.Schema = schema;
+            if (current.Kind == null)
+                current.Kind = kind;
         }
 
         return root;

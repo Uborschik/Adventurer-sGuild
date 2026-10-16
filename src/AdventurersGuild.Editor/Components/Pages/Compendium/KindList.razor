@@ -1,18 +1,18 @@
 @page "/compendium/{Kind}"
+@using AdventurersGuild.Editor.Compendium
 @inject CompendiumService Compendium
 @inject NavigationManager Nav
+@inject IDialogService DialogService
 
-<PageTitle>@Schema?.PluralTitle</PageTitle>
-
-@if (Schema is null)
+@if (Info is null)
 {
-    <MudAlert Severity="Severity.Error" Class="mt-4">
-        Kind «@Kind» не зарегистрирован.
-    </MudAlert>
+    <MudAlert Severity="Severity.Error">Kind «@Kind» не зарегистрирован.</MudAlert>
     return;
 }
 
-<MudText Typo="Typo.h4">@Schema.PluralTitle</MudText>
+<PageTitle>@Info.PluralTitle</PageTitle>
+
+<MudText Typo="Typo.h4">@Info.PluralTitle</MudText>
 
 <div class="d-flex justify-end mt-4 mb-2">
     <MudButton Variant="Variant.Filled"
@@ -25,7 +25,7 @@
 
 <MudTable Items="@Entries" Dense="true" Hover="true" Bordered="true">
     <HeaderContent>
-        <MudTh>ID</MudTh>
+        <MudTh>@Info.IdField</MudTh>
         <MudTh>Название</MudTh>
         <MudTh Style="width:220px"></MudTh>
     </HeaderContent>
@@ -42,30 +42,12 @@
 @code {
     [Parameter] public string Kind { get; set; } = "";
 
-    [Inject] public IDialogService DialogService { get; set; } = default!;
-
-    private EntitySchema? Schema =>
-        Compendium.Index.CountOf(Kind) >= 0 && TryGetSchema(Kind, out var s) ? s : null;
+    private KindInfo? Info => Kinds.Get(Kind);
 
     private IReadOnlyList<CompendiumEntry> Entries =>
         Compendium.Index.AllOfKind(Kind).OrderBy(e => e.Id).ToList();
 
-    private bool TryGetSchema(string kind, out EntitySchema? schema)
-    {
-        try
-        {
-            schema = Compendium.Schema(kind);
-            return true;
-        }
-        catch
-        {
-            schema = null;
-            return false;
-        }
-    }
-
     private void CreateNew() => Nav.NavigateTo($"/compendium/{Kind}/__new__");
-
     private void Edit(string id) => Nav.NavigateTo($"/compendium/{Kind}/{id}");
 
     private async Task ConfirmDelete(CompendiumEntry entry)

@@ -1,35 +1,27 @@
+#nullable enable
+
 namespace AdventurersGuild.Editor.Compendium.Loading;
 
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using AdventurersGuild.Data.IO;
-using AdventurersGuild.Editor.Compendium.Schema;
 
 public sealed class CompendiumJsonLoader
 {
-    private readonly SchemaRegistry schemas;
-
-    public CompendiumJsonLoader(SchemaRegistry schemas)
-    {
-        this.schemas = schemas;
-    }
-
     public CompendiumIndex LoadAll()
     {
         var index = new CompendiumIndex();
-        foreach (var schema in schemas.All)
-            LoadKind(schema, index);
+        foreach (var kind in Kinds.All)
+            LoadKind(kind, index);
         return index;
     }
 
-    public void LoadKind(EntitySchema schema, CompendiumIndex index)
+    public void LoadKind(KindInfo kind, CompendiumIndex index)
     {
-        if (string.IsNullOrEmpty(schema.File) || string.IsNullOrEmpty(schema.RootPath)) return;
+        if (!FileSystem.Current.Exists(kind.File)) return;
 
-        string json = FileSystem.Current.ReadAllText(schema.File);
-
-        if (string.IsNullOrWhiteSpace(json))
-            throw new InvalidOperationException($"Файл '{schema.File}' пуст или не читается.");
+        string json = FileSystem.Current.ReadAllText(kind.File);
+        if (string.IsNullOrWhiteSpace(json)) return;
 
         var root = JsonNode.Parse(json, documentOptions: new JsonDocumentOptions
         {
@@ -37,52 +29,39 @@ public sealed class CompendiumJsonLoader
             AllowTrailingCommas = true,
         });
 
-        if (root is not JsonObject obj)
-            throw new InvalidOperationException($"Корень файла '{schema.File}' должен быть объектом.");
+        if (root is not JsonObject obj) return;
+        index.SetRoot(kind.Kind, obj);
 
-        if (obj[schema.RootPath] is not JsonArray array)
-            throw new InvalidOperationException($"В файле '{schema.File}' нет массива '{schema.RootPath}'.");
-
-        index.SetRoot(schema.Kind, obj);
+        if (obj[kind.RootPath] is not JsonArray array) return;
 
         foreach (var item in array)
         {
             if (item is not JsonObject itemObj) continue;
 
-            string id = itemObj[schema.IdField]?.GetValue<string>() ?? "";
+            string id = itemObj[kind.IdField]?.GetValue<string>() ?? "";
             if (string.IsNullOrEmpty(id)) continue;
 
             var entry = new CompendiumEntry
             {
-                Kind = schema.Kind,
+                Kind = kind.Kind,
                 Id = id,
                 Json = itemObj,
-                DisplayName = ExtractDisplayName(itemObj, schema),
+                DisplayName = ExtractDisplayName(itemObj, kind),
             };
             entry.SetInitialSnapshot();
             index.Add(entry);
         }
     }
 
-    private static string ExtractDisplayName(JsonObject obj, EntitySchema schema)
+    private static string ExtractDisplayName(JsonObject obj, KindInfo kind)
     {
-        JsonNode? node = obj[schema.DisplayField];
-
-        if (node is JsonValue val)
-            return val.GetValue<string>() ?? obj[schema.IdField]?.GetValue<string>() ?? "?";
-
-        if (node is JsonObject loc)
+        var node = obj[kind.DisplayField];
+        if (node is JsonObject localized)
         {
-            JsonNode? ru = loc["ru"];
-
-            if (ru is JsonValue rv) return rv.GetValue<string>() ?? "?";
-            if (ru is JsonObject ro) return ro["nom"]?.GetValue<string>() ?? "?";
-
-            JsonNode? en = loc["en"];
-
-            if (en is JsonValue ev) return ev.GetValue<string>() ?? "?";
+            var ru = localized["ru"];
+            if (ru is JsonValue rv) return rv.GetValue<string>() ?? obj[kind.IdField]?.GetValue<string>() ?? "?";
+            if (ru is JsonObject ro) return ro["nom"]?.GetValue<string>() ?? obj[kind.IdField]?.GetValue<string>() ?? "?";
         }
-
-        return obj[schema.IdField]?.GetValue<string>() ?? "?";
+        return obj[kind.IdField]?.GetValue<string>() ?? "?";
     }
 }

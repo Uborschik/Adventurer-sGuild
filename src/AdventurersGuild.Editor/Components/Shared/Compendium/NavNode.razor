@@ -11,12 +11,12 @@
         }
     </MudNavGroup>
 }
-else if (Node.Schema is not null)
+else if (Node.Kind is not null)
 {
-    <MudNavLink Href="@($"/compendium/{Node.Schema.Kind}")"
+    <MudNavLink Href="@($"/compendium/{Node.Kind.Kind}")"
                 Match="NavLinkMatch.Prefix"
-                Icon="@KindIcon(Node.Schema.Kind)">
-        @Node.Schema.PluralTitle
+                Icon="@Icons.Material.Filled.Circle">
+        @Node.Kind.PluralTitle
     </MudNavLink>
 }
 
@@ -25,33 +25,10 @@ else if (Node.Schema is not null)
 
     private static string SectionIcon(string section) => section switch
     {
-        "Мир"       => Icons.Material.Filled.Public,
-        "Бестиарий" => Icons.Material.Filled.MenuBook,
-        "Виды"      => Icons.Material.Filled.Category,
-        "Гуманоиды" => Icons.Material.Filled.People,
-        "Звери"     => Icons.Material.Filled.Pets,
-        "Статы"     => Icons.Material.Filled.BarChart,
-        "Фазы"      => Icons.Material.Filled.Timer,
-        "Локации"   => Icons.Material.Filled.Place,
-        "Квесты"    => Icons.Material.Filled.Map,
-        "Прочее"    => Icons.Material.Filled.Folder,
-        _           => Icons.Material.Filled.Folder,
-    };
-
-    private static string KindIcon(string kind) => kind switch
-    {
-        "stat"              => Icons.Material.Filled.BarChart,
-        "phase"             => Icons.Material.Filled.Timer,
-        "location"          => Icons.Material.Filled.Place,
-        "tag"               => Icons.Material.Filled.Label,
-        "grade"             => Icons.Material.Filled.Grade,
-        "humanoid-species"  => Icons.Material.Filled.Diversity1,
-        "humanoid-class"    => Icons.Material.Filled.Shield,
-        "humanoid-role"     => Icons.Material.Filled.TheaterComedy,
-        "beast-species"     => Icons.Material.Filled.Pets,
-        "beast-class"       => Icons.Material.Filled.Shield,
-        "beast-role"        => Icons.Material.Filled.TheaterComedy,
-        "debug-test"        => Icons.Material.Filled.BugReport,
-        _                   => Icons.Material.Filled.Circle,
+        "Мир"     => Icons.Material.Filled.Public,
+        "Расы"    => Icons.Material.Filled.People,
+        "Квесты"  => Icons.Material.Filled.Map,
+        "Прочее"  => Icons.Material.Filled.Folder,
+        _         => Icons.Material.Filled.Folder,
     };
 }

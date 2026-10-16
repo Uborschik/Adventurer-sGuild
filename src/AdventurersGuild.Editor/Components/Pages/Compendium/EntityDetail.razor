@@ -1,12 +1,12 @@
 @page "/compendium/{Kind}/{Id}"
+@using AdventurersGuild.Editor.Compendium
 @inject CompendiumService Compendium
 @inject NavigationManager Nav
-@inject EntityValidator Validator
 @inject ISnackbar Snackbar
 
-<PageTitle>@(isNew ? "Новый" : Schema?.SingularTitle + " — " + Id)</PageTitle>
+<PageTitle>@(isNew ? "Новый" : (Kind + " — " + Id))</PageTitle>
 
-@if (Schema is null)
+@if (Info is null)
 {
     <MudAlert Severity="Severity.Error">Kind «@Kind» не зарегистрирован.</MudAlert>
     return;
@@ -20,13 +20,11 @@
 }
 
 <MudText Typo="Typo.h4">
-    @(isNew ? $"Новый {Schema.SingularTitle}" : $"{Schema.SingularTitle}: {Id}")
+    @(isNew ? $"Новый {Info.SingularTitle}" : $"{Info.SingularTitle}: {Id}")
 </MudText>
 
 <div class="mt-4">
-    <CascadingValue Value="workingJson" Name="CompendiumRoot" IsFixed="true">
-        <EntityEditor Schema="Schema" Entity="workingJson" OnChanged="OnEntityChanged" />
-    </CascadingValue>
+    <EntityJsonEditor Entity="workingJson" OnChanged="OnEntityChanged" />
 </div>
 
 <div class="d-flex gap-2 mt-2">
@@ -47,29 +45,13 @@
     private JsonObject workingJson = new();
     private bool isNew;
     private bool dirty;
-
-    private EntitySchema? Schema => TryGetSchema(Kind, out var s) ? s : null;
-
-    private bool TryGetSchema(string kind, out EntitySchema? schema)
-    {
-        try
-        {
-            schema = Compendium.Schema(kind);
-            return true;
-        }
-        catch
-        {
-            schema = null;
-            return false;
-        }
-    }
-
     private string? lastKind;
     private string? lastId;
 
+    private KindInfo? Info => Kinds.Get(Kind);
+
     protected override void OnParametersSet()
     {
-        // Срабатывает только при смене маршрута
         if (lastKind == Kind && lastId == Id) return;
 
         lastKind = Kind;
@@ -78,10 +60,12 @@
         isNew = Id == "__new__";
         dirty = false;
 
+        if (Info is null) return;
+
         if (isNew)
         {
             entry = null;
-            workingJson = new JsonObject { ["id"] = "" };
+            workingJson = new JsonObject { [Info.IdField] = "" };
         }
         else
         {
@@ -94,39 +78,25 @@
 
     private void OnEntityChanged()
     {
-        if (entry is null)
-        {
-            dirty = true;
-            StateHasChanged();
-            return;
-        }
-
-        dirty = workingJson.ToJsonString() != entry.Json.ToJsonString();
-        StateHasChanged();
+        dirty = true;
     }
 
     private void Save()
     {
-        if (Schema is null) { Snackbar.Add("Схема не найдена", Severity.Error); return; }
+        if (Info is null) { Snackbar.Add("Kind не найден", Severity.Error); return; }
 
-        string newId = workingJson["id"]?.GetValue<string>() ?? "";
+        string idField = Info.IdField;
+        string newId = workingJson[idField]?.GetValue<string>() ?? "";
 
-        if (string.IsNullOrWhiteSpace(newId)) { Snackbar.Add("ID не может быть пустым", Severity.Warning); return; }
-        
-        if (!System.Text.RegularExpressions.Regex.IsMatch(newId, "^[a-z][a-z0-9_]*$"))
-            { Snackbar.Add("ID: только a-z, 0-9, _, первая — буква", Severity.Warning); return; }
+        if (string.IsNullOrWhiteSpace(newId))
+        {
+            Snackbar.Add($"Поле «{idField}» не может быть пустым", Severity.Warning);
+            return;
+        }
 
         if (isNew && Compendium.Index.Exists(Kind, newId))
-            { Snackbar.Add($"Запись с ID '{newId}' уже существует", Severity.Error); return; }
-
-        var validation = Validator.Validate(Schema, workingJson);
-        
-        if (validation.HasErrors)
         {
-            foreach (var err in validation.Errors.Take(5))
-                Snackbar.Add(err, Severity.Error);
-            if (validation.Errors.Count > 5)
-                Snackbar.Add($"...и ещё {validation.Errors.Count - 5} ошибок", Severity.Error);
+            Snackbar.Add($"Запись с ID '{newId}' уже существует", Severity.Error);
             return;
         }
 
@@ -136,8 +106,10 @@
             {
                 var fresh = new CompendiumEntry
                 {
-                    Kind = Kind, Id = newId, Json = workingJson,
-                    DisplayName = ExtractDisplayName(workingJson, Schema),
+                    Kind = Kind,
+                    Id = newId,
+                    Json = workingJson,
+                    DisplayName = ExtractDisplayName(workingJson, Info),
                 };
                 fresh.SetInitialSnapshot();
                 Compendium.SaveNew(fresh);
@@ -150,7 +122,8 @@
                 entry.Json.Clear();
                 foreach (var kv in workingJson.ToList())
                     entry.Json[kv.Key] = kv.Value?.DeepClone();
-                entry.DisplayName = ExtractDisplayName(entry.Json, Schema);
+
+                entry.DisplayName = ExtractDisplayName(entry.Json, Info);
                 Compendium.Save(entry);
                 Snackbar.Add($"Сохранено: {newId}", Severity.Success);
             }
@@ -165,16 +138,15 @@
 
     private void GoBack() => Nav.NavigateTo($"/compendium/{Kind}");
 
-    private static string ExtractDisplayName(JsonObject obj, EntitySchema schema)
+    private static string ExtractDisplayName(JsonObject obj, KindInfo info)
     {
-        var node = obj[schema.DisplayField];
+        var node = obj[info.DisplayField];
         if (node is JsonObject localized)
         {
-            return localized["ru"]?.GetValue<string>()
-                ?? localized["en"]?.GetValue<string>()
-                ?? obj[schema.IdField]?.GetValue<string>()
-                ?? "?";
+            var ru = localized["ru"];
+            if (ru is JsonValue rv) return rv.GetValue<string>() ?? obj[info.IdField]?.GetValue<string>() ?? "?";
+            if (ru is JsonObject ro) return ro["nom"]?.GetValue<string>() ?? obj[info.IdField]?.GetValue<string>() ?? "?";
         }
-        return obj[schema.IdField]?.GetValue<string>() ?? "?";
+        return obj[info.IdField]?.GetValue<string>() ?? "?";
     }
 }

@@ -1,0 +1,133 @@
+@namespace AdventurersGuild.Editor.Components.Shared.Compendium
+
+<MudPaper Class="pa-3" Elevation="0" Outlined="true">
+    <MudTextField T="string"
+              @bind-Value="text"
+              @bind-Value:after="OnTextChanged"
+              Variant="Variant.Outlined"
+              Margin="Margin.Dense"
+              Lines="30"
+              Immediate="true"
+              Class="json-editor"
+              Disabled="@ReadOnly"
+              InputAttributes="@inputAttrs" />
+
+    <MudStack Row Class="mt-2" AlignItems="AlignItems.Center">
+        <MudButton Variant="Variant.Outlined"
+                   Size="Size.Small"
+                   StartIcon="@Icons.Material.Filled.FormatAlignLeft"
+                   OnClick="Format"
+                   Disabled="@ReadOnly">
+            Форматировать
+        </MudButton>
+
+        <MudSpacer />
+
+        @if (isValid)
+        {
+            <MudChip T="string" Color="Color.Success" Size="Size.Small" Icon="@Icons.Material.Filled.Check">
+                JSON валиден
+            </MudChip>
+        }
+        else
+        {
+            <MudChip T="string" Color="Color.Error" Size="Size.Small" Icon="@Icons.Material.Filled.Error">
+                @errorMessage
+            </MudChip>
+        }
+    </MudStack>
+</MudPaper>
+
+<style>
+    .json-editor textarea {
+        font-family: 'Consolas', 'Courier New', monospace !important;
+        font-size: 13px !important;
+        line-height: 1.4 !important;
+    }
+</style>
+
+@code {
+    [Parameter] public JsonObject Entity { get; set; } = new();
+    [Parameter] public EventCallback OnChanged { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
+
+    private string text = "";
+    private bool isValid = true;
+    private string errorMessage = "";
+    private string lastSerialized = "";
+
+    private Dictionary<string, object> inputAttrs = new()
+    {
+        { "spellcheck", "false" },
+        { "autocomplete", "off" },
+        { "autocorrect", "off" },
+        { "autocapitalize", "off" },
+    };
+
+    private static readonly System.Text.Json.JsonSerializerOptions PrettyOpts = new()
+    {
+        WriteIndented = true,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    };
+
+    protected override void OnParametersSet()
+    {
+        string current = Entity.ToJsonString(PrettyOpts);
+        if (current != lastSerialized)
+        {
+            text = current;
+            lastSerialized = current;
+            isValid = true;
+            errorMessage = "";
+        }
+    }
+
+    private async Task OnTextChanged()
+    {
+        try
+        {
+            var parsed = JsonNode.Parse(text);
+            if (parsed is not JsonObject parsedObj)
+            {
+                isValid = false;
+                errorMessage = "корень должен быть объектом";
+                return;
+            }
+
+            // Перезаписываем Entity на месте
+            Entity.Clear();
+            foreach (var kv in parsedObj.ToList())
+                Entity[kv.Key] = kv.Value?.DeepClone();
+
+            lastSerialized = Entity.ToJsonString(PrettyOpts);
+            isValid = true;
+            errorMessage = "";
+
+            await OnChanged.InvokeAsync();
+        }
+        catch (System.Text.Json.JsonException ex)
+        {
+            isValid = false;
+            errorMessage = $"строка {ex.LineNumber}, колонка {ex.BytePositionInLine}: {ex.Message.Split('\n')[0]}";
+        }
+        catch (Exception ex)
+        {
+            isValid = false;
+            errorMessage = ex.Message;
+        }
+    }
+
+    private async Task Format()
+    {
+        try
+        {
+            var parsed = JsonNode.Parse(text);
+            text = parsed?.ToJsonString(PrettyOpts) ?? "{}";
+            await OnTextChanged();
+        }
+        catch
+        {
+            // уже показано в OnTextChanged
+        }
+    }
+}
