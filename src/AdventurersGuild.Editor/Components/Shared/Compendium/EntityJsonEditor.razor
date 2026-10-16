@@ -1,48 +1,42 @@
 @namespace AdventurersGuild.Editor.Components.Shared.Compendium
+@inject IJSRuntime JS
 
-<MudPaper Class="pa-3" Elevation="0" Outlined="true">
-    <MudTextField T="string"
-              @bind-Value="text"
-              @bind-Value:after="OnTextChanged"
-              Variant="Variant.Outlined"
-              Margin="Margin.Dense"
-              Lines="30"
-              Immediate="true"
-              Class="json-editor"
-              Disabled="@ReadOnly"
-              InputAttributes="@inputAttrs" />
+<div @ref="_container" class="json-editor-container"></div>
 
-    <MudStack Row Class="mt-2" AlignItems="AlignItems.Center">
-        <MudButton Variant="Variant.Outlined"
-                   Size="Size.Small"
-                   StartIcon="@Icons.Material.Filled.FormatAlignLeft"
-                   OnClick="Format"
-                   Disabled="@ReadOnly">
-            Форматировать
-        </MudButton>
-
-        <MudSpacer />
-
-        @if (isValid)
-        {
-            <MudChip T="string" Color="Color.Success" Size="Size.Small" Icon="@Icons.Material.Filled.Check">
-                JSON валиден
-            </MudChip>
-        }
-        else
-        {
-            <MudChip T="string" Color="Color.Error" Size="Size.Small" Icon="@Icons.Material.Filled.Error">
-                @errorMessage
-            </MudChip>
-        }
-    </MudStack>
-</MudPaper>
+<MudStack Row Class="mt-2" AlignItems="AlignItems.Center">
+    <MudButton Variant="Variant.Outlined"
+               Size="Size.Small"
+               StartIcon="@Icons.Material.Filled.FormatAlignLeft"
+               OnClick="FormatAsync"
+               Disabled="@ReadOnly">
+        Форматировать
+    </MudButton>
+    <MudSpacer />
+    @if (isValid)
+    {
+        <MudChip T="string" Color="Color.Success" Size="Size.Small" Icon="@Icons.Material.Filled.Check">
+            JSON валиден
+        </MudChip>
+    }
+    else
+    {
+        <MudChip T="string" Color="Color.Error" Size="Size.Small" Icon="@Icons.Material.Filled.Error">
+            @errorMessage
+        </MudChip>
+    }
+</MudStack>
 
 <style>
-    .json-editor textarea {
-        font-family: 'Consolas', 'Courier New', monospace !important;
-        font-size: 13px !important;
-        line-height: 1.4 !important;
+    .json-editor-container {
+        border: 1px solid var(--mud-palette-lines-default);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .json-editor-container .CodeMirror {
+        height: 600px;
+        font-family: 'Consolas', 'Courier New', monospace;
+        font-size: 13px;
     }
 </style>
 
@@ -51,18 +45,13 @@
     [Parameter] public EventCallback OnChanged { get; set; }
     [Parameter] public bool ReadOnly { get; set; }
 
-    private string text = "";
+    private ElementReference _container;
+    private string? _editorId;
+    private DotNetObjectReference<EntityJsonEditor>? _selfRef;
     private bool isValid = true;
     private string errorMessage = "";
     private string lastSerialized = "";
-
-    private Dictionary<string, object> inputAttrs = new()
-    {
-        { "spellcheck", "false" },
-        { "autocomplete", "off" },
-        { "autocorrect", "off" },
-        { "autocapitalize", "off" },
-    };
+    private bool _firstRenderDone;
 
     private static readonly System.Text.Json.JsonSerializerOptions PrettyOpts = new()
     {
@@ -70,19 +59,34 @@
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
-    protected override void OnParametersSet()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        string current = Entity.ToJsonString(PrettyOpts);
-        if (current != lastSerialized)
+        if (firstRender && !_firstRenderDone)
         {
-            text = current;
-            lastSerialized = current;
-            isValid = true;
-            errorMessage = "";
+            _firstRenderDone = true;
+            _selfRef = DotNetObjectReference.Create(this);
+
+            string json = Entity.ToJsonString(PrettyOpts);
+            lastSerialized = json;
+
+            _editorId = await JS.InvokeAsync<string>(
+                "jsonEditor.create", _container, _selfRef, json);
         }
     }
 
-    private async Task OnTextChanged()
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_editorId is null) return;
+
+        string current = Entity.ToJsonString(PrettyOpts);
+        if (current == lastSerialized) return;
+
+        lastSerialized = current;
+        await JS.InvokeVoidAsync("jsonEditor.setText", _editorId, current);
+    }
+
+    [JSInvokable]
+    public async Task OnTextChanged(string text)
     {
         try
         {
@@ -91,10 +95,10 @@
             {
                 isValid = false;
                 errorMessage = "корень должен быть объектом";
+                StateHasChanged();
                 return;
             }
 
-            // Перезаписываем Entity на месте
             Entity.Clear();
             foreach (var kv in parsedObj.ToList())
                 Entity[kv.Key] = kv.Value?.DeepClone();
@@ -104,30 +108,31 @@
             errorMessage = "";
 
             await OnChanged.InvokeAsync();
+            StateHasChanged();
         }
         catch (System.Text.Json.JsonException ex)
         {
             isValid = false;
-            errorMessage = $"строка {ex.LineNumber}, колонка {ex.BytePositionInLine}: {ex.Message.Split('\n')[0]}";
-        }
-        catch (Exception ex)
-        {
-            isValid = false;
-            errorMessage = ex.Message;
+            errorMessage = $"строка {ex.LineNumber}, колонка {ex.BytePositionInLine}";
+            StateHasChanged();
         }
     }
 
-    private async Task Format()
+    private async Task FormatAsync()
     {
-        try
+        if (_editorId is null) return;
+
+        string formatted = Entity.ToJsonString(PrettyOpts);
+        await JS.InvokeVoidAsync("jsonEditor.setText", _editorId, formatted);
+        lastSerialized = formatted;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_editorId is not null)
         {
-            var parsed = JsonNode.Parse(text);
-            text = parsed?.ToJsonString(PrettyOpts) ?? "{}";
-            await OnTextChanged();
+            try { await JS.InvokeVoidAsync("jsonEditor.destroy", _editorId); } catch { }
         }
-        catch
-        {
-            // уже показано в OnTextChanged
-        }
+        _selfRef?.Dispose();
     }
 }
