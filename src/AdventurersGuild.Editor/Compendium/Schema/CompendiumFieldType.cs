@@ -15,4 +15,5 @@ public enum CompendiumFieldType
     Nested,           // вложенный объект с подсхемой
     ObjectList,       // список объектов с подсхемой
     Json,             // fallback
+    SiblingRef,       // выбор id из массива внутри того же объекта-родителя
 }

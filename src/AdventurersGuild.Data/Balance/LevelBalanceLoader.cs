@@ -6,7 +6,7 @@ namespace AdventurersGuild.Data.Balance;
 
 public static class LevelBalanceLoader
 {
-    private const string path = "Data/Adventurer/LevelBalance.json";
+    private const string path = "Data/Units/LevelBalance.json";
 
     public static void Load()
     {

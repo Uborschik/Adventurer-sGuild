@@ -11,9 +11,9 @@ public static class StatSchema
         Kind = "stat",
         SingularTitle = "Стат",
         PluralTitle = "Статы",
-        Section = "Приключенцы",
+        Section = "Мир/Статы",
         Order = 5,
-        File = "Data/Adventurer/Stats.json",
+        File = "Data/Units/Stats.json",
         RootPath = "stats",
         DisplayField = "name",
 

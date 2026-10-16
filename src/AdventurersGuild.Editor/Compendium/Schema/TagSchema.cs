@@ -9,7 +9,7 @@ public static class TagSchema
         Kind = "tag",
         SingularTitle = "Тег",
         PluralTitle = "Теги",
-        Section = "Квесты",
+        Section = "Квесты/Теги",
         Order = 30,
         File = "Data/Quest/Tags.json",
         RootPath = "tags",

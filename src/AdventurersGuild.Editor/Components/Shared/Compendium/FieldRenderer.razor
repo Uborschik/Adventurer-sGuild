@@ -15,6 +15,10 @@
         <LocalizedField Field="Field" Node="Node" ValueChanged="ValueChanged" ReadOnly="ReadOnly" />
         break;
 
+    case CompendiumFieldType.LocalizedCase:
+        <LocalizedCaseField Field="Field" Node="Node" ValueChanged="ValueChanged" ReadOnly="ReadOnly" />
+        break;
+
     case CompendiumFieldType.Number:
         <NumberField Field="Field" Node="Node" ValueChanged="ValueChanged" ReadOnly="ReadOnly" />
         break;
@@ -30,14 +34,26 @@
     case CompendiumFieldType.Reference:
         <ReferenceField Field="Field" Node="Node" ValueChanged="ValueChanged" ReadOnly="ReadOnly" />
         break;
-        
-    case CompendiumFieldType.LocalizedCase:
-        <LocalizedCaseField Field="Field" Node="Node" ValueChanged="ValueChanged" ReadOnly="ReadOnly" />
+
+    case CompendiumFieldType.ReferenceList:
+        <ReferenceListField Field="Field" Node="Node" ValueChanged="ValueChanged" ReadOnly="ReadOnly" />
         break;
 
     case CompendiumFieldType.Dictionary:
-    <DictionaryEditor Field="Field" Node="Node" ValueChanged="ValueChanged" ReadOnly="ReadOnly" />
-    break;
+        <DictionaryEditor Field="Field" Node="Node" ValueChanged="ValueChanged" ReadOnly="ReadOnly" />
+        break;
+
+    case CompendiumFieldType.Nested:
+        <NestedEditor Field="Field" Node="Node" ValueChanged="ValueChanged" ReadOnly="ReadOnly" />
+        break;
+
+    case CompendiumFieldType.ObjectList:
+        <ObjectListEditor Field="Field" Node="Node" ValueChanged="ValueChanged" ReadOnly="ReadOnly" />
+        break;
+
+    case CompendiumFieldType.SiblingRef:
+        <SiblingRefField Field="Field" Node="Node" ParentNode="ParentNode" ValueChanged="ValueChanged" ReadOnly="ReadOnly" />
+        break;
 
     default:
         <MudAlert Severity="Severity.Warning" Dense="true">
@@ -48,6 +64,7 @@
 
 @code {
     [Parameter, EditorRequired] public FieldSchema Field { get; set; } = default!;
+    [Parameter] public JsonNode? ParentNode { get; set; }
     [Parameter] public JsonNode? Node { get; set; }
     [Parameter] public EventCallback<JsonNode?> ValueChanged { get; set; }
     [Parameter] public bool ReadOnly { get; set; }

@@ -1,0 +1,13 @@
+{
+  "phases": [
+    { "id": "tracking",      "name": { "ru": "Выслеживание",  "en": "Tracking" },      "description": { "ru": "", "en": "" } },
+    { "id": "combat",        "name": { "ru": "Схватка",       "en": "Combat" },        "description": { "ru": "", "en": "" } },
+    { "id": "social",        "name": { "ru": "Общение",       "en": "Social" },        "description": { "ru": "", "en": "" } },
+    { "id": "stealth",       "name": { "ru": "Скрытность",    "en": "Stealth" },       "description": { "ru": "", "en": "" } },
+    { "id": "exploration",   "name": { "ru": "Исследование",  "en": "Exploration" },   "description": { "ru": "", "en": "" } },
+    { "id": "guard",         "name": { "ru": "Охрана",        "en": "Guard" },         "description": { "ru": "", "en": "" } },
+    { "id": "puzzle",        "name": { "ru": "Загадка",       "en": "Puzzle" },        "description": { "ru": "", "en": "" } },
+    { "id": "lore",          "name": { "ru": "Знания",        "en": "Lore" },          "description": { "ru": "", "en": "" } },
+    { "id": "survival",      "name": { "ru": "Выживание",     "en": "Survival" },      "description": { "ru": "", "en": "" } }
+  ]
+}

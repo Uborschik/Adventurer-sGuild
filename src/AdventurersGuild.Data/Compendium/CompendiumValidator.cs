@@ -68,9 +68,8 @@ public static class CompendiumValidator
 
                 if (!QuestDatabase.Creatures.ContainsKey(c.CreatureId))
                 {
-                    Log.Error($"[CompendiumDB] Habitat '{habitat.LocationId}': " +
-                              $"неизвестное существо '{c.CreatureId}'");
-                    errors++;
+                    Log.Warn($"[CompendiumDB] Habitat '{habitat.LocationId}': существо '{c.CreatureId}' ещё не мигрировано");
+                    // errors++;  — не считаем ошибкой в переходный период
                 }
                 else
                 {

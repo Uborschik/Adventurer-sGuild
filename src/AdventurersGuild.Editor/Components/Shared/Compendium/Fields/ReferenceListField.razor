@@ -1,0 +1,67 @@
+@namespace AdventurersGuild.Editor.Components.Shared.Compendium.Fields
+@inject CompendiumService Compendium
+
+<MudSelect T="string"
+           SelectedValues="@CurrentValue"
+           SelectedValuesChanged="@OnValueChanged"
+           MultiSelection="true"
+           SelectAll="true"
+           Label="@Field.Label"
+           HelperText="@Field.Hint"
+           Variant="Variant.Outlined"
+           Margin="Margin.Dense"
+           Disabled="@ReadOnly">
+    @foreach (var id in AvailableIds())
+    {
+        <MudSelectItem T="string" Value="@id">@DisplayName(id)</MudSelectItem>
+    }
+</MudSelect>
+
+@code {
+    [Parameter, EditorRequired] public FieldSchema Field { get; set; } = default!;
+    [Parameter] public JsonNode? Node { get; set; }
+    [Parameter] public EventCallback<JsonNode?> ValueChanged { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
+
+    private IEnumerable<string> CurrentValue
+    {
+        get
+        {
+            if (Node is not JsonArray arr) return Enumerable.Empty<string>();
+
+            return arr
+                .Where(n => n is JsonValue)
+                .Select(n => n!.GetValue<string>())
+                .Where(s => !string.IsNullOrEmpty(s))
+                .ToList();
+        }
+    }
+
+    private async Task OnValueChanged(IEnumerable<string> values)
+    {
+        var arr = new JsonArray();
+        foreach (var v in values ?? Enumerable.Empty<string>())
+        {
+            if (!string.IsNullOrEmpty(v))
+                arr.Add(JsonValue.Create(v));
+        }
+        await ValueChanged.InvokeAsync(arr);
+    }
+
+    private IEnumerable<string> AvailableIds()
+    {
+        if (string.IsNullOrEmpty(Field.TargetKind))
+            return Enumerable.Empty<string>();
+
+        return Compendium.Index.AllOfKind(Field.TargetKind)
+            .Select(e => e.Id)
+            .OrderBy(id => id);
+    }
+
+    private string DisplayName(string id)
+    {
+        if (string.IsNullOrEmpty(Field.TargetKind)) return id;
+        var entry = Compendium.Index.Get(Field.TargetKind, id);
+        return entry?.DisplayName ?? id;
+    }
+}

@@ -1,0 +1,12 @@
+{
+  "classes": [
+    { "id": "warrior",   "name": { "ru": "Воин",    "en": "Warrior" },   "primaryStat": "str", "primarySkill": "athletics", "secondaryStat": "end", "secondarySkill": "grit",         "statModifiers": {} },
+    { "id": "barbarian", "name": { "ru": "Варвар",  "en": "Barbarian" }, "primaryStat": "str", "primarySkill": "athletics", "secondaryStat": "end", "secondarySkill": "fortitude",    "statModifiers": {} },
+    { "id": "paladin",   "name": { "ru": "Паладин", "en": "Paladin" },   "primaryStat": "str", "primarySkill": "athletics", "secondaryStat": "cha", "secondarySkill": "persuasion",   "statModifiers": {} },
+    { "id": "rogue",     "name": { "ru": "Плут",    "en": "Rogue" },     "primaryStat": "dex", "primarySkill": "stealth",   "secondaryStat": "int", "secondarySkill": "investigation","statModifiers": {} },
+    { "id": "ranger",    "name": { "ru": "Рейнджер","en": "Ranger" },    "primaryStat": "dex", "primarySkill": "stealth",   "secondaryStat": "wis", "secondarySkill": "perception",   "statModifiers": {} },
+    { "id": "mage",      "name": { "ru": "Маг",     "en": "Mage" },      "primaryStat": "int", "primarySkill": "arcana",    "secondaryStat": "wis", "secondarySkill": "perception",   "statModifiers": {} },
+    { "id": "cleric",    "name": { "ru": "Клирик",  "en": "Cleric" },    "primaryStat": "wis", "primarySkill": "perception","secondaryStat": "cha", "secondarySkill": "persuasion",   "statModifiers": {} },
+    { "id": "bard",      "name": { "ru": "Бард",    "en": "Bard" },      "primaryStat": "cha", "primarySkill": "persuasion","secondaryStat": "dex", "secondarySkill": "acrobatics",   "statModifiers": {} }
+  ]
+}

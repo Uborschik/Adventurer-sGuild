@@ -1,0 +1,61 @@
+{
+  "roles": [
+    {
+      "id": "hunter",
+      "name": {
+        "ru": "",
+        "en": "Hunter"
+      },
+      "states": [
+        {
+          "id": "stalking",
+          "name": {
+            "ru": "Выслеживает",
+            "en": "Stalking"
+          },
+          "success": "attacking",
+          "fail": "end",
+          "actions": [
+            {
+              "id": "track",
+              "name": {
+                "ru": "Выследить",
+                "en": "Track"
+              },
+              "phaseId": "tracking",
+              "duration": 120,
+              "check": {
+                "selfStat": "wis",
+                "against": "stat:dex"
+              }
+            }
+          ]
+        },
+        {
+          "id": "attacking",
+          "name": {
+            "ru": "Атакует",
+            "en": "Attacking"
+          },
+          "success": "end",
+          "fail": "end",
+          "actions": [
+            {
+              "id": "fight",
+              "name": {
+                "ru": "Схватка",
+                "en": "Fight"
+              },
+              "phaseId": "combat",
+              "duration": 5,
+              "check": {
+                "selfStat": "str",
+                "against": "creature"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

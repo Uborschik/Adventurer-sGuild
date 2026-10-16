@@ -25,13 +25,13 @@ public static class QuestLoader
         QuestValidator.Validate();
     }
 
-    private static IReadOnlyDictionary<string, TagInfo> LoadTags()
+    private static Dictionary<string, TagInfo> LoadTags()
     {
         return JsonLoader.Load<TagDatabase>(dataPath + "Tags.json")
             .Tags.ToDictionary(t => t.Id);
     }
 
-    private static IReadOnlyList<QuestGradeInfo> LoadGrades()
+    private static List<QuestGradeInfo> LoadGrades()
     {
         var gradeList = JsonLoader.Load<QuestGradeDatabase>(dataPath + "QuestGrades.json").Grades;
 
@@ -44,25 +44,21 @@ public static class QuestLoader
         return gradeList;
     }
 
-    private static IReadOnlyDictionary<string, QuestPhaseTemplate> LoadPhases()
+    private static Dictionary<string, QuestPhaseTemplate> LoadPhases()
     {
         var db = JsonLoader.Load<QuestPhaseDatabase>(dataPath + "QuestPhases.json");
         return db.Phases.ToDictionary(p => p.Id);
     }
 
-    private static IReadOnlyDictionary<string, CreatureInfo> LoadCreatures()
-    {
-        var list = JsonLoader.Load<CreatureDatabase>(dataPath + "Creatures.json").Creatures;
-        return list.ToDictionary(c => c.Id);
-    }
+    private static Dictionary<string, CreatureInfo> LoadCreatures() => [];
 
-    private static IReadOnlyDictionary<string, LocationInfo> LoadLocations()
+    private static Dictionary<string, LocationInfo> LoadLocations()
     {
         var list = JsonLoader.Load<LocationDatabase>(dataPath + "Locations.json").Locations;
         return list.ToDictionary(l => l.Id);
     }
 
-    private static IReadOnlyDictionary<string, Blueprint> LoadBlueprints()
+    private static Dictionary<string, Blueprint> LoadBlueprints()
     {
         var list = JsonLoader.Load<BlueprintDatabase>(dataPath + "Blueprints.json").Blueprints;
         var dict = list.ToDictionary(b => b.Id);

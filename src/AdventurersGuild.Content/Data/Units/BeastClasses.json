@@ -1,0 +1,7 @@
+{
+  "classes": [
+    { "id": "young", "name": { "ru": "Молодой",  "en": "Young" }, "statModifiers": {} },
+    { "id": "adult", "name": { "ru": "Взрослый", "en": "Adult" }, "statModifiers": {} },
+    { "id": "alpha", "name": { "ru": "Вожак",    "en": "Alpha" }, "statModifiers": {} }
+  ]
+}

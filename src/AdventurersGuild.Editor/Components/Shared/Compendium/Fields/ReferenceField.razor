@@ -1,22 +1,22 @@
 @namespace AdventurersGuild.Editor.Components.Shared.Compendium.Fields
 @inject CompendiumService Compendium
 
-<MudAutocomplete T="string"
-                 Value="@CurrentValue"
-                 ValueChanged="@OnValueChanged"
-                 SearchFunc="Search"
-                 ToStringFunc="@DisplayName"
-                 Label="@Field.Label"
-                 HelperText="@(error ?? Field.Hint)"
-                 Variant="Variant.Outlined"
-                 Margin="Margin.Dense"
-                 Required="@Field.Required"
-                 ReadOnly="@ReadOnly"
-                 Error="@(error != null)"
-                 ErrorText="@error"
-                 ResetValueOnEmptyText="true"
-                 CoerceText="false"
-                 CoerceValue="false" />
+<MudSelect T="string"
+           Value="@CurrentValue"
+           ValueChanged="@OnValueChanged"
+           Label="@Field.Label"
+           HelperText="@(error ?? Field.Hint)"
+           Variant="Variant.Outlined"
+           Margin="Margin.Dense"
+           Required="@Field.Required"
+           Disabled="@ReadOnly"
+           Error="@(error != null)"
+           ErrorText="@error">
+    @foreach (var id in AvailableIds())
+    {
+        <MudSelectItem T="string" Value="@id">@DisplayName(id)</MudSelectItem>
+    }
+</MudSelect>
 
 @code {
     [Parameter, EditorRequired] public FieldSchema Field { get; set; } = default!;
@@ -35,37 +35,30 @@
         await ValueChanged.InvokeAsync(JsonValue.Create(v));
     }
 
-    private Task<IEnumerable<string>> Search(string value, CancellationToken token)
+    private IEnumerable<string> AvailableIds()
     {
         if (string.IsNullOrEmpty(Field.TargetKind))
-            return Task.FromResult(Enumerable.Empty<string>());
+            return Enumerable.Empty<string>();
 
-        var items = Compendium.Index.AllOfKind(Field.TargetKind);
-
-        var result = string.IsNullOrEmpty(value)
-            ? items.Take(50).Select(e => e.Id)
-            : items
-                .Where(e => e.Id.Contains(value, StringComparison.OrdinalIgnoreCase)
-                         || e.DisplayName.Contains(value, StringComparison.OrdinalIgnoreCase))
-                .Take(50)
-                .Select(e => e.Id);
-
-        return Task.FromResult(result);
+        return Compendium.Index.AllOfKind(Field.TargetKind)
+            .Select(e => e.Id)
+            .OrderBy(id => id);
     }
 
     private string DisplayName(string id)
     {
-        if (string.IsNullOrEmpty(id)) return "";
+        if (string.IsNullOrEmpty(id)) return "(не выбрано)";
         if (string.IsNullOrEmpty(Field.TargetKind)) return id;
 
         var entry = Compendium.Index.Get(Field.TargetKind, id);
-        return entry?.DisplayName ?? id;
+        return entry != null ? $"{entry.DisplayName} ({id})" : id;
     }
 
     private string? ValidateRef(string id)
     {
         if (string.IsNullOrEmpty(id))
             return Field.Required ? "Обязательное поле" : null;
+
         if (string.IsNullOrEmpty(Field.TargetKind)) return null;
 
         if (!Compendium.Index.Exists(Field.TargetKind, id))

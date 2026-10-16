@@ -39,8 +39,6 @@ public partial class MainWindow : Window
         FileSystem.Current = new SystemFileSystem();
 
         services.AddSingleton<DataLoader>();
-        services.AddSingleton<LocationRepository>();
-        services.AddSingleton<CreatureRepository>();
 
         var sp = services.BuildServiceProvider();
         sp.GetRequiredService<DataLoader>().EnsureLoaded();

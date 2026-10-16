@@ -24,6 +24,8 @@ public sealed class CompendiumJsonLoader
 
     public void LoadKind(EntitySchema schema, CompendiumIndex index)
     {
+        if (string.IsNullOrEmpty(schema.File) || string.IsNullOrEmpty(schema.RootPath)) return;
+
         string json = FileSystem.Current.ReadAllText(schema.File);
 
         if (string.IsNullOrWhiteSpace(json))

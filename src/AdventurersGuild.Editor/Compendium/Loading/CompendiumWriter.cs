@@ -42,6 +42,10 @@ public sealed class CompendiumWriter
     public void SaveNew(CompendiumIndex index, CompendiumEntry entry)
     {
         var schema = _schemas.Get(entry.Kind);
+
+        if (string.IsNullOrEmpty(schema.RootPath))
+            return;
+
         var root = index.GetRoot(entry.Kind)
             ?? throw new InvalidOperationException(
                 $"Корень файла для kind '{entry.Kind}' не загружен.");
@@ -63,6 +67,10 @@ public sealed class CompendiumWriter
     public void Delete(CompendiumIndex index, CompendiumEntry entry)
     {
         var schema = _schemas.Get(entry.Kind);
+
+        if (string.IsNullOrEmpty(schema.RootPath))
+            return;
+
         var root = index.GetRoot(entry.Kind)
             ?? throw new InvalidOperationException(
                 $"Корень файла для kind '{entry.Kind}' не загружен.");

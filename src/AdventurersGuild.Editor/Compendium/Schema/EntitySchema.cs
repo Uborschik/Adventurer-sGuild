@@ -7,10 +7,10 @@ public sealed class EntitySchema
     public required string PluralTitle { get; init; }
 
     /// <summary>Путь к JSON-файлу относительно Data/. Например, "Data/Quest/Tags.json".</summary>
-    public required string File { get; init; }
+    public string? File { get; init; }
 
     /// <summary>Путь к массиву внутри JSON. Например, "tags".</summary>
-    public required string RootPath { get; init; }
+    public string? RootPath { get; init; }
 
     public required IReadOnlyList<FieldSchema> Fields { get; init; }
     public string? Section { get; init; }

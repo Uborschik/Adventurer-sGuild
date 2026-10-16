@@ -1,6 +1,8 @@
 @page "/compendium/{Kind}/{Id}"
 @inject CompendiumService Compendium
 @inject NavigationManager Nav
+@inject EntityValidator Validator
+@inject ISnackbar Snackbar
 
 <PageTitle>@(isNew ? "Новый" : Schema?.SingularTitle + " — " + Id)</PageTitle>
 
@@ -22,7 +24,9 @@
 </MudText>
 
 <div class="mt-4">
-    <EntityEditor Schema="Schema" Entity="workingJson" OnChanged="OnEntityChanged" />
+    <CascadingValue Value="workingJson" Name="CompendiumRoot" IsFixed="true">
+        <EntityEditor Schema="Schema" Entity="workingJson" OnChanged="OnEntityChanged" />
+    </CascadingValue>
 </div>
 
 <div class="d-flex gap-2 mt-2">
@@ -103,45 +107,60 @@
 
     private void Save()
     {
-        if (Schema is null) return;
+        if (Schema is null) { Snackbar.Add("Схема не найдена", Severity.Error); return; }
 
         string newId = workingJson["id"]?.GetValue<string>() ?? "";
 
-        if (string.IsNullOrWhiteSpace(newId))
+        if (string.IsNullOrWhiteSpace(newId)) { Snackbar.Add("ID не может быть пустым", Severity.Warning); return; }
+        
+        if (!System.Text.RegularExpressions.Regex.IsMatch(newId, "^[a-z][a-z0-9_]*$"))
+            { Snackbar.Add("ID: только a-z, 0-9, _, первая — буква", Severity.Warning); return; }
+
+        if (isNew && Compendium.Index.Exists(Kind, newId))
+            { Snackbar.Add($"Запись с ID '{newId}' уже существует", Severity.Error); return; }
+
+        var validation = Validator.Validate(Schema, workingJson);
+        
+        if (validation.HasErrors)
         {
-            return; // TODO: snackbar
+            foreach (var err in validation.Errors.Take(5))
+                Snackbar.Add(err, Severity.Error);
+            if (validation.Errors.Count > 5)
+                Snackbar.Add($"...и ещё {validation.Errors.Count - 5} ошибок", Severity.Error);
+            return;
         }
 
-        if (isNew)
+        try
         {
-            if (Compendium.Index.Exists(Kind, newId)) return; // TODO: snackbar
-
-            var fresh = new CompendiumEntry
+            if (isNew)
             {
-                Kind = Kind,
-                Id = newId,
-                Json = workingJson,
-                DisplayName = ExtractDisplayName(workingJson, Schema),
-            };
-            fresh.SetInitialSnapshot();
-            Compendium.SaveNew(fresh);
-        }
-        else
-        {
-            if (entry is null) return;
-
-            // Мутируем entry.Json in place — он уже в дереве, никаких переприсваиваний
-            entry.Json.Clear();
-            foreach (var kv in workingJson.ToList())
+                var fresh = new CompendiumEntry
+                {
+                    Kind = Kind, Id = newId, Json = workingJson,
+                    DisplayName = ExtractDisplayName(workingJson, Schema),
+                };
+                fresh.SetInitialSnapshot();
+                Compendium.SaveNew(fresh);
+                Snackbar.Add($"Создано: {newId}", Severity.Success);
+            }
+            else
             {
-                entry.Json[kv.Key] = kv.Value?.DeepClone();
+                if (entry is null) { Snackbar.Add("Внутренняя ошибка", Severity.Error); return; }
+
+                entry.Json.Clear();
+                foreach (var kv in workingJson.ToList())
+                    entry.Json[kv.Key] = kv.Value?.DeepClone();
+                entry.DisplayName = ExtractDisplayName(entry.Json, Schema);
+                Compendium.Save(entry);
+                Snackbar.Add($"Сохранено: {newId}", Severity.Success);
             }
 
-            entry.DisplayName = ExtractDisplayName(entry.Json, Schema);
-            Compendium.Save(entry);
+            Nav.NavigateTo($"/compendium/{Kind}");
         }
-
-        Nav.NavigateTo($"/compendium/{Kind}");
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Ошибка сохранения: {ex.Message}", Severity.Error);
+        }
     }
 
     private void GoBack() => Nav.NavigateTo($"/compendium/{Kind}");

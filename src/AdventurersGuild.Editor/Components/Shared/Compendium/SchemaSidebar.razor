@@ -1,6 +1,5 @@
 @namespace AdventurersGuild.Editor.Components.Shared.Compendium
 @inject SchemaRegistry Schemas
-@inject NavigationManager Nav
 
 <MudNavMenu Bordered="true" Rounded="true" Class="pa-2">
 
@@ -10,22 +9,9 @@
         Обзор
     </MudNavLink>
 
-    @foreach (var section in Sections)
+    @foreach (var node in Root.Children.OrderBy(n => n.Order))
     {
-        <MudNavGroup Title="@section.Name"
-                     Icon="@SectionIcon(section.Name)"
-                     Expanded="true">
-
-            @foreach (var schema in section.Schemas)
-            {
-                <MudNavLink Href="@($"/compendium/{schema.Kind}")"
-                            Match="NavLinkMatch.Prefix"
-                            Icon="@KindIcon(schema.Kind)">
-                    @schema.PluralTitle
-                </MudNavLink>
-            }
-
-        </MudNavGroup>
+        <NavNode Node="node" />
     }
 
     <MudNavGroup Title="Инструменты"
@@ -45,33 +31,65 @@
 </MudNavMenu>
 
 @code {
-    private sealed record SectionGroup(string Name, int Order, List<EntitySchema> Schemas);
+    private NavNodeModel Root = new();
 
-    private IReadOnlyList<SectionGroup> Sections =>
-        Schemas.All
-            .GroupBy(s => s.Section ?? "Прочее")
-            .Select(g => new SectionGroup(
-                g.Key,
-                g.Min(s => s.Order),
-                g.OrderBy(s => s.Order).ToList()))
-            .OrderBy(g => g.Order)
-            .ToList();
-
-    private static string SectionIcon(string section) => section switch
+    protected override void OnInitialized()
     {
-        "Приключенцы" => Icons.Material.Filled.People,
-        "Мир"         => Icons.Material.Filled.Public,
-        "Квесты"      => Icons.Material.Filled.Map,
-        _             => Icons.Material.Filled.Folder,
+        Root = BuildTree();
+    }
+
+    private static readonly Dictionary<string, int> NodeOrders = new()
+    {
+        ["Мир"]       = 10,
+        ["Квесты"]    = 20,
+        ["Прочее"]    = 30,
+
+        ["Статы"]     = 1,
+        ["Фазы"]      = 2,
+        ["Локации"]   = 3,
+        ["Бестиарий"] = 5,
+
+        ["Виды"]      = 1,
+
+        ["Гуманоиды"] = 1,
+        ["Звери"]     = 2,
+
+        ["Расы"]      = 1,
+        ["Классы"]    = 2,
+        ["Роли"]      = 3,
     };
 
-    private static string KindIcon(string kind) => kind switch
+    private int GetOrder(string nodeName, int fallback) => NodeOrders.TryGetValue(nodeName, out var o) ? o : fallback;
+
+    private NavNodeModel BuildTree()
     {
-        "tag"      => Icons.Material.Filled.Label,
-        "location" => Icons.Material.Filled.Place,
-        "class"    => Icons.Material.Filled.Shield,
-        "race"     => Icons.Material.Filled.Diversity1,
-        "creature" => Icons.Material.Filled.Pets,
-        _          => Icons.Material.Filled.Circle,
-    };
+        var root = new NavNodeModel { Name = "", Order = 0 };
+
+        foreach (var schema in Schemas.All)
+        {
+            var section = string.IsNullOrEmpty(schema.Section) ? "Прочее" : schema.Section;
+            var segments = section.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+            var current = root;
+            foreach (var seg in segments)
+            {
+                var existing = current.Children.FirstOrDefault(c => c.Name == seg);
+                if (existing == null)
+                {
+                    existing = new NavNodeModel
+                    {
+                        Name = seg,
+                        Order = GetOrder(seg, schema.Order),
+                    };
+                    current.Children.Add(existing);
+                }
+                current = existing;
+            }
+
+            if (current.Schema == null)
+                current.Schema = schema;
+        }
+
+        return root;
+    }
 }

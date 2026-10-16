@@ -1,0 +1,57 @@
+@namespace AdventurersGuild.Editor.Components.Shared.Compendium
+
+@if (Node.Children.Count > 0)
+{
+    <MudNavGroup Title="@Node.Name"
+                 Icon="@SectionIcon(Node.Name)"
+                 Expanded="true">
+        @foreach (var child in Node.Children.OrderBy(c => c.Order))
+        {
+            <NavNode Node="child" />
+        }
+    </MudNavGroup>
+}
+else if (Node.Schema is not null)
+{
+    <MudNavLink Href="@($"/compendium/{Node.Schema.Kind}")"
+                Match="NavLinkMatch.Prefix"
+                Icon="@KindIcon(Node.Schema.Kind)">
+        @Node.Schema.PluralTitle
+    </MudNavLink>
+}
+
+@code {
+    [Parameter, EditorRequired] public NavNodeModel Node { get; set; } = default!;
+
+    private static string SectionIcon(string section) => section switch
+    {
+        "Мир"       => Icons.Material.Filled.Public,
+        "Бестиарий" => Icons.Material.Filled.MenuBook,
+        "Виды"      => Icons.Material.Filled.Category,
+        "Гуманоиды" => Icons.Material.Filled.People,
+        "Звери"     => Icons.Material.Filled.Pets,
+        "Статы"     => Icons.Material.Filled.BarChart,
+        "Фазы"      => Icons.Material.Filled.Timer,
+        "Локации"   => Icons.Material.Filled.Place,
+        "Квесты"    => Icons.Material.Filled.Map,
+        "Прочее"    => Icons.Material.Filled.Folder,
+        _           => Icons.Material.Filled.Folder,
+    };
+
+    private static string KindIcon(string kind) => kind switch
+    {
+        "stat"              => Icons.Material.Filled.BarChart,
+        "phase"             => Icons.Material.Filled.Timer,
+        "location"          => Icons.Material.Filled.Place,
+        "tag"               => Icons.Material.Filled.Label,
+        "grade"             => Icons.Material.Filled.Grade,
+        "humanoid-species"  => Icons.Material.Filled.Diversity1,
+        "humanoid-class"    => Icons.Material.Filled.Shield,
+        "humanoid-role"     => Icons.Material.Filled.TheaterComedy,
+        "beast-species"     => Icons.Material.Filled.Pets,
+        "beast-class"       => Icons.Material.Filled.Shield,
+        "beast-role"        => Icons.Material.Filled.TheaterComedy,
+        "debug-test"        => Icons.Material.Filled.BugReport,
+        _                   => Icons.Material.Filled.Circle,
+    };
+}

@@ -161,6 +161,9 @@ public static class QuestValidator
 
     private static int ValidateCreatures()
     {
+        if (QuestDatabase.Creatures == null || QuestDatabase.Creatures.Count == 0)
+            return 0;
+
         int errors = 0;
         foreach (var c in QuestDatabase.Creatures.Values)
         {

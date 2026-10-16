@@ -5,6 +5,7 @@ using AdventurersGuild.Data.IO;
 using AdventurersGuild.Editor.Compendium.Loading;
 using AdventurersGuild.Editor.Compendium.Schema;
 using AdventurersGuild.Editor.Compendium.Schemas;
+using AdventurersGuild.Editor.Compendium.Validation;
 using AdventurersGuild.Editor.Services;
 using AdventurersGuild.Editor.Services.Compendium;
 using MudBlazor.Services;
@@ -23,16 +24,40 @@ public static class Program
         builder.Services.AddMudServices();
 
         builder.Services.AddSingleton<DataLoader>();
-        builder.Services.AddSingleton<LocationRepository>();
-        builder.Services.AddSingleton<CreatureRepository>();
-        builder.Services.AddSingleton<SchemaRegistry>(_ =>
+        builder.Services.AddSingleton<EntityValidator>();
+        builder.Services.AddSingleton(_ =>
         {
             var reg = new SchemaRegistry();
+
+            // Internal — Species
+            reg.RegisterInternal(HumanoidSpeciesSchema.ClassRefSchemaName, HumanoidSpeciesSchema.BuildClassRef());
+            reg.RegisterInternal(HumanoidSpeciesSchema.RoleRefSchemaName, HumanoidSpeciesSchema.BuildRoleRef());
+            reg.RegisterInternal(BeastSpeciesSchema.ClassRefSchemaName, BeastSpeciesSchema.BuildClassRef());
+            reg.RegisterInternal(BeastSpeciesSchema.RoleRefSchemaName, BeastSpeciesSchema.BuildRoleRef());
+
+            // Internal — Role
+            reg.RegisterInternal(HumanoidRoleSchema.StateSchemaName, HumanoidRoleSchema.BuildState());
+            reg.RegisterInternal(HumanoidRoleSchema.ActionSchemaName, HumanoidRoleSchema.BuildAction());
+            reg.RegisterInternal(HumanoidRoleSchema.CheckSchemaName, HumanoidRoleSchema.BuildCheck());
+
+            reg.RegisterInternal(BeastRoleSchema.StateSchemaName, BeastRoleSchema.BuildState());
+            reg.RegisterInternal(BeastRoleSchema.ActionSchemaName, BeastRoleSchema.BuildAction());
+            reg.RegisterInternal(BeastRoleSchema.CheckSchemaName, BeastRoleSchema.BuildCheck());
+
+            // Публичные kinds
             reg.Register(StatSchema.Build());
+            reg.Register(HumanoidSpeciesSchema.Build());
+            reg.Register(HumanoidClassSchema.Build());
+            reg.Register(HumanoidRoleSchema.Build());
+            reg.Register(BeastSpeciesSchema.Build());
+            reg.Register(BeastClassSchema.Build());
+            reg.Register(BeastRoleSchema.Build());
+            reg.Register(PhaseSchema.Build());
             reg.Register(TagSchema.Build());
             reg.Register(LocationSchema.Build());
             reg.Register(GradeSchema.Build());
             reg.Register(TestSchema.Build());
+
             return reg;
         });
 

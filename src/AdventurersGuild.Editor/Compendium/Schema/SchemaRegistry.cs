@@ -3,6 +3,7 @@ namespace AdventurersGuild.Editor.Compendium.Schema;
 public sealed class SchemaRegistry
 {
     private readonly Dictionary<string, EntitySchema> _byKind = new();
+    private readonly Dictionary<string, EntitySchema> _internal = new();
     private readonly List<EntitySchema> _ordered = new();
 
     public IReadOnlyList<EntitySchema> All => _ordered;
@@ -24,4 +25,19 @@ public sealed class SchemaRegistry
         _ordered.Add(schema);
         _ordered.Sort((a, b) => a.Order.CompareTo(b.Order));
     }
+
+    public void RegisterInternal(string name, EntitySchema schema)
+    {
+        _internal[name] = schema;
+    }
+
+    public EntitySchema GetInternal(string name)
+    {
+        if (!_internal.TryGetValue(name, out var schema))
+            throw new InvalidOperationException($"Внутренняя схема '{name}' не зарегистрирована.");
+        return schema;
+    }
+
+    public bool TryGetInternal(string name, out EntitySchema? schema)
+        => _internal.TryGetValue(name, out schema);
 }

@@ -11,7 +11,7 @@ public static class GradeSchema
         Kind = "grade",
         SingularTitle = "Градация",
         PluralTitle = "Градации",
-        Section = "Квесты",
+        Section = "Квесты/Градации",
         Order = 20,
         File = "Data/Quest/QuestGrades.json",
         RootPath = "grades",

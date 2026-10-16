@@ -23,6 +23,8 @@ public sealed class FieldSchema
     /// <summary>Имя подсхемы для Nested / ObjectList.</summary>
     public string? NestedSchemaName { get; init; }
 
+    public string? OptionsFromParentArray { get; init; }
+
     /// <summary>Группа полей (визуальный блок).</summary>
     public string? Group { get; init; }
 

@@ -12,9 +12,10 @@
                 {
                     <MudItem xs="12" md="@field.Width">
                         <FieldRenderer Field="field"
-                                       Node="Entity[field.Name]"
-                                       ValueChanged="@(v => SetField(field, v))"
-                                       ReadOnly="ReadOnly" />
+                                        Node="Entity[field.Name]"
+                                        ParentNode="Entity"
+                                        ValueChanged="@(v => SetField(field, v))"
+                                        ReadOnly="ReadOnly" />
                     </MudItem>
                 }
             </MudGrid>
@@ -53,6 +54,7 @@
         CompendiumFieldType.Reference => JsonValue.Create(""),
         CompendiumFieldType.Number => JsonValue.Create(0),
         CompendiumFieldType.LocalizedCase => new JsonObject
+        
         {
             ["ru"] = new JsonObject
             {
@@ -62,6 +64,10 @@
             ["en"] = "",
         },
         CompendiumFieldType.Dictionary => new JsonObject(),
+        CompendiumFieldType.ObjectList => new JsonArray(),
+        CompendiumFieldType.Nested => new JsonObject(),
+        CompendiumFieldType.ReferenceList => new JsonArray(),
+        CompendiumFieldType.SiblingRef => JsonValue.Create("end"),
         _ => JsonValue.Create(""),
     };
 
