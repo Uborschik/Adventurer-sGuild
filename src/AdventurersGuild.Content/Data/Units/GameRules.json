@@ -1,0 +1,10 @@
+{
+  "adventurerSpecies": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "dragonborn",
+    "half_orc"
+  ]
+}

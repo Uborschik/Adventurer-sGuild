@@ -85,11 +85,7 @@ public partial class GameWindow : Control
 
         adventurerFactory = new UnitFactory();
 
-        var generator = new QuestGenerator(QuestDatabase.Phases);
-        var blueprints = QuestDatabase.Blueprints.Values.ToList();
-        var questFactory = new QuestFactory(generator, blueprints);
-
-        questFlow = new QuestFlow(questRegistry, questFactory, questResolver, clock, bank);
+        var questFactory = new QuestFactory();
 
         reportsRegistry = new ReportsRegistry();
 

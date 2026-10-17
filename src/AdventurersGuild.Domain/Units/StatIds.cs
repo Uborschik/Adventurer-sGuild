@@ -11,14 +11,14 @@ public static class StatIds
     public const string Wisdom = "wis";
     public const string Charisma = "cha";
 
-    public static readonly IReadOnlyList<string> All = new[]
-    {
+    public static readonly IReadOnlyList<string> All =
+    [
         Strength, Dexterity, Endurance,
         Intelligence, Wisdom, Charisma
-    };
+    ];
 
-    public static readonly IReadOnlyList<string> Active = new[]
-    {
+    public static readonly IReadOnlyList<string> Active =
+    [
         Strength, Dexterity, Intelligence, Wisdom, Charisma
-    };
+    ];
 }

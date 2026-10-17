@@ -13,9 +13,18 @@ public class UnitFactory(int? seed = null)
 {
     private readonly Random rng = seed.HasValue ? new Random(seed.Value) : new Random();
 
-    public UnitModel Create(string raceId, string classId, int lvl)
+    public UnitModel Create()
     {
-        var stats = StatGrowth.AtLevel(classId, raceId, lvl);
+        // 1. Выбираем вид (Species) по популяции, но только из разрешенных
+        var species = PickRandomAdventurerSpecies();
+        if (species == null) return null;
+
+        // 2. Выбираем класс и уровень
+        var (classId, level) = PickClassAndLevel(species);
+        if (classId == null) return null;
+
+        // 3. Считаем статы и генерируем имя
+        var stats = StatGrowth.AtLevel(classId, species.Id, level);
 
         var gender = rng.Next(2) == 0 ? Gender.Male : Gender.Female;
         var firstPool = gender == Gender.Male ? UnitDatabase.Names.FirstNamesMale : UnitDatabase.Names.FirstNamesFemale;
@@ -24,124 +33,85 @@ public class UnitFactory(int? seed = null)
         var last = Pick(UnitDatabase.Names.Surnames).Get(Loc.Language);
         var id = Guid.NewGuid().ToString("N");
 
-        var model = new UnitModel(id, first, last, classId, raceId, stats, lvl);
+        var model = new UnitModel(id, first, last, classId, species.Id, stats, level);
 
-        LogAdventurer(model, classId, raceId);
+        LogAdventurer(model, classId, species.Id);
 
         return model;
     }
 
-    public UnitModel Create(string templateId = "recruit")
+    private SpeciesInfo PickRandomAdventurerSpecies()
     {
-        var template = FindTemplate(templateId);
+        var allowedIds = UnitDatabase.GameRules?.AdventurerSpecies;
+        if (allowedIds == null || allowedIds.Count == 0) return null;
 
-        if (template == null)
+        // Собираем только тех, кто есть в разрешенном списке
+        var pool = new List<SpeciesInfo>();
+        int totalWeight = 0;
+
+        foreach (var id in allowedIds)
         {
-            if (UnitDatabase.Templates.Count == 0)
+            var species = UnitDatabase.GetSpecies(id);
+            if (species != null && species.Population > 0)
             {
-                Log.Error("[UnitFactory] Нет шаблонов");
-                return null;
+                pool.Add(species);
+                totalWeight += species.Population;
             }
-            template = UnitDatabase.Templates[0];
         }
 
-        var raceId = PickRaceByPopulation();
-        var race = UnitDatabase.GetRace(raceId);
+        if (totalWeight <= 0) return null;
 
-        if (race == null) return null;
+        // Крутим рулетку по Population
+        int roll = rng.Next(totalWeight);
+        int acc = 0;
 
-        var classId = PickByWeight(race.Weight.Classes);
+        foreach (var species in pool)
+        {
+            acc += species.Population;
+            if (roll < acc) return species;
+        }
 
-        if (classId == null) return null;
-
-        // var level = rng.Next(template.MinLevel, template.MaxLevel + 1);
-        var level = 1;
-        var stats = StatGrowth.AtLevel(classId, raceId, level);
-
-        var gender = rng.Next(2) == 0 ? Gender.Male : Gender.Female;
-        var firstPool = gender == Gender.Male ? UnitDatabase.Names.FirstNamesMale : UnitDatabase.Names.FirstNamesFemale;
-
-        var first = Pick(firstPool).Get(Loc.Language);
-        var last = Pick(UnitDatabase.Names.Surnames).Get(Loc.Language);
-        var id = Guid.NewGuid().ToString("N");
-
-        return new UnitModel(id, first, last, classId, raceId, stats, level);
+        return pool[0];
     }
 
-    private string PickRaceByPopulation()
+    private (string classId, int level) PickClassAndLevel(SpeciesInfo species)
     {
-        var total = 0;
+        if (species.Classes == null || species.Classes.Count == 0) return (null, 0);
 
-        foreach (var r in UnitDatabase.Races.Values)
-            total += r.Weight?.Population ?? 0;
+        int total = 0;
+        foreach (var c in species.Classes) total += c.Weight;
 
-        if (total <= 0)
+        if (total <= 0) return (null, 0);
+
+        int roll = rng.Next(total);
+        int acc = 0;
+        SpeciesClassInfo chosen = null;
+
+        foreach (var c in species.Classes)
         {
-            Log.Error("[UnitFactory] Нет рас с population > 0");
-            return null;
+            acc += c.Weight;
+            if (roll < acc)
+            {
+                chosen = c;
+                break;
+            }
         }
 
-        var roll = rng.Next(total);
-        var acc = 0;
+        if (chosen == null) return (null, 0);
 
-        foreach (var r in UnitDatabase.Races.Values)
-        {
-            acc += r.Weight?.Population ?? 0;
-            if (roll < acc) return r.Id;
-        }
-
-        return null;
-    }
-
-    private UnitTemplateInfo FindTemplate(string id)
-    {
-        foreach (var t in UnitDatabase.Templates)
-            if (t.Id == id) return t;
-        return null;
-    }
-
-    private string PickByWeight(Dictionary<string, int> weights)
-    {
-        if (weights == null || weights.Count == 0)
-        {
-            Log.Error("[UnitFactory] PickByWeight: пустой словарь");
-            return null;
-        }
-
-        var total = 0;
-
-        foreach (var w in weights.Values) total += w;
-
-        if (total <= 0) return null;
-
-        var roll = rng.Next(total);
-        var acc = 0;
-
-        foreach (var kv in weights)
-        {
-            acc += kv.Value;
-            if (roll < acc) return kv.Key;
-        }
-
-        // fallback — первый ненулевой
-        foreach (var kv in weights)
-            if (kv.Value > 0) return kv.Key;
-
-        return null;
+        int level = rng.Next(chosen.MinLvl, chosen.MaxLvl + 1);
+        return (chosen.ClassId, level);
     }
 
     private LocalizedName Pick(List<LocalizedName> pool)
     {
-        if (pool == null || pool.Count == 0)
-            return default;
+        if (pool == null || pool.Count == 0) return default;
         return pool[rng.Next(pool.Count)];
     }
 
     private static void LogAdventurer(UnitModel a, string classId, string raceId)
     {
-        var stats = string.Join(" ",
-            StatIds.All.Select(s => $"{s}={a.Stats[s]:F2}"));
-
+        var stats = string.Join(" ", StatIds.All.Select(s => $"{s}={a.Stats[s]:F2}"));
         Log.Info($"[Adv] \n {raceId}/{classId} \n {a.FullName} \n L{a.Level.Number}  {stats}");
     }
 }

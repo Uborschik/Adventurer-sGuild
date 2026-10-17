@@ -12,7 +12,8 @@ public static class JsonLoader
         Converters =
         {
             new JsonStringEnumConverter(),
-            new IntFromFloatConverter()
+            new IntFromFloatConverter(),
+            new OutcomeInfoConverter()
         }
     };
 

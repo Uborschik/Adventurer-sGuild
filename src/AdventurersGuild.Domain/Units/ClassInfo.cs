@@ -1,7 +1,7 @@
+namespace AdventurersGuild.Domain.Adventurers;
+
 using System.Collections.Generic;
 using AdventurersGuild.Core.Localization;
-
-namespace AdventurersGuild.Domain.Adventurers;
 
 public class ClassInfo
 {
@@ -11,11 +11,12 @@ public class ClassInfo
     public string PrimarySkill { get; set; }
     public string SecondaryStat { get; set; }
     public string SecondarySkill { get; set; }
-    public Dictionary<string, double> GrowthWeights { get; set; }
-    public int Weight { get; set; }
+
+    public int ClassCost { get; set; } = 1;
+    public Dictionary<string, double> StatModifiers { get; set; } = [];
 }
 
-public class AdventurerClassDatabase
+public class ClassDatabase
 {
-    public List<ClassInfo> Classes { get; set; } = new();
+    public List<ClassInfo> Classes { get; set; } = [];
 }

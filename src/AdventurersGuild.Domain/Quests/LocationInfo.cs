@@ -3,15 +3,15 @@ namespace AdventurersGuild.Domain.Quests;
 using System.Collections.Generic;
 using AdventurersGuild.Core.Localization;
 
-public class LocationInfo
+public record LocationInfo
 {
-    public string Id { get; set; }
-    public LocalizedNoun Name { get; set; }
-    public double DifficultyModifier { get; set; }
-    public int TravelDaysModifier { get; set; }
+    public string Id { get; init; }
+    public LocalizedNoun Name { get; init; }
+    public double DifficultyModifier { get; init; }
+    public int TravelDaysModifier { get; init; }
 }
 
-public class LocationDatabase
+public record LocationDatabase
 {
-    public List<LocationInfo> Locations { get; set; } = [];
+    public List<LocationInfo> Locations { get; init; } = [];
 }

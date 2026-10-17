@@ -1,7 +1,7 @@
+namespace AdventurersGuild.Domain.Adventurers;
+
 using System.Collections.Generic;
 using AdventurersGuild.Core.Localization;
-
-namespace AdventurersGuild.Domain.Adventurers;
 
 public class StatInfo
 {
@@ -13,5 +13,5 @@ public class StatInfo
 
 public class AdventurerStatDatabase
 {
-    public List<StatInfo> Stats { get; set; } = new();
+    public List<StatInfo> Stats { get; set; } = [];
 }

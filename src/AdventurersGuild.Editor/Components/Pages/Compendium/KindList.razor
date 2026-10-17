@@ -12,32 +12,41 @@
 
 <PageTitle>@Info.PluralTitle</PageTitle>
 
-<MudText Typo="Typo.h4">@Info.PluralTitle</MudText>
+<div class="page-host scroll">
+    <div class="page-header">
+        <div class="page-title">@Info.PluralTitle</div>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   Size="Size.Small"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="CreateNew">
+            Новый
+        </MudButton>
+    </div>
 
-<div class="d-flex justify-end mt-4 mb-2">
-    <MudButton Variant="Variant.Filled"
-               Color="Color.Primary"
-               StartIcon="@Icons.Material.Filled.Add"
-               OnClick="CreateNew">
-        Новый
-    </MudButton>
+    @if (!Entries.Any())
+    {
+        <div class="entity-empty">Пусто. Нажмите «Новый», чтобы создать первую запись.</div>
+    }
+    else
+    {
+        <div class="entity-list">
+            @foreach (var e in Entries)
+            {
+                <div class="entity-row" @onclick="@(() => Edit(e.Id))">
+                    <span class="entity-id">@e.Id</span>
+                    <span class="entity-name">@e.DisplayName</span>
+                    <span class="entity-delete" @onclick:stopPropagation="true">
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Size="Size.Small"
+                                       Color="Color.Error"
+                                       OnClick="@(() => ConfirmDelete(e))" />
+                    </span>
+                </div>
+            }
+        </div>
+    }
 </div>
-
-<MudTable Items="@Entries" Dense="true" Hover="true" Bordered="true">
-    <HeaderContent>
-        <MudTh>@Info.IdField</MudTh>
-        <MudTh>Название</MudTh>
-        <MudTh Style="width:220px"></MudTh>
-    </HeaderContent>
-    <RowTemplate>
-        <MudTd>@context.Id</MudTd>
-        <MudTd>@context.DisplayName</MudTd>
-        <MudTd>
-            <MudButton Size="Size.Small" OnClick="@(() => Edit(context.Id))">Редактировать</MudButton>
-            <MudButton Size="Size.Small" Color="Color.Error" OnClick="@(() => ConfirmDelete(context))">Удалить</MudButton>
-        </MudTd>
-    </RowTemplate>
-</MudTable>
 
 @code {
     [Parameter] public string Kind { get; set; } = "";

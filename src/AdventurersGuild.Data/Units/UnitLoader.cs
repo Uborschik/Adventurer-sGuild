@@ -13,14 +13,14 @@ public static class UnitLoader
     public static void Load()
     {
         Dictionary<string, ClassInfo> classes = LoadClasses();
-        Dictionary<string, RaceInfo> races = LoadRaces();
+        Dictionary<string, SpeciesInfo> species = LoadSpecies();
         Dictionary<string, StatInfo> stats = LoadStats();
         Dictionary<string, SkillInfo> skills = LoadSkills();
         Dictionary<string, StatusInfo> statuses = LoadStatuses();
-        IReadOnlyList<UnitTemplateInfo> templates = LoadTemplates();
+        GameRulesInfo gameRules = JsonLoader.Load<GameRulesInfo>(dataPath + "GameRules.json");
         NameDatabase names = LoadNames();
 
-        UnitDatabase.Install(classes, races, stats, skills, statuses, templates, names);
+        UnitDatabase.Install(gameRules, classes, species, stats, skills, statuses, names);
 
         UnitValidator.Validate();
         UnitValidator.ValidateNames();
@@ -28,12 +28,20 @@ public static class UnitLoader
     }
 
     private static Dictionary<string, ClassInfo> LoadClasses()
-        => JsonLoader.Load<AdventurerClassDatabase>(dataPath + "AdventurerClasses.json")
-            .Classes.ToDictionary(c => c.Id);
+    {
+        var humanoidClasses = JsonLoader.Load<ClassDatabase>(dataPath + "HumanoidClasses.json").Classes;
+        var beastClasses = JsonLoader.Load<ClassDatabase>(dataPath + "BeastClasses.json").Classes;
 
-    private static Dictionary<string, RaceInfo> LoadRaces()
-        => JsonLoader.Load<AdventurerRaceDatabase>(dataPath + "AdventurerRaces.json")
-            .Races.ToDictionary(r => r.Id);
+        return humanoidClasses.Concat(beastClasses).ToDictionary(c => c.Id);
+    }
+
+    private static Dictionary<string, SpeciesInfo> LoadSpecies()
+    {
+        var humanoidSpecies = JsonLoader.Load<SpeciesDatabase>(dataPath + "HumanoidSpecies.json").Species;
+        var beastSpecies = JsonLoader.Load<SpeciesDatabase>(dataPath + "BeastSpecies.json").Species;
+
+        return humanoidSpecies.Concat(beastSpecies).ToDictionary(s => s.Id);
+    }
 
     private static Dictionary<string, StatInfo> LoadStats()
         => JsonLoader.Load<AdventurerStatDatabase>(dataPath + "Stats.json")
@@ -44,13 +52,9 @@ public static class UnitLoader
             .Skills.ToDictionary(s => s.Id);
 
     private static Dictionary<string, StatusInfo> LoadStatuses()
-        => JsonLoader.Load<AdventurerStatusDatabase>(dataPath + "AdventurerStatuses.json")
+        => JsonLoader.Load<AdventurerStatusDatabase>(dataPath + "Statuses.json")
             .Statuses.ToDictionary(s => s.Id);
 
-    private static IReadOnlyList<UnitTemplateInfo> LoadTemplates()
-        => JsonLoader.Load<AdventurerTemplateDatabase>(dataPath + "AdventurerTemplates.json")
-            .Templates;
-
     private static NameDatabase LoadNames()
-        => JsonLoader.Load<NameDatabase>(dataPath + "AdventurerNames.json");
+        => JsonLoader.Load<NameDatabase>(dataPath + "Names.json");
 }

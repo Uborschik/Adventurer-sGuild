@@ -19,22 +19,37 @@
     return;
 }
 
-<MudText Typo="Typo.h4">
-    @(isNew ? $"Новый {Info.SingularTitle}" : $"{Info.SingularTitle}: {Id}")
-</MudText>
+<div class="page-host">
+    <div class="page-header">
+        <div class="page-title">
+            @if (isNew)
+            {
+                <span class="prefix">Новый:</span>
+                <code>@Info.SingularTitle</code>
+            }
+            else
+            {
+                <span class="prefix">@Info.SingularTitle:</span>
+                <code>@Id</code>
+            }
+        </div>
+        <div class="d-flex gap-2">
+            <MudButton Variant="Variant.Outlined"
+                       Size="Size.Small"
+                       OnClick="GoBack">
+                Отмена
+            </MudButton>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       Size="Size.Small"
+                       OnClick="Save"
+                       Disabled="@(!dirty)">
+                Сохранить
+            </MudButton>
+        </div>
+    </div>
 
-<div class="mt-4">
     <EntityJsonEditor Entity="workingJson" OnChanged="OnEntityChanged" />
-</div>
-
-<div class="d-flex gap-2 mt-2">
-    <MudButton Variant="Variant.Filled"
-               Color="Color.Primary"
-               OnClick="Save"
-               Disabled="@(!dirty)">
-        Сохранить
-    </MudButton>
-    <MudButton Variant="Variant.Outlined" OnClick="GoBack">Отмена</MudButton>
 </div>
 
 @code {
@@ -76,10 +91,7 @@
         }
     }
 
-    private void OnEntityChanged()
-    {
-        dirty = true;
-    }
+    private void OnEntityChanged() => dirty = true;
 
     private void Save()
     {

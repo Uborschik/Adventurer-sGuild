@@ -2,12 +2,6 @@
 
 <MudNavMenu Bordered="true" Rounded="true" Class="pa-2">
 
-    <MudNavLink Href="/compendium"
-                Match="NavLinkMatch.All"
-                Icon="@Icons.Material.Filled.Home">
-        Обзор
-    </MudNavLink>
-
     @foreach (var node in Root.Children.OrderBy(n => n.Order))
     {
         <NavNode Node="node" />

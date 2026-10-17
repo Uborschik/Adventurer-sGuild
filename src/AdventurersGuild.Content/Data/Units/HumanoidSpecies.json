@@ -6,6 +6,7 @@
         "ru": { "nom": "человек", "gen": "человека", "dat": "человеку", "acc": "человека", "ins": "человеком", "pre": "человеке" },
         "en": "human"
       },
+      "population": 20,
       "statBonuses": { "str": 1, "dex": 1, "int": 1, "cha": 1 },
       "growthWeights": {},
       "classes": [
@@ -26,6 +27,7 @@
         "ru": { "nom": "эльф", "gen": "эльфа", "dat": "эльфу", "acc": "эльфа", "ins": "эльфом", "pre": "эльфе" },
         "en": "elf"
       },
+      "population": 20,
       "statBonuses": { "str": -1, "dex": 2, "int": 1, "wis": 1, "cha": 1 },
       "growthWeights": {},
       "classes": [
@@ -45,6 +47,7 @@
         "ru": { "nom": "дварф", "gen": "дварфа", "dat": "дварфу", "acc": "дварфа", "ins": "дварфом", "pre": "дварфе" },
         "en": "dwarf"
       },
+      "population": 20,
       "statBonuses": { "str": 2, "end": 4, "int": -1, "wis": 1 },
       "growthWeights": {},
       "classes": [
@@ -64,6 +67,7 @@
         "ru": { "nom": "полурослик", "gen": "полурослика", "dat": "полурослику", "acc": "полурослика", "ins": "полуросликом", "pre": "полурослике" },
         "en": "halfling"
       },
+      "population": 20,
       "statBonuses": { "dex": 1, "end": -1, "int": 1, "wis": 1, "cha": 1 },
       "growthWeights": {},
       "classes": [
@@ -82,6 +86,7 @@
         "ru": { "nom": "драконорождённый", "gen": "драконорождённого", "dat": "драконорождённому", "acc": "драконорождённого", "ins": "драконорождённым", "pre": "драконорождённом" },
         "en": "dragonborn"
       },
+      "population": 20,
       "statBonuses": { "str": 1, "end": 2, "int": 1, "wis": 2, "cha": -1 },
       "growthWeights": {},
       "classes": [
@@ -99,6 +104,7 @@
         "ru": { "nom": "полуорк", "gen": "полуорка", "dat": "полуорку", "acc": "полуорка", "ins": "полуорком", "pre": "полуорке" },
         "en": "half-orc"
       },
+      "population": 20,
       "statBonuses": { "str": 3, "dex": -1, "end": 4, "int": -1, "wis": 1, "cha": 0 },
       "growthWeights": {},
       "classes": [
@@ -118,6 +124,7 @@
         "ru": { "nom": "гоблин", "gen": "гоблина", "dat": "гоблину", "acc": "гоблина", "ins": "гоблином", "pre": "гоблине" },
         "en": "goblin"
       },
+      "population": 20,
       "statBonuses": {},
       "growthWeights": { "str": 0.7, "dex": 0.9, "end": 0.6, "int": 0.5, "wis": 0.5, "cha": 0.2 },
       "classes": [

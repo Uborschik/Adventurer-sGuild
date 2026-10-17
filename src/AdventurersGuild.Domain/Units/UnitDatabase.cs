@@ -7,11 +7,11 @@ using AdventurersGuild.Domain.Names;
 public static class UnitDatabase
 {
     public static IReadOnlyDictionary<string, ClassInfo> Classes { get; private set; }
-    public static IReadOnlyDictionary<string, RaceInfo> Races { get; private set; }
+    public static IReadOnlyDictionary<string, SpeciesInfo> Species { get; private set; }
     public static IReadOnlyDictionary<string, StatInfo> Stats { get; private set; }
     public static IReadOnlyDictionary<string, SkillInfo> Skills { get; private set; }
     public static IReadOnlyDictionary<string, StatusInfo> Statuses { get; private set; }
-    public static IReadOnlyList<UnitTemplateInfo> Templates { get; private set; }
+    public static GameRulesInfo GameRules { get; private set; }
     public static NameDatabase Names { get; private set; }
 
     private static Dictionary<string, string> skillToStat = [];
@@ -21,20 +21,20 @@ public static class UnitDatabase
     // === Install ===
 
     public static void Install(
+        GameRulesInfo gameRules,
         IReadOnlyDictionary<string, ClassInfo> classes = null,
-        IReadOnlyDictionary<string, RaceInfo> races = null,
+        IReadOnlyDictionary<string, SpeciesInfo> species = null,
         IReadOnlyDictionary<string, StatInfo> stats = null,
         IReadOnlyDictionary<string, SkillInfo> skills = null,
         IReadOnlyDictionary<string, StatusInfo> statuses = null,
-        IReadOnlyList<UnitTemplateInfo> templates = null,
         NameDatabase names = null)
     {
+        GameRules ??= gameRules;
         if (classes != null) Classes = classes;
-        if (races != null) Races = races;
+        if (species != null) Species = species;
         if (stats != null) Stats = stats;
         if (skills != null) Skills = skills;
         if (statuses != null) Statuses = statuses;
-        if (templates != null) Templates = templates;
         if (names != null) Names = names;
 
         BuildSkillIndex();
@@ -42,7 +42,7 @@ public static class UnitDatabase
 
     private static void BuildSkillIndex()
     {
-        skillToStat = new();
+        skillToStat = [];
 
         if (Skills == null) return;
 
@@ -70,7 +70,7 @@ public static class UnitDatabase
     // === Lookups ===
 
     public static ClassInfo GetClass(string id) => Lookup(Classes, id, "класс");
-    public static RaceInfo GetRace(string id) => Lookup(Races, id, "раса");
+    public static SpeciesInfo GetSpecies(string id) => Lookup(Species, id, "вид");
     public static StatInfo GetStat(string id) => Lookup(Stats, id, "стат");
     public static StatusInfo GetStatus(string id) => Lookup(Statuses, id, "статус");
 
@@ -97,10 +97,14 @@ public static class UnitDatabase
         return c?.Name.Get(Loc.Language) ?? id;
     }
 
-    public static string RaceName(string id)
+    public static string SpeciesName(string id)
     {
-        RaceInfo r = GetRace(id);
-        return r?.Name.Get(Loc.Language) ?? id;
+        SpeciesInfo s = GetSpecies(id);
+
+        if (s == null) return id;
+
+        var name = s.Name?.Get(Loc.Language);
+        return string.IsNullOrEmpty(name) ? id : name;
     }
 
     public static string StatName(string id)

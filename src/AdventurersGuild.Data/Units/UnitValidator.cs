@@ -1,6 +1,5 @@
 namespace AdventurersGuild.Data.Adventurer;
 
-using System.Collections.Generic;
 using AdventurersGuild.Core;
 using AdventurersGuild.Domain.Adventurers;
 
@@ -8,157 +7,123 @@ public static class UnitValidator
 {
     public static void Validate()
     {
-        IReadOnlyDictionary<string, ClassInfo> db = UnitDatabase.Classes;   // для удобства чтения
         var errors = 0;
 
-        // === Расы ===
-        foreach (var race in UnitDatabase.Races.Values)
+        // === Виды (Species) ===
+        foreach (var species in UnitDatabase.Species.Values)
         {
-            if (race.Weight == null)
+            if (species.Classes == null || species.Classes.Count == 0)
             {
-                Log.Error($"[AdventurerDB] Раса '{race.Id}': нет weight");
+                Log.Error($"[AdventurerDB] Вид '{species.Id}': пустой список classes");
                 errors++;
                 continue;
             }
 
-            if (race.Weight.Population <= 0)
-                Log.Warn($"[AdventurerDB] Раса '{race.Id}': population = 0, никогда не появится");
-
-            if (race.Weight.Classes == null || race.Weight.Classes.Count == 0)
+            foreach (var sc in species.Classes)
             {
-                Log.Error($"[AdventurerDB] Раса '{race.Id}': пустой список classes");
-                errors++;
-                continue;
-            }
-
-            foreach (var classId in race.Weight.Classes.Keys)
-            {
-                if (!UnitDatabase.Classes.ContainsKey(classId))
+                if (!UnitDatabase.Classes.ContainsKey(sc.ClassId))
                 {
-                    Log.Error($"[AdventurerDB] Раса '{race.Id}': неизвестный класс '{classId}'");
+                    Log.Error($"[AdventurerDB] Вид '{species.Id}': неизвестный класс '{sc.ClassId}'");
+                    errors++;
+                }
+                if (sc.Weight <= 0)
+                {
+                    Log.Error($"[AdventurerDB] Вид '{species.Id}', класс '{sc.ClassId}': weight <= 0");
+                    errors++;
+                }
+                if (sc.MinLvl < 1 || sc.MaxLvl < sc.MinLvl)
+                {
+                    Log.Error($"[AdventurerDB] Вид '{species.Id}', класс '{sc.ClassId}': некорректный диапазон уровней ({sc.MinLvl}-{sc.MaxLvl})");
                     errors++;
                 }
             }
 
-            if (race.StatBonuses != null)
+            if (species.StatBonuses != null)
             {
-                foreach (var statId in race.StatBonuses.Keys)
+                foreach (var statId in species.StatBonuses.Keys)
                 {
                     if (!UnitDatabase.Stats.ContainsKey(statId))
                     {
-                        Log.Error($"[AdventurerDB] Раса '{race.Id}': неизвестный стат '{statId}' в statBonuses");
+                        Log.Error($"[AdventurerDB] Вид '{species.Id}': неизвестный стат '{statId}' в statBonuses");
                         errors++;
                     }
                 }
             }
 
-            if (race.ResilienceMultiplier <= 0)
+            if (species.GrowthWeights != null)
             {
-                Log.Error($"[AdventurerDB] Раса '{race.Id}': resilienceMultiplier <= 0");
-                errors++;
+                foreach (var kv in species.GrowthWeights)
+                {
+                    if (!UnitDatabase.Stats.ContainsKey(kv.Key))
+                    {
+                        Log.Error($"[AdventurerDB] Вид '{species.Id}': неизвестный стат '{kv.Key}' в growthWeights");
+                        errors++;
+                    }
+                    if (kv.Value < 0)
+                    {
+                        Log.Error($"[AdventurerDB] Вид '{species.Id}': отрицательный вес '{kv.Key}' = {kv.Value}");
+                        errors++;
+                    }
+                }
             }
         }
 
         // === Классы ===
         foreach (ClassInfo cls in UnitDatabase.Classes.Values)
         {
-            if (string.IsNullOrEmpty(cls.PrimaryStat) || !UnitDatabase.Stats.ContainsKey(cls.PrimaryStat))
-            {
-                Log.Error($"[AdventurerDB] Класс '{cls.Id}': primaryStat '{cls.PrimaryStat}' не найден");
-                errors++;
-            }
+            var isBeast = string.IsNullOrEmpty(cls.PrimaryStat);
 
-            if (string.IsNullOrEmpty(cls.SecondaryStat) || !UnitDatabase.Stats.ContainsKey(cls.SecondaryStat))
+            if (!isBeast)
             {
-                Log.Error($"[AdventurerDB] Класс '{cls.Id}': secondaryStat '{cls.SecondaryStat}' не найден");
-                errors++;
-            }
-
-            if (!string.IsNullOrEmpty(cls.PrimaryStat) && cls.PrimaryStat == cls.SecondaryStat)
-            {
-                Log.Error($"[AdventurerDB] Класс '{cls.Id}': primary == secondary ('{cls.PrimaryStat}')");
-                errors++;
-            }
-
-            if (string.IsNullOrEmpty(cls.PrimarySkill))
-            {
-                Log.Error($"[AdventurerDB] Класс '{cls.Id}': пустой primarySkill");
-                errors++;
-            }
-
-            if (string.IsNullOrEmpty(cls.SecondarySkill))
-            {
-                Log.Error($"[AdventurerDB] Класс '{cls.Id}': пустой secondarySkill");
-                errors++;
-            }
-
-            if (cls.GrowthWeights == null || cls.GrowthWeights.Count == 0)
-            {
-                Log.Error($"[AdventurerDB] Класс '{cls.Id}': пустой growthWeights");
-                errors++;
-            }
-            else
-            {
-                foreach (var statId in StatIds.All)
+                if (!UnitDatabase.Stats.ContainsKey(cls.PrimaryStat))
                 {
-                    if (!cls.GrowthWeights.ContainsKey(statId))
-                        Log.Warn($"[AdventurerDB] Класс '{cls.Id}': нет веса для '{statId}', будет 0.20");
+                    Log.Error($"[AdventurerDB] Класс '{cls.Id}': primaryStat '{cls.PrimaryStat}' не найден");
+                    errors++;
                 }
 
-                foreach (KeyValuePair<string, double> kv in cls.GrowthWeights)
+                if (!UnitDatabase.Stats.ContainsKey(cls.SecondaryStat))
+                {
+                    Log.Error($"[AdventurerDB] Класс '{cls.Id}': secondaryStat '{cls.SecondaryStat}' не найден");
+                    errors++;
+                }
+
+                if (cls.PrimaryStat == cls.SecondaryStat)
+                {
+                    Log.Error($"[AdventurerDB] Класс '{cls.Id}': primary == secondary ('{cls.PrimaryStat}')");
+                    errors++;
+                }
+
+                if (string.IsNullOrEmpty(cls.PrimarySkill))
+                {
+                    Log.Error($"[AdventurerDB] Класс '{cls.Id}': пустой primarySkill");
+                    errors++;
+                }
+
+                if (string.IsNullOrEmpty(cls.SecondarySkill))
+                {
+                    Log.Error($"[AdventurerDB] Класс '{cls.Id}': пустой secondarySkill");
+                    errors++;
+                }
+            }
+
+            if (cls.ClassCost <= 0)
+            {
+                Log.Error($"[AdventurerDB] Класс '{cls.Id}': classCost должен быть > 0 (текущее: {cls.ClassCost})");
+                errors++;
+            }
+
+            if (cls.StatModifiers != null)
+            {
+                foreach (var kv in cls.StatModifiers)
                 {
                     if (!UnitDatabase.Stats.ContainsKey(kv.Key))
                     {
-                        Log.Error($"[AdventurerDB] Класс '{cls.Id}': неизвестный стат '{kv.Key}' в growthWeights");
+                        Log.Error($"[AdventurerDB] Класс '{cls.Id}': неизвестный стат '{kv.Key}' в statModifiers");
                         errors++;
-                    }
-                    if (kv.Value < 0)
-                    {
-                        Log.Error($"[AdventurerDB] Класс '{cls.Id}': отрицательный вес '{kv.Key}' = {kv.Value}");
-                        errors++;
-                    }
-                }
-
-                if (cls.GrowthWeights.TryGetValue(cls.PrimaryStat, out var pw))
-                {
-                    foreach (var kv in cls.GrowthWeights)
-                    {
-                        if (kv.Key != cls.PrimaryStat && kv.Value > pw)
-                        {
-                            Log.Warn($"[AdventurerDB] Класс '{cls.Id}': вес '{kv.Key}' ({kv.Value}) " +
-                                     $"больше primary '{cls.PrimaryStat}' ({pw})");
-                        }
                     }
                 }
             }
         }
-
-        // === Шаблоны ===
-        foreach (UnitTemplateInfo t in UnitDatabase.Templates)
-        {
-            if (t.MinLevel < 1)
-            {
-                Log.Error($"[AdventurerDB] Шаблон '{t.Id}': minLevel < 1");
-                errors++;
-            }
-
-            if (t.MaxLevel < t.MinLevel)
-            {
-                Log.Error($"[AdventurerDB] Шаблон '{t.Id}': maxLevel < minLevel");
-                errors++;
-            }
-        }
-
-        // === Итог ===
-        if (errors == 0)
-            Log.Info($"[AdventurerDB] Валидация: ok " +
-                     $"({UnitDatabase.Classes.Count} классов, " +
-                     $"{UnitDatabase.Races.Count} рас, " +
-                     $"{UnitDatabase.Stats.Count} статов, " +
-                     $"{UnitDatabase.Statuses.Count} статусов, " +
-                     $"{UnitDatabase.Templates.Count} шаблонов)");
-        else
-            Log.Error($"[AdventurerDB] Валидация: {errors} ошибок");
     }
 
     // === Валидация навыков ===
@@ -191,6 +156,9 @@ public static class UnitValidator
 
         foreach (var cls in UnitDatabase.Classes.Values)
         {
+            // Пропускаем зверей, у них нет навыков
+            if (string.IsNullOrEmpty(cls.PrimaryStat)) continue;
+
             if (!string.IsNullOrEmpty(cls.PrimarySkill))
             {
                 string statId = UnitDatabase.StatForSkill(cls.PrimarySkill);
@@ -250,11 +218,13 @@ public static class UnitValidator
             }
         }
 
-        foreach (var race in UnitDatabase.Races.Values)
+        foreach (var species in UnitDatabase.Species.Values)
         {
-            if (string.IsNullOrEmpty(race.Name.Ru) || string.IsNullOrEmpty(race.Name.En))
+            var name = species.Name;
+
+            if (name.Ru == null || name.En == null || string.IsNullOrEmpty(name.Ru.Nom) || string.IsNullOrEmpty(name.En))
             {
-                Log.Error($"[AdventurerDB] Раса '{race.Id}': неполное name");
+                Log.Error($"[AdventurerDB] Вид '{species.Id}': неполное name");
                 errors++;
             }
         }
@@ -302,7 +272,7 @@ public static class UnitValidator
             errors++;
         }
 
-        int total = UnitDatabase.Stats.Count + UnitDatabase.Races.Count
+        int total = UnitDatabase.Stats.Count + UnitDatabase.Species.Count
                   + UnitDatabase.Classes.Count + UnitDatabase.Statuses.Count;
 
         if (errors == 0)

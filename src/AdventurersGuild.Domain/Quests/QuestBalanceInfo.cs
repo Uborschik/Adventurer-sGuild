@@ -1,12 +1,15 @@
-using System.Collections.Generic;
-
 namespace AdventurersGuild.Domain.Quests;
+
+using System.Collections.Generic;
 
 public class QuestBalanceProfile
 {
     public string Id { get; set; }
 
     // === Duration ===
+    public Dictionary<int, int> BudgetPerLevel { get; set; } = new();
+
+    public int MaxQuestDays { get; set; } = 90;
     public double DurationMultiplier { get; set; } = 1.2;
     public double DurationFailPenaltyPerPhase { get; set; } = 0.30;
     public double DurationIntBonusCap { get; set; } = 0.30;
@@ -28,7 +31,6 @@ public class QuestBalanceProfile
 
     // === Night & limits ===
     public double NightAttackChanceBase { get; set; } = 25;
-    public int MaxQuestDays { get; set; } = 90;
     public int NightCreatureLevelPenalty { get; set; } = 5;
 
     // === Endurance ===

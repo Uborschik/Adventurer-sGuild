@@ -1,7 +1,6 @@
-using AdventurersGuild.Data.Adventurer;
-using AdventurersGuild.Domain.Adventurers;
-
 namespace AdventurersGuild.Infrastructure;
+
+using AdventurersGuild.Domain.Adventurers;
 
 public static class TextExtensions
 {
@@ -9,7 +8,7 @@ public static class TextExtensions
         => UnitDatabase.ClassName(model.ClassId);
 
     public static string RaceName(this UnitModel model)
-        => UnitDatabase.RaceName(model.RaceId);
+        => UnitDatabase.SpeciesName(model.RaceId);
 
     public static string StatName(this UnitModel model, string id)
         => UnitDatabase.StatName(id);

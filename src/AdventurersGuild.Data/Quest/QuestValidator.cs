@@ -1,11 +1,8 @@
 namespace AdventurersGuild.Data.Quest;
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using AdventurersGuild.Core;
-using AdventurersGuild.Data.Adventurer;
 using AdventurersGuild.Domain.Adventurers;
 using AdventurersGuild.Domain.Quests;
 
@@ -15,66 +12,37 @@ public static class QuestValidator
     {
         int errors = 0;
 
-        errors += ValidateTags();
-        errors += ValidateGrades();
+        errors += ValidateInstructions();
         errors += ValidatePhases();
-        errors += ValidateCreatures();
-        errors += ValidateLocations();
-        errors += ValidateBlueprints();
-        errors += ValidateDeclensions();
+        errors += ValidateRoles();
+        errors += ValidateBestiary();
+        errors += ValidateTemplates();
 
         if (errors == 0)
             Log.Info($"[QuestDB] Валидация: ok " +
-                     $"({QuestDatabase.Blueprints.Count} blueprint'ов, " +
-                     $"{QuestDatabase.Tags.Count} тегов, " +
-                     $"{QuestDatabase.Phases.Count} фаз, " +
-                     $"{QuestDatabase.Creatures.Count} существ, " +
-                     $"{QuestDatabase.Locations.Count} локаций, " +
-                     $"{QuestDatabase.Grades.Count} градаций)");
+                     $"({QuestDatabase.Roles.Count} ролей, " +
+                     $"{QuestDatabase.Templates.Count} шаблонов, " +
+                     $"{QuestDatabase.Habitats.Count} локаций)");
         else
             Log.Error($"[QuestDB] Валидация: {errors} ошибок");
     }
 
-    // === Tags ===
+    // === Instructions ===
 
-    private static int ValidateTags()
+    private static int ValidateInstructions()
     {
         int errors = 0;
-        foreach (var tag in QuestDatabase.Tags.Values)
+        if (QuestDatabase.Instructions == null || QuestDatabase.Instructions.Count == 0)
         {
-            if (string.IsNullOrEmpty(tag.Id))
-            {
-                Log.Error("[QuestDB] Тег без id");
-                errors++;
-            }
-            if (string.IsNullOrEmpty(tag.Name.Ru) || string.IsNullOrEmpty(tag.Name.En))
-            {
-                Log.Error($"[QuestDB] Тег '{tag.Id}': неполное name");
-                errors++;
-            }
-        }
-        return errors;
-    }
-
-    // === Grades ===
-
-    private static int ValidateGrades()
-    {
-        int errors = 0;
-        foreach (var g in QuestDatabase.Grades)
-        {
-            if (string.IsNullOrEmpty(g.Name.Ru) || string.IsNullOrEmpty(g.Name.En))
-            {
-                Log.Error($"[QuestDB] Градация '{g.Role}': неполное name");
-                errors++;
-            }
+            Log.Error("[QuestDB] Инструкции не загружены");
+            return 1;
         }
 
-        foreach (QuestGradeRole role in Enum.GetValues<QuestGradeRole>())
+        foreach (var i in QuestDatabase.Instructions.Values)
         {
-            if (QuestDatabase.GradesByRole == null || !QuestDatabase.GradesByRole.ContainsKey(role))
+            if (string.IsNullOrEmpty(i.Id))
             {
-                Log.Error($"[QuestDB] Нет градации с ролью {role}");
+                Log.Error("[QuestDB] Инструкция без id");
                 errors++;
             }
         }
@@ -86,70 +54,149 @@ public static class QuestValidator
     private static int ValidatePhases()
     {
         int errors = 0;
+        if (QuestDatabase.Phases == null || QuestDatabase.Phases.Count == 0)
+        {
+            Log.Error("[QuestDB] Фазы не загружены");
+            return 1;
+        }
+
         foreach (var p in QuestDatabase.Phases.Values)
         {
             if (string.IsNullOrEmpty(p.Id))
             {
                 Log.Error("[QuestDB] Фаза без id");
                 errors++;
-                continue;
             }
-
-            foreach (var tag in p.Tags)
+            if (string.IsNullOrEmpty(p.Name.Ru) || string.IsNullOrEmpty(p.Name.En))
             {
-                if (!QuestDatabase.Tags.ContainsKey(tag))
-                {
-                    Log.Error($"[QuestDB] Фаза '{p.Id}': неизвестный тег '{tag}'");
-                    errors++;
-                }
+                Log.Error($"[QuestDB] Фаза '{p.Id}': неполное name");
+                errors++;
             }
+        }
+        return errors;
+    }
 
-            if (p.Paths == null || p.Paths.Count == 0)
+    // === Roles ===
+
+    private static int ValidateRoles()
+    {
+        int errors = 0;
+        if (QuestDatabase.Roles == null || QuestDatabase.Roles.Count == 0)
+        {
+            Log.Error("[QuestDB] Роли не загружены");
+            return 1;
+        }
+
+        foreach (var role in QuestDatabase.Roles.Values)
+        {
+            if (role.Actions == null || role.Actions.Count == 0)
             {
-                Log.Error($"[QuestDB] Фаза '{p.Id}': пустой paths");
+                Log.Error($"[QuestDB] Роль '{role.Id}': пустой список actions");
                 errors++;
                 continue;
             }
 
-            foreach (var path in p.Paths)
+            var actionIds = role.Actions.Select(a => a.Id).ToHashSet();
+
+            foreach (var action in role.Actions)
             {
-                if (path.Checks == null || path.Checks.Count == 0)
+                // Проверка фазы
+                if (!QuestDatabase.Phases.ContainsKey(action.PhaseId))
                 {
-                    Log.Error($"[QuestDB] Фаза '{p.Id}': пустой path");
+                    Log.Error($"[QuestDB] Роль '{role.Id}', action '{action.Id}': неизвестная фаза '{action.PhaseId}'");
                     errors++;
-                    continue;
                 }
 
-                foreach (var check in path.Checks)
+                // Проверка Check
+                if (action.Check != null)
                 {
-                    if (string.IsNullOrEmpty(check.Skill))
-                    {
-                        Log.Error($"[QuestDB] Фаза '{p.Id}': check без skill");
-                        errors++;
-                        continue;
-                    }
+                    var check = action.Check.Value; // Достаем структуру один раз
 
-                    if (!UnitDatabase.IsValidSkill(check.Skill))
+                    if (!StatIds.All.Contains(check.ActorStat))
                     {
-                        Log.Error($"[QuestDB] Фаза '{p.Id}': неизвестный навык '{check.Skill}'");
+                        Log.Error($"[QuestDB] Роль '{role.Id}', action '{action.Id}': неизвестный actorStat '{check.ActorStat}'");
                         errors++;
                     }
 
-                    if (check.Resistance == null || check.Resistance.Count == 0)
+                    if (!string.IsNullOrEmpty(check.TargetSkill) && !UnitDatabase.IsValidSkill(check.TargetSkill))
                     {
-                        Log.Error($"[QuestDB] Фаза '{p.Id}': check '{check.Skill}' без resistance");
+                        Log.Error($"[QuestDB] Роль '{role.Id}', action '{action.Id}': неизвестный targetSkill '{check.TargetSkill}'");
                         errors++;
-                        continue;
                     }
 
-                    foreach (var statId in check.Resistance)
+                    if (!string.IsNullOrEmpty(check.TargetStat) && !StatIds.All.Contains(check.TargetStat))
                     {
-                        if (!StatIds.All.Contains(statId))
-                        {
-                            Log.Error($"[QuestDB] Фаза '{p.Id}': неизвестный стат '{statId}' " +
-                                      $"в resistance для '{check.Skill}'");
-                            errors++;
-                        }
+                        Log.Error($"[QuestDB] Роль '{role.Id}', action '{action.Id}': неизвестный targetStat '{check.TargetStat}'");
+                        errors++;
+                    }
+                }
+
+                // Проверка исходов (Success/Fail)
+                errors += ValidateOutcome(role.Id, action.Id, action.Success, actionIds);
+                errors += ValidateOutcome(role.Id, action.Id, action.Fail, actionIds);
+            }
+        }
+        return errors;
+    }
+
+    private static int ValidateOutcome(string roleId, string actionId, OutcomeInfo outcome, HashSet<string> actionIds)
+    {
+        if (outcome == null || string.IsNullOrEmpty(outcome.Id)) return 0; // Если исхода нет (маловероятно)
+
+        // Исход может быть инструкцией ("end", "combat") или другим action в этой же роли
+        bool isInstruction = QuestDatabase.Instructions.ContainsKey(outcome.Id);
+        bool isAction = actionIds.Contains(outcome.Id);
+
+        if (!isInstruction && !isAction)
+        {
+            Log.Error($"[QuestDB] Роль '{roleId}', action '{actionId}': исход '{outcome.Id}' не является ни инструкцией, ни action в этой роли");
+            return 1;
+        }
+
+        int errors = 0;
+        if (outcome.Consequences != null)
+        {
+            foreach (var cons in outcome.Consequences)
+            {
+                if (cons.Id != "wound" && cons.Id != "death" && cons.Id != "delay" && cons.Id != "dc-penalty")
+                {
+                    Log.Error($"[QuestDB] Роль '{roleId}', action '{actionId}': неизвестное последствие '{cons.Id}'");
+                    errors++;
+                }
+            }
+        }
+        return errors;
+    }
+
+    // === Bestiary ===
+
+    private static int ValidateBestiary()
+    {
+        int errors = 0;
+        if (QuestDatabase.Habitats == null || QuestDatabase.Habitats.Count == 0)
+        {
+            Log.Warn("[QuestDB] Бестиарий пуст");
+            return 0;
+        }
+
+        foreach (var habitat in QuestDatabase.Habitats.Values)
+        {
+            foreach (var rolePair in habitat.Roles)
+            {
+                string roleId = rolePair.Key;
+                if (!QuestDatabase.Roles.ContainsKey(roleId))
+                {
+                    Log.Error($"[QuestDB] Бестиарий '{habitat.LocationId}': неизвестная роль '{roleId}'");
+                    errors++;
+                }
+
+                foreach (var speciesPair in rolePair.Value)
+                {
+                    string speciesId = speciesPair.Key;
+                    if (!UnitDatabase.Species.ContainsKey(speciesId))
+                    {
+                        Log.Error($"[QuestDB] Бестиарий '{habitat.LocationId}': неизвестный вид '{speciesId}'");
+                        errors++;
                     }
                 }
             }
@@ -157,363 +204,58 @@ public static class QuestValidator
         return errors;
     }
 
-    // === Creatures ===
+    // === Templates ===
 
-    private static int ValidateCreatures()
+    private static int ValidateTemplates()
     {
-        if (QuestDatabase.Creatures == null || QuestDatabase.Creatures.Count == 0)
-            return 0;
-
         int errors = 0;
-        foreach (var c in QuestDatabase.Creatures.Values)
+        if (QuestDatabase.Templates == null || QuestDatabase.Templates.Count == 0)
         {
-            if (string.IsNullOrEmpty(c.Name?.Ru?.Nom))
-            {
-                Log.Error($"[QuestDB] Creature '{c.Id}': нет русского имени");
-                errors++;
-            }
-            if (string.IsNullOrEmpty(c.Name?.En))
-            {
-                Log.Error($"[QuestDB] Creature '{c.Id}': нет английского имени");
-                errors++;
-            }
-            if (c.MaxLvl < c.MinLvl)
-            {
-                Log.Error($"[QuestDB] Creature '{c.Id}': maxLvl < minLvl");
-                errors++;
-            }
+            Log.Error("[QuestDB] Шаблоны квестов не загружены");
+            return 1;
+        }
 
-            if (c.GrowthWeights == null || c.GrowthWeights.Count == 0)
+        foreach (var template in QuestDatabase.Templates.Values)
+        {
+            // Главное столкновение
+            if (template.MainEncounter != null)
             {
-                Log.Error($"[QuestDB] Creature '{c.Id}': пустой growthWeights");
-                errors++;
+                if (!UnitDatabase.Species.ContainsKey(template.MainEncounter.SpeciesId))
+                {
+                    Log.Error($"[QuestDB] Шаблон '{template.Id}': неизвестный вид '{template.MainEncounter.SpeciesId}' в mainEncounter");
+                    errors++;
+                }
+
+                if (!QuestDatabase.Roles.ContainsKey(template.MainEncounter.RoleId))
+                {
+                    Log.Error($"[QuestDB] Шаблон '{template.Id}': неизвестная роль '{template.MainEncounter.RoleId}' в mainEncounter");
+                    errors++;
+                }
+
+                if (template.MainEncounter.PreCheck != null)
+                {
+                    var pc = template.MainEncounter.PreCheck.Value;
+                    if (!UnitDatabase.IsValidSkill(pc.SkillId))
+                    {
+                        Log.Error($"[QuestDB] Шаблон '{template.Id}': неизвестный навык '{pc.SkillId}' в preCheck");
+                        errors++;
+                    }
+                    if (!StatIds.All.Contains(pc.TargetStat))
+                    {
+                        Log.Error($"[QuestDB] Шаблон '{template.Id}': неизвестный стат '{pc.TargetStat}' в preCheck");
+                        errors++;
+                    }
+                }
             }
             else
             {
-                foreach (var statId in StatIds.All)
-                {
-                    if (!c.GrowthWeights.ContainsKey(statId))
-                        Log.Warn($"[QuestDB] Creature '{c.Id}': нет веса для '{statId}', будет 0");
-                    else if (c.GrowthWeights[statId] < 0)
-                    {
-                        Log.Error($"[QuestDB] Creature '{c.Id}': отрицательный вес '{statId}'");
-                        errors++;
-                    }
-                }
-
-                foreach (var kv in c.GrowthWeights)
-                {
-                    if (!StatIds.All.Contains(kv.Key))
-                    {
-                        Log.Error($"[QuestDB] Creature '{c.Id}': неизвестный стат '{kv.Key}' в growthWeights");
-                        errors++;
-                    }
-                }
-            }
-
-            if (c.Contributions == null || c.Contributions.Count == 0)
-            {
-                Log.Error($"[QuestDB] Creature '{c.Id}': нет contributions");
+                Log.Error($"[QuestDB] Шаблон '{template.Id}': отсутствует mainEncounter");
                 errors++;
-                continue;
             }
 
-            foreach (var contribution in c.Contributions)
-            {
-                if (string.IsNullOrEmpty(contribution.PhaseId))
-                {
-                    Log.Error($"[QuestDB] Creature '{c.Id}': contribution без phaseId");
-                    errors++;
-                    continue;
-                }
-
-                if (!QuestDatabase.Phases.TryGetValue(contribution.PhaseId, out var phase))
-                {
-                    Log.Error($"[QuestDB] Creature '{c.Id}': contribution на неизвестную " +
-                              $"фазу '{contribution.PhaseId}'");
-                    errors++;
-                    continue;
-                }
-
-                if (contribution.Tags == null || contribution.Tags.Count == 0)
-                {
-                    Log.Error($"[QuestDB] Creature '{c.Id}': contribution '{contribution.PhaseId}' без tags");
-                    errors++;
-                    continue;
-                }
-
-                foreach (var tag in contribution.Tags)
-                {
-                    if (!QuestDatabase.Tags.ContainsKey(tag))
-                    {
-                        Log.Error($"[QuestDB] Creature '{c.Id}': contribution '{contribution.PhaseId}' " +
-                                  $"использует неизвестный тег '{tag}'");
-                        errors++;
-                    }
-                    else if (!phase.Tags.Contains(tag))
-                    {
-                        Log.Error($"[QuestDB] Creature '{c.Id}': contribution '{contribution.PhaseId}' " +
-                                  $"использует тег '{tag}', которого нет у фазы");
-                        errors++;
-                    }
-                }
-            }
+            // Проверка локации (если она есть в базе)
+            // if (!QuestDatabase.Locations.ContainsKey(template.LocationId)) ...
         }
-        return errors;
-    }
-
-    // === Locations ===
-
-    private static int ValidateLocations()
-    {
-        int errors = 0;
-        foreach (var l in QuestDatabase.Locations.Values)
-        {
-            if (string.IsNullOrEmpty(l.Name?.Ru?.Nom))
-            {
-                Log.Error($"[QuestDB] Location '{l.Id}': нет русского имени");
-                errors++;
-            }
-            if (string.IsNullOrEmpty(l.Name?.En))
-            {
-                Log.Error($"[QuestDB] Location '{l.Id}': нет английского имени");
-                errors++;
-            }
-        }
-        return errors;
-    }
-
-    // === Blueprints ===
-
-    private static int ValidateBlueprints()
-    {
-        int errors = 0;
-        foreach (var bp in QuestDatabase.Blueprints.Values)
-        {
-            if (string.IsNullOrEmpty(bp.Name.Ru) || string.IsNullOrEmpty(bp.Name.En))
-            {
-                Log.Error($"[QuestDB] Blueprint '{bp.Id}': неполное name");
-                errors++;
-            }
-
-            if (bp.Roles == null || bp.Roles.Count == 0)
-            {
-                Log.Error($"[QuestDB] Blueprint '{bp.Id}': нет ролей");
-                errors++;
-                continue;
-            }
-
-            var seenIds = new HashSet<string>();
-            foreach (var role in bp.Roles)
-            {
-                if (!seenIds.Add(role.Id))
-                {
-                    Log.Error($"[QuestDB] Blueprint '{bp.Id}': дубликат роли '{role.Id}'");
-                    errors++;
-                }
-            }
-
-            foreach (var role in bp.Roles)
-            {
-                if (role.Tags == null || role.Tags.Count == 0)
-                {
-                    Log.Error($"[QuestDB] Blueprint '{bp.Id}': роль '{role.Id}' без тегов");
-                    errors++;
-                    continue;
-                }
-
-                foreach (var tag in role.Tags)
-                {
-                    if (!QuestDatabase.Tags.ContainsKey(tag))
-                    {
-                        Log.Error($"[QuestDB] Blueprint '{bp.Id}': роль '{role.Id}' " +
-                                  $"использует неизвестный тег '{tag}'");
-                        errors++;
-                    }
-                }
-            }
-
-            var byId = bp.Roles.ToDictionary(r => r.Id);
-            foreach (var role in bp.Roles)
-            {
-                foreach (var edge in role.Incoming)
-                {
-                    if (!byId.ContainsKey(edge.From))
-                    {
-                        Log.Error($"[QuestDB] Blueprint '{bp.Id}': роль '{role.Id}' " +
-                                  $"ссылается на несуществующую '{edge.From}'");
-                        errors++;
-                    }
-                }
-            }
-
-            var starts = bp.Roles.Where(r => r.Incoming.Count == 0).ToList();
-            if (starts.Count != 1)
-            {
-                Log.Error($"[QuestDB] Blueprint '{bp.Id}': " +
-                          $"{starts.Count} стартовых ролей (нужна ровно 1)");
-                errors++;
-                continue;
-            }
-            var start = starts[0];
-
-            var ends = bp.Roles.Where(r => r.Outgoing.Count == 0).ToList();
-            if (ends.Count == 0)
-            {
-                Log.Error($"[QuestDB] Blueprint '{bp.Id}': нет end-ролей");
-                errors++;
-                continue;
-            }
-
-            if (HasCycle(bp, start.Id))
-            {
-                Log.Error($"[QuestDB] Blueprint '{bp.Id}': граф содержит цикл");
-                errors++;
-                continue;
-            }
-
-            var reachable = ReachableFrom(bp, start.Id);
-            foreach (var role in bp.Roles)
-            {
-                if (!reachable.Contains(role.Id))
-                {
-                    Log.Error($"[QuestDB] Blueprint '{bp.Id}': роль '{role.Id}' " +
-                              $"недостижима из start");
-                    errors++;
-                }
-            }
-
-            foreach (var role in bp.Roles)
-            {
-                if (!role.Required) continue;
-
-                foreach (var end in ends)
-                {
-                    if (!IsDominator(bp, role.Id, end.Id))
-                    {
-                        Log.Error($"[QuestDB] Blueprint '{bp.Id}': required-роль '{role.Id}' " +
-                                  $"не доминирует end '{end.Id}'");
-                        errors++;
-                    }
-                }
-            }
-        }
-        return errors;
-    }
-
-    // === Helpers ===
-
-    private static bool HasCycle(Blueprint bp, string startId)
-    {
-        var byId = bp.Roles.ToDictionary(r => r.Id);
-        var visiting = new HashSet<string>();
-        var done = new HashSet<string>();
-
-        bool Dfs(string id)
-        {
-            if (done.Contains(id)) return false;
-            if (!visiting.Add(id)) return true;
-
-            foreach (var edge in byId[id].Outgoing)
-                if (Dfs(edge.To)) return true;
-
-            visiting.Remove(id);
-            done.Add(id);
-            return false;
-        }
-
-        return Dfs(startId);
-    }
-
-    private static HashSet<string> ReachableFrom(Blueprint bp, string startId)
-    {
-        var byId = bp.Roles.ToDictionary(r => r.Id);
-        var visited = new HashSet<string>();
-        var stack = new Stack<string>();
-        stack.Push(startId);
-
-        while (stack.Count > 0)
-        {
-            var current = stack.Pop();
-            if (!visited.Add(current)) continue;
-
-            foreach (var edge in byId[current].Outgoing)
-                stack.Push(edge.To);
-        }
-        return visited;
-    }
-
-    private static bool IsDominator(Blueprint bp, string dominatorId, string endId)
-    {
-        if (dominatorId == endId) return true;
-
-        var byId = bp.Roles.ToDictionary(r => r.Id);
-        var start = bp.Roles.First(r => r.Incoming.Count == 0);
-
-        var visited = new HashSet<string>();
-        var queue = new Queue<string>();
-        queue.Enqueue(start.Id);
-
-        while (queue.Count > 0)
-        {
-            var current = queue.Dequeue();
-            if (current == dominatorId) continue;
-            if (current == endId) return false;
-
-            foreach (var edge in byId[current].Outgoing)
-            {
-                if (visited.Add(edge.To))
-                    queue.Enqueue(edge.To);
-            }
-        }
-        return true;
-    }
-
-    // === Падежи ===
-
-    private static readonly HashSet<string> ValidCases =
-        new() { "nom", "gen", "dat", "acc", "ins", "pre" };
-
-    private static int ValidateDeclensions()
-    {
-        var neededCases = new HashSet<string>();
-        var pattern = new Regex(@"\{(\w+):(\w+)\}");
-
-        foreach (var bp in QuestDatabase.Blueprints.Values)
-        {
-            string ru = bp.Description.Ru;
-            if (string.IsNullOrEmpty(ru)) continue;
-
-            foreach (Match m in pattern.Matches(ru))
-            {
-                string caseCode = m.Groups[2].Value;
-                if (!ValidCases.Contains(caseCode))
-                {
-                    Log.Error($"[QuestDB] Blueprint '{bp.Id}': неизвестный падеж '{caseCode}'");
-                    continue;
-                }
-                neededCases.Add(caseCode);
-            }
-        }
-
-        if (neededCases.Count == 0) return 0;
-
-        int errors = 0;
-        foreach (var c in QuestDatabase.Creatures.Values)
-            foreach (var caseCode in neededCases)
-                if (string.IsNullOrEmpty(c.Name?.Ru?.Get(caseCode)))
-                {
-                    Log.Error($"[QuestDB] Creature '{c.Id}': нет формы '{caseCode}'");
-                    errors++;
-                }
-        foreach (var l in QuestDatabase.Locations.Values)
-            foreach (var caseCode in neededCases)
-                if (string.IsNullOrEmpty(l.Name?.Ru?.Get(caseCode)))
-                {
-                    Log.Error($"[QuestDB] Location '{l.Id}': нет формы '{caseCode}'");
-                    errors++;
-                }
-
         return errors;
     }
 }

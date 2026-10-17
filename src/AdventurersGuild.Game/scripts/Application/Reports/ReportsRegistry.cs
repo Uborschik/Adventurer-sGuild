@@ -35,15 +35,15 @@ public class ReportsRegistry
         var report = day.Quests.FirstOrDefault(q => q.QuestId == quest.Id);
         if (report != null) return report;
 
-        report = new QuestDayReport
-        {
-            QuestId = quest.Id,
-            QuestName = quest.Name,
-            BlueprintId = quest.BlueprintId,
-            TargetId = quest.TargetId,
-            LocationId = quest.LocationId,
-            DayNumber = quest.DaysSpent + 1,
-        };
+        // report = new QuestDayReport
+        // {
+        //     QuestId = quest.Id,
+        //     QuestName = quest.Name,
+        //     BlueprintId = quest.BlueprintId,
+        //     TargetId = quest.TargetId,
+        //     LocationId = quest.LocationId,
+        //     DayNumber = quest.DaysSpent + 1,
+        // };
 
         report.Lines.Add(ReportFormatter.QuestHeader(quest));
         day.Quests.Add(report);

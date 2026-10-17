@@ -1,6 +1,6 @@
 @inherits LayoutComponentBase
 
-<MudThemeProvider />
+<MudThemeProvider @bind-IsDarkMode="_isDarkMode" Theme="_theme" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -19,6 +19,11 @@
         </div>
 
         <MudSpacer />
+
+        <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
+                       Color="Color.Inherit"
+                       OnClick="ToggleTheme"
+                       title="Сменить тему" />
 
         <MudIconButton Icon="@Icons.Material.Filled.Remove"
                        Color="Color.Inherit"
@@ -42,7 +47,7 @@
     </MudDrawer>
 
     <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.False" Class="pa-4">
+        <MudContainer MaxWidth="MaxWidth.False">
             @Body
         </MudContainer>
     </MudMainContent>
@@ -62,7 +67,49 @@
 
 @code {
     [Inject] public IJSRuntime JS { get; set; } = default!;
+
     private bool drawerOpen = true;
+    private bool _isDarkMode = false;
+    private bool _themeLoaded = false;
+
+    private readonly MudTheme _theme = new()
+    {
+        PaletteLight = new PaletteLight(),
+        PaletteDark = new PaletteDark(),
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_themeLoaded)
+        {
+            _themeLoaded = true;
+            try
+            {
+                var saved = await JS.InvokeAsync<string?>("themePrefs.get");
+                _isDarkMode = saved == "dark";
+
+                try
+                {
+                    await JS.InvokeVoidAsync("jsonEditor.setTheme", _isDarkMode ? "material-darker" : "default");
+                }
+                catch { }
+
+                if (_isDarkMode) StateHasChanged();
+            }
+            catch { }
+        }
+    }
+
+    private async Task ToggleTheme()
+    {
+        _isDarkMode = !_isDarkMode;
+        try
+        {
+            await JS.InvokeVoidAsync("themePrefs.set", _isDarkMode ? "dark" : "light");
+            await JS.InvokeVoidAsync("jsonEditor.setTheme", _isDarkMode ? "material-darker" : "default");
+        }
+        catch { }
+    }
 
     private async Task CloseApp()
     {

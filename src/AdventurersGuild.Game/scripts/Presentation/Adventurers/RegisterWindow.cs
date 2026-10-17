@@ -168,7 +168,7 @@ public partial class RegisterWindow : InteractableWindow
 
         foreach (var classId in classIds)
         {
-            var model = adventurerFactory.Create("human", classId, 1);
+            var model = adventurerFactory.Create();
 
             if (!adventurerRegistry.TryAdd(model)) continue;
         }

@@ -1,40 +1,52 @@
 @namespace AdventurersGuild.Editor.Components.Shared.Compendium
+@inject AdventurersGuild.Editor.Services.Compendium.CompendiumService Compendium
 @inject IJSRuntime JS
 
-<div @ref="_container" class="json-editor-container"></div>
+<div class="json-editor-wrapper">
+    <div @ref="_container" class="json-editor-container"></div>
 
-<MudStack Row Class="mt-2" AlignItems="AlignItems.Center">
-    <MudButton Variant="Variant.Outlined"
-               Size="Size.Small"
-               StartIcon="@Icons.Material.Filled.FormatAlignLeft"
-               OnClick="FormatAsync"
-               Disabled="@ReadOnly">
-        Форматировать
-    </MudButton>
-    <MudSpacer />
-    @if (isValid)
-    {
-        <MudChip T="string" Color="Color.Success" Size="Size.Small" Icon="@Icons.Material.Filled.Check">
-            JSON валиден
-        </MudChip>
-    }
-    else
-    {
-        <MudChip T="string" Color="Color.Error" Size="Size.Small" Icon="@Icons.Material.Filled.Error">
-            @errorMessage
-        </MudChip>
-    }
-</MudStack>
+    <MudStack Row Class="mt-2" AlignItems="AlignItems.Center">
+        <MudButton Variant="Variant.Outlined"
+                   Size="Size.Small"
+                   StartIcon="@Icons.Material.Filled.FormatAlignLeft"
+                   OnClick="FormatAsync"
+                   Disabled="@ReadOnly">
+            Форматировать
+        </MudButton>
+        <MudSpacer />
+        @if (isValid)
+        {
+            <MudChip T="string" Color="Color.Success" Size="Size.Small" Icon="@Icons.Material.Filled.Check">
+                JSON валиден
+            </MudChip>
+        }
+        else
+        {
+            <MudChip T="string" Color="Color.Error" Size="Size.Small" Icon="@Icons.Material.Filled.Error">
+                @errorMessage
+            </MudChip>
+        }
+    </MudStack>
+</div>
 
 <style>
+    .json-editor-wrapper {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+    }
+
     .json-editor-container {
+        flex: 1;
+        min-height: 0;
         border: 1px solid var(--mud-palette-lines-default);
         border-radius: 4px;
         overflow: hidden;
     }
 
     .json-editor-container .CodeMirror {
-        height: 600px;
+        height: 100%;
         font-family: 'Consolas', 'Courier New', monospace;
         font-size: 13px;
     }
@@ -68,6 +80,39 @@
 
             string json = Entity.ToJsonString(PrettyOpts);
             lastSerialized = json;
+
+            var stats = Compendium.Index.AllOfKind("stat").Select(e => e.Id).ToList();
+            var skills = Compendium.Index.AllOfKind("skill").Select(e => e.Id).ToList();
+
+            var hints = new Dictionary<string, List<string>>
+            {
+                // Существа и Классы
+                ["speciesId"] = Compendium.Index.AllOfKind("humanoid-species").Select(e => e.Id)
+                    .Concat(Compendium.Index.AllOfKind("beast-species").Select(e => e.Id)).ToList(),
+                ["classId"] = Compendium.Index.AllOfKind("humanoid-class").Select(e => e.Id)
+                    .Concat(Compendium.Index.AllOfKind("beast-class").Select(e => e.Id)).ToList(),
+                
+                // Роли и Квесты
+                ["roleId"] = Compendium.Index.AllOfKind("role").Select(e => e.Id).ToList(),
+                ["phaseId"] = Compendium.Index.AllOfKind("phase").Select(e => e.Id).ToList(),
+                
+                // Инструкции
+                ["instructionId"] = Compendium.Index.AllOfKind("instruction").Select(e => e.Id).ToList(),
+                ["id"] = Compendium.Index.AllOfKind("instruction").Select(e => e.Id).ToList(), // Для success/fail
+                
+                // Статы и навыки (в ролях, классах, species)
+                ["actorStat"] = stats,
+                ["targetSkill"] = skills,
+                ["primaryStat"] = stats,
+                ["secondaryStat"] = stats,
+                
+                // Навыки (в классах)
+                ["primarySkill"] = skills,
+                ["secondarySkill"] = skills,
+                ["skillId"] = skills,
+            };
+
+            await JS.InvokeVoidAsync("jsonEditor.setHints", hints);
 
             _editorId = await JS.InvokeAsync<string>(
                 "jsonEditor.create", _container, _selfRef, json);

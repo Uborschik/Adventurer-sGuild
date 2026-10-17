@@ -1,12 +1,8 @@
 namespace AdventurersGuild.Application.Reports;
 
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using AdventurersGuild.Application.Quests;
 using AdventurersGuild.Core;
-using AdventurersGuild.Data.Adventurer;
-using AdventurersGuild.Data.Quest;
 using AdventurersGuild.Domain.Adventurers;
 using AdventurersGuild.Domain.Quests;
 
@@ -17,8 +13,13 @@ public static class ReportFormatter
     public static string QuestHeader(QuestModel quest)
     {
         string lang = Loc.Language;
-        string target = Capitalize(QuestDatabase.GetCreature(quest.TargetId)?.Name?.Get(lang)
-                                   ?? quest.TargetId ?? "?");
+
+        // Ищем вид главного столкновения для заголовка
+        var mainEnc = quest.Encounters?.FirstOrDefault(e => e.IsMainEncounter);
+        var target = mainEnc != null
+            ? Capitalize(UnitDatabase.GetSpecies(mainEnc.SpeciesId)?.Name?.Get(lang) ?? mainEnc.SpeciesId)
+            : "?";
+
         string location = Capitalize(QuestDatabase.GetLocation(quest.LocationId)?.Name?.Get(lang)
                                      ?? quest.LocationId ?? "?");
         string party = string.Join(", ", quest.Party?.Select(a => a.FirstName) ?? Enumerable.Empty<string>());
@@ -38,57 +39,13 @@ public static class ReportFormatter
     public static string QuestDeparted(QuestModel quest)
         => $"  [color=#7aa7ff]→[/color] Отряд отправился в путь.\n";
 
-    // === Фазы ===
+    // === Столкновения (пока простой текст) ===
 
-    public static string Phase(QuestPhaseInstance phase, PhaseOutcome outcome)
+    public static string Encounter(QuestEncounterInstance enc, bool passed)
     {
-        string role = phase.RoleId ?? phase.PhaseId;
-        string mark = outcome.Passed
-            ? "[color=#7ad67a]✓[/color]"
-            : "[color=#ff6b6b]✗[/color]";
-
-        var sb = new StringBuilder();
-        sb.Append($"  {mark} [b]{role}[/b] ({phase.DurationMinutes}м)");
-
-        if (phase.Critical && !outcome.Passed)
-            sb.Append(" [color=#ff6b6b]— критично![/color]");
-        else if (outcome.Passed)
-            sb.Append($"  [color=#7ad67a]+{phase.ExpReward}xp[/color]");
-
-        sb.Append('\n');
-        return sb.ToString();
-    }
-
-    public static string AmbientPhase(QuestPhaseInstance phase, PhaseOutcome outcome)
-    {
-        string mark = outcome.Passed
-            ? "[color=#7ad67a]✓[/color]"
-            : "[color=#ff6b6b]✗[/color]";
-        return $"  {mark} [i]по пути[/i] {phase.PhaseId} ({phase.DurationMinutes}м)\n";
-    }
-
-    public static IEnumerable<string> Rolls(PhaseOutcome outcome, int max = 8)
-    {
-        if (outcome.Rolls == null) yield break;
-
-        int shown = 0;
-        foreach (var r in outcome.Rolls)
-        {
-            if (shown++ >= max) yield break;
-
-            string mark = r.Passed
-                ? "[color=#7ad67a]✓[/color]"
-                : "[color=#ff6b6b]✗[/color]";
-
-            string skillName = UnitDatabase.GetSkill(r.SkillId)?.Name.Get(Loc.Language)
-                               ?? r.SkillId;
-            string adv = ExtractFirstName(r.BestAdvName);
-
-            yield return
-                $"      {mark} [b]{skillName}[/b] — {adv}: " +
-                $"бросок {r.Roll} против {r.Threshold}  " +
-                $"[color=#aaa](шанс {r.Chance:F0}%)[/color]\n";
-        }
+        string mark = passed ? "[color=#7ad67a]✓[/color]" : "[color=#ff6b6b]✗[/color]";
+        string role = enc.RoleId ?? "Событие";
+        return $"  {mark} [b]{role}[/b] (L{enc.Level})\n";
     }
 
     // === Травмы / смерть / level up ===
@@ -117,7 +74,7 @@ public static class ReportFormatter
     public static string Finale(QuestModel quest)
     {
         var r = quest.Result;
-        string role = r.Role switch
+        var role = r.Role switch
         {
             QuestGradeRole.Triumph => "[color=#7ad67a]Триумф[/color]",
             QuestGradeRole.Success => "[color=#7ad67a]Успех[/color]",
@@ -126,12 +83,11 @@ public static class ReportFormatter
             _ => "?"
         };
 
-        int passed = quest.PhaseResults?.Count(p => p.Passed) ?? 0;
-        int total = quest.PhaseResults?.Count ?? 0;
-        int exp = quest.PhaseResults?.Sum(p => p.ExpEarned) ?? 0;
+        int passed = quest.Results?.Count(p => p.Passed) ?? 0;
+        int total = quest.Encounters?.Count ?? 0;
 
-        return $"  [b]Итог: {role}[/b]  ·  фаз {passed}/{total}  ·  " +
-               $"+{exp}xp  ·  +{r.GoldEarned}g  ·  +{r.GloryEarned}славы\n";
+        return $"  [b]Итог: {role}[/b]  ·  встреч {passed}/{total}  ·  " +
+               $"+{r.GoldEarned}g  ·  +{r.GloryEarned}славы\n";
     }
 
     // === Утилиты ===
@@ -140,12 +96,5 @@ public static class ReportFormatter
     {
         if (string.IsNullOrEmpty(s)) return s;
         return char.ToUpper(s[0]) + s.Substring(1);
-    }
-
-    private static string ExtractFirstName(string fullName)
-    {
-        if (string.IsNullOrEmpty(fullName)) return "-";
-        int idx = fullName.IndexOf(' ');
-        return idx > 0 ? fullName.Substring(0, idx) : fullName;
     }
 }

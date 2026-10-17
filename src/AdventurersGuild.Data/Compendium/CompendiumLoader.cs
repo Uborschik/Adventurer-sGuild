@@ -12,6 +12,6 @@ public static class CompendiumLoader
         var bestiary = JsonLoader.Load<BestiaryDatabase>(dataPath + "Bestiary.json");
         CompendiumDatabase.Install(bestiary);
 
-        CompendiumValidator.Validate();
+        // CompendiumValidator.Validate();
     }
 }

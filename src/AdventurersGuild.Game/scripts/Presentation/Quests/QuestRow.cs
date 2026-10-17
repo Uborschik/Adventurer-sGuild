@@ -25,7 +25,7 @@ public partial class QuestRow : SceneListRow
     {
         SetId(model.Id);
 
-        icon.Texture = IconLoader.Get("Quests", model.BlueprintId);
+        // icon.Texture = IconLoader.Get("Quests", model.BlueprintId);
         name.Text = model.Name;
     }
 

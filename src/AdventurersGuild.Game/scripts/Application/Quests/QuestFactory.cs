@@ -5,224 +5,124 @@ using System.Collections.Generic;
 using System.Linq;
 using AdventurersGuild.Core;
 using AdventurersGuild.Core.Localization;
+using AdventurersGuild.Data.Adventurer;
 using AdventurersGuild.Data.Quest;
 using AdventurersGuild.Domain.Adventurers;
-using AdventurersGuild.Domain.Compendium;
 using AdventurersGuild.Domain.Quests;
-using AdventurersGuild.Infrastructure;
 
 public class QuestFactory
 {
-    private readonly QuestGenerator generator;
-    private readonly IReadOnlyList<Blueprint> blueprints;
     private readonly Random rng;
 
-    public QuestFactory(
-        QuestGenerator generator,
-        IReadOnlyList<Blueprint> blueprints,
-        int? seed = null)
+    public QuestFactory(int? seed = null)
     {
-        this.generator = generator ?? throw new ArgumentNullException(nameof(generator));
-        this.blueprints = blueprints ?? throw new ArgumentNullException(nameof(blueprints));
         rng = seed.HasValue ? new Random(seed.Value) : new Random();
     }
 
-    // === Создание ===
-
-    public QuestModel Create(GameTime now, int codeLevel)
+    public QuestModel Create(GameTime now, int codeLevel, int partySize)
     {
-        for (int attempt = 0; attempt < 10; attempt++)
-        {
-            var blueprint = PickRandom(blueprints);
-            if (blueprint == null) continue;
+        var templates = QuestDatabase.Templates.Values.ToList();
+        if (templates.Count == 0) return null;
 
-            var target = PickTargetForBlueprint(blueprint, codeLevel);
-            if (target == null) continue;
+        var template = templates[rng.Next(templates.Count)];
 
-            var location = PickLocationForTarget(target);
-            if (location == null) continue;
+        // 1. Считаем бюджет
+        int baseBudget = QuestBalance.Active.BudgetPerLevel.TryGetValue(codeLevel, out int b) ? b : codeLevel * 10;
+        int totalBudget = (int)(baseBudget * partySize * template.ComplexityMultiplier);
 
-            var ctx = BuildContext(blueprint, target, location, codeLevel);
-            var result = generator.Generate(ctx, rng);
-            if (result == null) continue;
+        // 2. Бросаем кубик на главного (r = random(1, totalBudget))
+        int mainCost = rng.Next(1, totalBudget + 1);
+        int ambientBudget = totalBudget - mainCost;
 
-            return BuildQuestModel(now, codeLevel, ctx, result);
-        }
+        var encounters = new List<QuestEncounterInstance>();
 
-        Log.Warn("[QuestFactory] Не удалось создать квест за 10 попыток");
-        return null;
-    }
+        // 3. Главное столкновение
+        var mainEncounter = BuildMainEncounter(template, mainCost, codeLevel);
+        if (mainEncounter != null) encounters.Add(mainEncounter);
 
-    public QuestModel CreateSpecific(
-        GameTime now,
-        int codeLevel,
-        string blueprintId,
-        string targetId)
-    {
-        var blueprint = blueprints.FirstOrDefault(b => b.Id == blueprintId);
-        if (blueprint == null)
-        {
-            Log.Error($"[QuestFactory] Blueprint '{blueprintId}' не найден");
-            return null;
-        }
+        // 4. Амбиент (дополнительные встречи)
+        encounters.AddRange(BuildAmbientEncounters(template.LocationId, ambientBudget, codeLevel));
 
-        var target = QuestDatabase.GetCreature(targetId);
-        if (target == null)
-        {
-            Log.Error($"[QuestFactory] Target '{targetId}' не найден");
-            return null;
-        }
-
-        var location = PickLocationForTarget(target);
-        if (location == null)
-        {
-            Log.Error($"[QuestFactory] Локация для target '{targetId}' не найдена");
-            return null;
-        }
-
-        var ctx = BuildContext(blueprint, target, location, codeLevel);
-        var result = generator.Generate(ctx, rng);
-        if (result == null) return null;
-
-        return BuildQuestModel(now, codeLevel, ctx, result);
-    }
-
-    // === Выбор ===
-
-    private Blueprint PickRandom(IReadOnlyList<Blueprint> items)
-    {
-        if (items == null || items.Count == 0) return null;
-        return items[rng.Next(items.Count)];
-    }
-
-    private CreatureInfo PickTargetForBlueprint(Blueprint blueprint, int codeLevel)
-    {
-        var candidates = QuestDatabase.Creatures.Values
-            .Where(c => codeLevel >= c.MinLvl && codeLevel <= c.MaxLvl)
-            .Where(c => CanCoverRequiredRoles(c, blueprint))
-            .ToList();
-
-        if (candidates.Count == 0) return null;
-        return candidates[rng.Next(candidates.Count)];
-    }
-
-    private static bool CanCoverRequiredRoles(CreatureInfo creature, Blueprint blueprint)
-    {
-        if (creature.Contributions == null || creature.Contributions.Count == 0)
-            return false;
-
-        // Грубая проверка: для каждой required-роли существует хоть один
-        // contribution, чьи теги пересекаются с тегами роли.
-        foreach (var role in blueprint.Roles)
-        {
-            if (!role.Required) continue;
-
-            bool any = creature.Contributions.Any(c =>
-                c.Tags != null && c.Tags.Any(t => role.Tags.Contains(t)));
-
-            if (!any) return false;
-        }
-        return true;
-    }
-
-    private LocationInfo PickLocationForTarget(CreatureInfo target)
-    {
-        var bestiary = CompendiumDatabase.Bestiary;
-        if (bestiary?.Habitats == null) return null;
-
-        var locations = bestiary.Habitats
-            .Where(h => h.Creatures != null &&
-                        h.Creatures.Any(c => c.CreatureId == target.Id))
-            .Select(h => QuestDatabase.GetLocation(h.LocationId))
-            .Where(l => l != null)
-            .ToList();
-
-        if (locations.Count == 0) return null;
-        return locations[rng.Next(locations.Count)];
-    }
-
-    private IReadOnlyList<AmbientCandidate> BuildAmbientPool(LocationInfo location, CreatureInfo target)
-    {
-        var bestiary = CompendiumDatabase.Bestiary;
-        if (bestiary?.Habitats == null) return Array.Empty<AmbientCandidate>();
-
-        var habitat = bestiary.Habitats.FirstOrDefault(h => h.LocationId == location.Id);
-        if (habitat?.Creatures == null) return Array.Empty<AmbientCandidate>();
-
-        var result = new List<AmbientCandidate>();
-        foreach (var entry in habitat.Creatures)
-        {
-            if (entry.CreatureId == target.Id) continue;
-
-            var creature = QuestDatabase.GetCreature(entry.CreatureId);
-            if (creature == null) continue;
-
-            result.Add(new AmbientCandidate(creature, entry.EffectiveWeight));
-        }
-        return result;
-    }
-
-    // === Контекст и модель ===
-
-    private QuestContext BuildContext(
-        Blueprint blueprint,
-        CreatureInfo target,
-        LocationInfo location,
-        int codeLevel)
-    {
-        return new QuestContext
-        {
-            Blueprint = blueprint,
-            Target = target,
-            Location = location,
-            AmbientPool = BuildAmbientPool(location, target),
-            CodeLevel = codeLevel,
-            LevelBalance = LevelBalance.Active,
-        };
-    }
-
-    private QuestModel BuildQuestModel(
-        GameTime now,
-        int codeLevel,
-        QuestContext ctx,
-        QuestGenerationResult result)
-    {
-        var creatureNoun = ctx.Target.Name;
-        var locationNoun = ctx.Location.Name;
-
-        var nouns = new Dictionary<string, LocalizedNoun>
-        {
-            ["target"] = creatureNoun,
-            ["creature"] = creatureNoun, // совместимость со старыми шаблонами
-            ["location"] = locationNoun,
-        };
-
+        // 5. Собираем QuestModel
         string lang = Loc.Language;
-        string description = TextSubstitution.Resolve(
-            ctx.Blueprint.Description.Get(lang), lang, nouns);
-
-        int lifetimeDays = 3 + rng.Next(5);
-        int narrativeLevel = (codeLevel - 1) / 10 + 1;
-
         return new QuestModel
         {
             Id = Guid.NewGuid().ToString("N"),
-            Name = ctx.Blueprint.Name.Get(lang) ?? ctx.Blueprint.Id,
-            BlueprintId = ctx.Blueprint.Id,
-            TargetId = ctx.Target.Id,
-            LocationId = ctx.Location.Id,
+            Name = template.Name.Get(lang) ?? template.Id,
+            Description = template.Description.Get(lang) ?? "",
+            TemplateId = template.Id,
+            LocationId = template.LocationId,
             CodeLevel = codeLevel,
-            NarrativeLevel = narrativeLevel,
-            Description = description,
-            DifficultyModifier = ctx.Blueprint.DifficultyModifier + ctx.Location.DifficultyModifier,
-            Phases = result.Phases,
-            AmbientPhases = result.AmbientPhases,
-            StartRoleId = result.StartRoleId,
-            GoldReward = ctx.Blueprint.BaseGold,
-            GloryReward = ctx.Blueprint.BaseGlory,
+            Encounters = encounters,
             CreatedAt = now,
-            ExpiresAt = now + GameTime.FromDays(lifetimeDays),
-            Status = QuestStatus.Available,
+            ExpiresAt = now + GameTime.FromDays(3 + rng.Next(5)),
+            GoldReward = codeLevel * 50,
+            GloryReward = codeLevel * 10,
+            Status = QuestStatus.Available
         };
+    }
+
+    private QuestEncounterInstance BuildMainEncounter(QuestTemplateInfo template, int budget, int codeLevel)
+    {
+        var species = UnitDatabase.GetSpecies(template.MainEncounter.SpeciesId);
+        if (species == null) return null;
+
+        // Подбираем класс так, чтобы уровень не превышал codeLevel (правило "меньше-но-сильнее")
+        var validClasses = species.Classes.Where(c => c.MinLvl <= codeLevel).ToList();
+        if (validClasses.Count == 0) return null;
+
+        // Берем самый сильный доступный класс
+        var cls = validClasses.OrderByDescending(c => c.MaxLvl).First();
+
+        // Уровень юнита — максимальный доступный в этом классе, но не выше уровня квеста
+        int level = Math.Min(cls.MaxLvl, codeLevel);
+
+        return new QuestEncounterInstance
+        {
+            SpeciesId = species.Id,
+            RoleId = template.MainEncounter.RoleId,
+            Level = level,
+            IsMainEncounter = true,
+            PreCheckSkillId = template.MainEncounter.PreCheck?.SkillId,
+            PreCheckTargetStat = template.MainEncounter.PreCheck?.TargetStat
+        };
+    }
+
+    private List<QuestEncounterInstance> BuildAmbientEncounters(string locationId, int budget, int codeLevel)
+    {
+        var result = new List<QuestEncounterInstance>();
+        if (budget <= 0) return result;
+
+        var habitat = QuestDatabase.Habitats.GetValueOrDefault(locationId);
+        if (habitat == null) return result;
+
+        // Простой цикл: пока есть бюджет, добавляем встречу
+        while (budget > 0)
+        {
+            var role = habitat.Roles.Keys.ElementAt(rng.Next(habitat.Roles.Count));
+            var speciesDict = habitat.Roles[role];
+            var speciesId = speciesDict.Keys.ElementAt(rng.Next(speciesDict.Count));
+
+            var species = UnitDatabase.GetSpecies(speciesId);
+            if (species == null) break;
+
+            int level = rng.Next(1, Math.Max(2, codeLevel));
+
+            // Стоимость встречи (условно level * 1)
+            int cost = level;
+            if (cost > budget) cost = budget;
+
+            result.Add(new QuestEncounterInstance
+            {
+                SpeciesId = speciesId,
+                RoleId = role,
+                Level = level,
+                IsMainEncounter = false
+            });
+
+            budget -= cost;
+        }
+
+        return result;
     }
 }

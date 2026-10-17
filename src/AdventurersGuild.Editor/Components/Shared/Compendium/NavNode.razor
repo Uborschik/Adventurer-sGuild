@@ -14,8 +14,7 @@
 else if (Node.Kind is not null)
 {
     <MudNavLink Href="@($"/compendium/{Node.Kind.Kind}")"
-                Match="NavLinkMatch.Prefix"
-                Icon="@Icons.Material.Filled.Circle">
+                Match="NavLinkMatch.Prefix">
         @Node.Kind.PluralTitle
     </MudNavLink>
 }

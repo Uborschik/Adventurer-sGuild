@@ -1,8 +1,8 @@
+namespace AdventurersGuild.Domain.Adventurers;
+
 using System;
 using System.Collections.Generic;
 using AdventurersGuild.Core;
-
-namespace AdventurersGuild.Domain.Adventurers;
 
 public class UnitModel
 {

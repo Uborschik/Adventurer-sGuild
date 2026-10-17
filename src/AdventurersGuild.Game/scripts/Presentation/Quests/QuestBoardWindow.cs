@@ -52,8 +52,8 @@ public partial class QuestBoardWindow : InteractableWindow
 
         if (questFlow != null)
         {
-            questFlow.Added -= OnQuestAdded;
-            questFlow.Expired -= OnQuestExpired;
+            // questFlow.Added -= OnQuestAdded;
+            // questFlow.Expired -= OnQuestExpired;
         }
     }
 
@@ -71,9 +71,9 @@ public partial class QuestBoardWindow : InteractableWindow
     {
         if (questFlow == null) return;
 
-        questFlow.Added += OnQuestAdded;
-        questFlow.Expired += OnQuestExpired;
-        questFlow.Started += OnQuestStarted;
+        // questFlow.Added += OnQuestAdded;
+        // questFlow.Expired += OnQuestExpired;
+        // questFlow.Started += OnQuestStarted;
 
         adventurerBoard.Refresh();
         RefreshQuestList();

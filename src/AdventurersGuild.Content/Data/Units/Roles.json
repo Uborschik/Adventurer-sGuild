@@ -1,0 +1,201 @@
+{
+  "roles": [
+    {
+      "id": "predator",
+      "name": {
+        "ru": "Хищник",
+        "en": "Predator"
+      },
+      "actions": [
+        {
+          "id": "ambush",
+          "name": {
+            "ru": "Засада",
+            "en": "Ambush"
+          },
+          "phaseId": "combat",
+          "duration": 30,
+          "check": {
+            "actorStat": "wis",
+            "targetSkill": "perception"
+          },
+          "success": {
+            "id": "combat",
+            "actor": 20,
+            "target": 0
+          },
+          "fail": "combat"
+        }
+      ]
+    },
+    {
+      "id": "berserker",
+      "name": {
+        "ru": "Берсерк",
+        "en": "Berserker"
+      },
+      "actions": [
+        {
+          "id": "charge",
+          "name": {
+            "ru": "Натиск",
+            "en": "Charge"
+          },
+          "phaseId": "combat",
+          "duration": 20,
+          "check": {
+            "actorStat": "str",
+            "targetSkill": "acrobatics"
+          },
+          "success": "combat",
+          "fail": {
+            "id": "combat",
+            "actor": 20,
+            "target": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "pilgrim",
+      "name": {
+        "ru": "Паломник",
+        "en": "Pilgrim"
+      },
+      "actions": [
+        {
+          "id": "talk",
+          "name": {
+            "ru": "Поговорить",
+            "en": "Talk"
+          },
+          "phaseId": "social",
+          "duration": 60,
+          "check": {
+            "actorStat": "wis",
+            "targetSkill": "persuasion"
+          },
+          "success": "offer-help",
+          "fail": {
+            "id": "end",
+            "consequences": [
+              {
+                "id": "delay",
+                "chance": 50,
+                "delayMinutes": 60
+              }
+            ]
+          }
+        },
+        {
+          "id": "offer-help",
+          "name": {
+            "ru": "Предложить помощь",
+            "en": "Offer help"
+          },
+          "phaseId": "survival",
+          "duration": 120,
+          "check": {
+            "actorStat": "wis",
+            "targetSkill": "survival"
+          },
+          "success": "share-news",
+          "fail": {
+            "id": "end"
+          }
+        },
+        {
+          "id": "share-news",
+          "name": {
+            "ru": "Поделиться новостями",
+            "en": "Share news"
+          },
+          "phaseId": "lore",
+          "duration": 120,
+          "check": {
+            "actorStat": "wis",
+            "targetSkill": "persuasion"
+          },
+          "success": "end",
+          "fail": "end"
+        }
+      ]
+    },
+    {
+      "id": "guard",
+      "name": {
+        "ru": "Страж",
+        "en": "Guard"
+      },
+      "actions": [
+        {
+          "id": "state-purpose",
+          "name": {
+            "ru": "Объяснить цель",
+            "en": "State purpose"
+          },
+          "phaseId": "social",
+          "duration": 60,
+          "check": {
+            "actorStat": "cha",
+            "targetSkill": "persuasion"
+          },
+          "success": "end",
+          "fail": "combat"
+        }
+      ]
+    },
+    {
+      "id": "merchant",
+      "name": {
+        "ru": "Торговец",
+        "en": "Merchant"
+      },
+      "actions": [
+        {
+          "id": "talk",
+          "name": {
+            "ru": "Поговорить",
+            "en": "Talk"
+          },
+          "phaseId": "social",
+          "duration": 60,
+          "check": {
+            "actorStat": "wis",
+            "targetSkill": "persuasion"
+          },
+          "success": "offer-deal",
+          "fail": {
+            "id": "end",
+            "consequences": [
+              {
+                "id": "wound",
+                "chance": 60
+              },
+              {
+                "id": "death",
+                "chance": 10,
+                "ifWounded": 20
+              }
+            ]
+          }
+        },
+        {
+          "id": "offer-deal",
+          "name": {
+            "ru": "Предложить сделку",
+            "en": "Offer deal"
+          },
+          "phaseId": "social",
+          "duration": 60,
+          "check": {
+            "actorStat": "cha",
+            "targetSkill": "persuasion"
+          },
+          "success": "trade",
+          "fail": "end"
+        }
+      ]
+    }
+  ]
+}

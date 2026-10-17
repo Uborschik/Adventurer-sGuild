@@ -5,14 +5,14 @@ namespace AdventurersGuild.Domain.Adventurers;
 
 public static class StatGrowth
 {
-    private const double DefaultTertiaryWeight = 0.20;
+    private const double defaultTertiaryWeight = 0.20;
 
-    public static Dictionary<string, double> AtLevel(string classId, string raceId, int level = 1)
+    public static Dictionary<string, double> AtLevel(string classId, string speciesId, int level = 1)
     {
         var cls = UnitDatabase.GetClass(classId);
-        var race = UnitDatabase.GetRace(raceId);
+        var species = UnitDatabase.GetSpecies(speciesId);
 
-        if (cls == null || race == null)
+        if (cls == null || species == null)
             return new Dictionary<string, double>();
 
         var p = LevelBalance.Active;
@@ -22,22 +22,22 @@ public static class StatGrowth
 
         foreach (var statId in StatIds.All)
         {
-            double weight = DefaultTertiaryWeight;
-
-            if (cls.GrowthWeights != null
-                && cls.GrowthWeights.TryGetValue(statId, out var w))
+            // 1. Вес из вида (Species)
+            double weight = defaultTertiaryWeight;
+            if (species.GrowthWeights != null && species.GrowthWeights.TryGetValue(statId, out var w))
                 weight = w;
 
+            // 2. База
             double value = p.StatBaseValue
                          + (p.StatStartPool + levelsAboveOne * p.StatBaseSlope) * weight;
 
-            if (race.StatBonuses != null
-                && race.StatBonuses.TryGetValue(statId, out int bonus))
+            // 3. Бонусы вида (Species)
+            if (species.StatBonuses != null && species.StatBonuses.TryGetValue(statId, out int bonus))
                 value += bonus;
 
-            if (statId == StatIds.Endurance
-                && Math.Abs(race.ResilienceMultiplier - 1.0) > 1e-6)
-                value *= race.ResilienceMultiplier;
+            // 4. Модификаторы класса (Class)
+            if (cls.StatModifiers != null && cls.StatModifiers.TryGetValue(statId, out double modifier))
+                value *= modifier;
 
             result[statId] = value;
         }

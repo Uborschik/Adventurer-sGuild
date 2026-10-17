@@ -3,51 +3,23 @@ namespace AdventurersGuild.Application.Quests;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AdventurersGuild.Application.Adventurers;
 using AdventurersGuild.Application.Reports;
 using AdventurersGuild.Core;
+using AdventurersGuild.Data.Adventurer;
+using AdventurersGuild.Data.Quest;
 using AdventurersGuild.Domain.Adventurers;
 using AdventurersGuild.Domain.Common;
 using AdventurersGuild.Domain.Quests;
 
-public class QuestFlow
+public class QuestFlow(QuestRegistry registry, QuestFactory factory, QuestResolver resolver, GameClock clock, GuildBank bank, ReportsRegistry reports = null, int? seed = null)
 {
-    private const int BoardCapacity = 4;
-
-    private readonly QuestRegistry registry;
-    private readonly QuestFactory factory;
-    private readonly QuestResolver resolver;
-    private readonly GameClock clock;
-    private readonly GuildBank bank;
-    private readonly ReportsRegistry reports;
-
-    public event Action<QuestModel> Added;
-    public event Action<QuestModel> Expired;
-    public event Action<QuestModel> Started;
-    public event Action<QuestModel> Completed;
-
-    private readonly Random woundRng;
-
-    public QuestFlow(
-        QuestRegistry registry,
-        QuestFactory factory,
-        QuestResolver resolver,
-        GameClock clock,
-        GuildBank bank,
-        ReportsRegistry reports = null,
-        int? seed = null)
-    {
-        this.registry = registry ?? throw new ArgumentNullException(nameof(registry));
-        this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
-        this.resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
-        this.clock = clock ?? throw new ArgumentNullException(nameof(clock));
-        this.bank = bank ?? throw new ArgumentNullException(nameof(bank));
-        this.reports = reports;
-
-        woundRng = seed.HasValue
-            ? new Random(unchecked(seed.Value * 7 + 3))
-            : new Random();
-    }
+    private readonly QuestRegistry registry = registry;
+    private readonly QuestFactory factory = factory;
+    private readonly QuestResolver resolver = resolver;
+    private readonly GameClock clock = clock;
+    private readonly GuildBank bank = bank;
+    private readonly ReportsRegistry reports = reports;
+    private readonly Random rng = seed.HasValue ? new Random(seed.Value) : new Random();
 
     public void Start()
     {
@@ -55,785 +27,238 @@ public class QuestFlow
         RefreshBoard();
     }
 
-    public void Stop()
-    {
-        clock.TimeAdvanced -= OnTimeAdvanced;
-    }
-
-    // === Внешний API ===
+    public void Stop() => clock.TimeAdvanced -= OnTimeAdvanced;
 
     public bool StartQuest(QuestModel quest, IReadOnlyList<UnitModel> party)
     {
-        if (quest == null) return false;
-        if (quest.Status != QuestStatus.Available) return false;
-        if (party == null || party.Count == 0) return false;
-
-        var seen = new HashSet<string>();
-
-        foreach (var a in party)
-        {
-            if (a == null) return false;
-            if (!seen.Add(a.Id)) return false;
-            if (a.HasStatus(StatusIds.Dead)) return false;
-        }
-
+        if (quest == null || party == null || party.Count == 0) return false;
         quest.Status = QuestStatus.Pending;
         registry.TakeFromBoard(quest);
-        quest.Party = new List<UnitModel>(party);
+        quest.Party = [.. party];
         quest.StartTime = GameTime.NextDayStart(clock.Now);
         quest.LastProcessedAt = quest.StartTime;
-        quest.CurrentRoleId = quest.StartRoleId;
-        quest.AmbientIndex = 0;
+        quest.CurrentEncounterIndex = 0;
         quest.DaysSpent = 0;
-        quest.MinutesUsedToday = 0;
-        quest.PhaseResults = new List<PhaseResult>();
-        quest.CurrentPhaseEndTime = null;
-        quest.IsResting = false;
-        quest.RestEndTime = null;
-
-        foreach (var a in quest.Party)
-            a.SetStatus(StatusIds.Waiting);
-
-        LogStart(quest, party);
-
-        if (reports != null)
-        {
-            var day = clock.Now.Day;
-            reports.Append(day, quest, ReportFormatter.QuestAccepted(quest));
-        }
-
-        Started?.Invoke(quest);
+        quest.Results.Clear();
         return true;
     }
-
-    // === Обработка времени ===
 
     private void OnTimeAdvanced(GameTime now)
     {
         ExpireOld(now);
         ProcessInProgress(now);
         RefreshBoard();
-
-        if (now.Minute == 0 && now.Hour == 0)
-        {
-            registry.TrimHistory(now, maxAgeDays: 30);
-            reports?.Trim(now);
-        }
     }
 
     private void ExpireOld(GameTime now)
     {
-        var snapshot = new List<QuestModel>(registry.Board);
-
-        foreach (var quest in snapshot)
+        foreach (var quest in registry.Board.ToList())
         {
-            if (now < quest.ExpiresAt) continue;
-
-            quest.Status = QuestStatus.Expired;
-            registry.ExpireToHistory(quest);
-            Expired?.Invoke(quest);
+            if (now >= quest.ExpiresAt)
+            {
+                quest.Status = QuestStatus.Expired;
+                registry.ExpireToHistory(quest);
+            }
         }
     }
 
     private void ProcessInProgress(GameTime now)
     {
-        for (int i = 0; i < registry.Active.Count; i++)
+        foreach (var quest in registry.Active.ToList())
         {
-            var quest = registry.Active[i];
-            ProcessQuest(quest, now);
+            if (quest.Status == QuestStatus.Pending)
+            {
+                if (now < quest.StartTime) continue;
+                quest.Status = QuestStatus.InProgress;
+                foreach (var a in quest.Party) a.SetStatus(StatusIds.OnQuest);
+            }
 
-            if (i >= registry.Active.Count) break;
-            if (registry.Active[i] != quest) i--;
+            ProcessQuest(quest, now);
         }
     }
 
-    // === Основной цикл квеста ===
-
     private void ProcessQuest(QuestModel quest, GameTime now)
     {
-        if (quest.Status == QuestStatus.Pending)
+        // Если все встречи пройдены — завершаем
+        if (quest.CurrentEncounterIndex >= quest.Encounters.Count)
         {
-            if (now < quest.StartTime) return;
-            quest.Status = QuestStatus.InProgress;
-            foreach (var a in quest.Party)
-                a.SetStatus(StatusIds.OnQuest);
-            LogDepart(quest);
-
-            Report(quest.StartTime.Day, quest, ReportFormatter.QuestDeparted(quest));
-        }
-
-        if (quest.DaysSpent >= QuestBalance.Active.MaxQuestDays)
-        {
-            Log.Info($"    QUEST ABANDONED after {quest.DaysSpent} days");
-            KillParty(quest, now);
             FinishQuest(quest, now);
             return;
         }
 
-        var at = quest.LastProcessedAt;
-
-        while (true)
+        // Логика времени (упрощенная)
+        if (quest.CurrentEncounterEndTime.HasValue)
         {
-            if (quest.CurrentPhaseEndTime.HasValue)
+            if (now < quest.CurrentEncounterEndTime.Value) return;
+
+            // Время вышло — разрешаем встречу
+            var encounter = quest.Encounters[quest.CurrentEncounterIndex];
+            bool passed = ResolveEncounter(quest, encounter);
+
+            quest.Results.Add(new EncounterResult
             {
-                if (quest.CurrentPhaseEndTime.Value > now) break;
-                at = quest.CurrentPhaseEndTime.Value;
-                ResolveCurrentPhase(quest, at);
-                quest.CurrentPhaseEndTime = null;
-                if (quest.Status == QuestStatus.Completed) return;
-                continue;
+                Encounter = encounter,
+                Passed = passed
+            });
+
+            quest.CurrentEncounterEndTime = null;
+            quest.CurrentEncounterIndex++;
+
+            // Если провалили главную встречу — досрочное завершение
+            if (encounter.IsMainEncounter && !passed)
+            {
+                quest.CurrentEncounterIndex = quest.Encounters.Count;
             }
 
-            if (quest.IsResting)
-            {
-                if (quest.RestEndTime.Value > now) break;
-                at = quest.RestEndTime.Value;
-                ProcessNightResult(quest, at);
-                quest.IsResting = false;
-                quest.RestEndTime = null;
-                quest.DaysSpent++;
-                quest.MinutesUsedToday = 0;
-                continue;
-            }
-
-            var next = SelectNextPhase(quest);
-
-            if (next == null)
-            {
-                FinishQuest(quest, at);
-                quest.LastProcessedAt = at;
-                return;
-            }
-
-            if (quest.MinutesUsedToday + next.DurationMinutes > GameTime.MinutesPerDaylight)
-            {
-                Log.Info($"    DAY {quest.DaysSpent + 1} ends | rest {GameTime.MinutesPerNight}m");
-                quest.IsResting = true;
-                quest.RestEndTime = at + GameTime.FromMinutes(GameTime.MinutesPerNight);
-                continue;
-            }
-
-            quest.CurrentPhaseEndTime = at + GameTime.FromMinutes(next.DurationMinutes);
-            quest.LastProcessedAt = at;
             return;
         }
 
-        if (at > quest.LastProcessedAt)
-            quest.LastProcessedAt = at;
-    }
+        // Начинаем новую встречу
+        var nextEncounter = quest.Encounters[quest.CurrentEncounterIndex];
 
-    // === Выбор следующей фазы ===
-
-    private QuestPhaseInstance SelectNextPhase(QuestModel quest)
-    {
-        if (quest.AmbientIndex < quest.AmbientPhases.Count && ShouldInsertAmbient(quest))
-            return quest.AmbientPhases[quest.AmbientIndex];
-
-        if (string.IsNullOrEmpty(quest.CurrentRoleId)) return null;
-
-        foreach (var phase in quest.Phases)
-            if (phase.RoleId == quest.CurrentRoleId) return phase;
-
-        return null;
-    }
-
-    private static bool ShouldInsertAmbient(QuestModel quest)
-    {
-        if (quest.AmbientIndex >= quest.AmbientPhases.Count) return false;
-        if (quest.PhaseResults.Count == 0) return false;
-
-        var last = quest.PhaseResults[^1];
-
-        if (last.Phase.RoleId == null) return true;
-
-        return quest.AmbientIndex == 0;
-    }
-
-    private QuestPhaseInstance FindCurrentPhase(QuestModel quest)
-    {
-        if (quest.AmbientIndex < quest.AmbientPhases.Count && ShouldInsertAmbient(quest))
-            return quest.AmbientPhases[quest.AmbientIndex];
-
-        foreach (var phase in quest.Phases)
-            if (phase.RoleId == quest.CurrentRoleId) return phase;
-
-        return null;
-    }
-
-    // === Резолв фазы ===
-
-    private void ResolveCurrentPhase(QuestModel quest, GameTime at)
-    {
-        var phase = FindCurrentPhase(quest);
-        if (phase == null) return;
-
-        var outcome = QuestCalculator.EvaluatePhase(
-            phase, quest.Party, quest.CodeLevel, woundRng);
-
-        bool passed = outcome.Passed;
-
-        quest.PhaseResults.Add(new PhaseResult
+        // Длительность берем из роли (если есть) или ставим дефолт (1 час)
+        int duration = 60;
+        if (QuestDatabase.Roles.TryGetValue(nextEncounter.RoleId, out var role) && role.Actions.Count > 0)
         {
-            Phase = phase,
-            Passed = passed,
-            EffectiveCritical = phase.Critical,
-            ExpEarned = passed ? phase.ExpReward : 0,
-            DayCompleted = quest.DaysSpent,
-            Attempts = 1,
-            Rolls = outcome.Rolls,
-        });
-
-        quest.MinutesUsedToday += phase.DurationMinutes;
-
-        string tag = phase.RoleId ?? "ambient";
-        string targetTag = !string.IsNullOrEmpty(quest.TargetId)
-            ? $" vs {quest.TargetId}"
-            : "";
-
-        // === СНАЧАЛА пишем фазу и броски в отчёт ===
-        if (reports != null)
-        {
-            if (phase.RoleId == null)
-                Report(at.Day, quest, ReportFormatter.AmbientPhase(phase, outcome));
-            else
-                Report(at.Day, quest, ReportFormatter.Phase(phase, outcome));
-
-            ReportMany(at.Day, quest, ReportFormatter.Rolls(outcome));
+            duration = role.Actions[0].Duration;
         }
 
-        // === ПОТОМ обрабатываем последствия ===
-        if (passed)
-        {
-            Log.Info($"    DAY {quest.DaysSpent + 1} | '{tag}' OK   " +
-                     $"+{phase.ExpReward}xp | used={quest.MinutesUsedToday}/{GameTime.MinutesPerDaylight}m");
-            LogRolls(outcome.Rolls);
-            AdvanceAfterPhase(quest, phase, passed: true);
-        }
-        else
-        {
-            Log.Info($"    DAY {quest.DaysSpent + 1} | '{tag}' CRIT FAIL{targetTag} | quest ends");
-            LogRolls(outcome.Rolls);
+        quest.CurrentEncounterEndTime = now + GameTime.FromMinutes(duration);
+    }
 
-            switch (phase.FailureConsequence)
+    private bool ResolveEncounter(QuestModel quest, QuestEncounterInstance encounter)
+    {
+        // 1. Если есть PreCheck (например, Выслеживание), сначала кидаем его
+        if (!string.IsNullOrEmpty(encounter.PreCheckSkillId))
+        {
+            bool preCheckPassed = RollPreCheck(quest, encounter);
+            if (preCheckPassed)
             {
-                case FailureConsequence.Combat:
-                    ApplyCombatOutcome(quest, at);
-                    quest.CurrentRoleId = null;
-                    break;
-
-                case FailureConsequence.Delay:
-                    if (phase.FailDelayMinutes > 0)
-                    {
-                        quest.MinutesUsedToday += phase.FailDelayMinutes;
-                        Log.Info($"      +delay {phase.FailDelayMinutes}m");
-                    }
-                    AdvanceAfterPhase(quest, phase, passed: false);
-                    break;
-
-                case FailureConsequence.None:
-                default:
-                    AdvanceAfterPhase(quest, phase, passed: false);
-                    break;
-            }
-        }
-    }
-
-    private static void AdvanceAfterPhase(QuestModel quest, QuestPhaseInstance phase, bool passed)
-    {
-        if (phase.RoleId == null)
-        {
-            quest.AmbientIndex++;
-            return;
-        }
-
-        var transition = passed ? phase.NextOnPass : phase.NextOnFail;
-
-        if (transition.HasValue)
-        {
-            quest.CurrentRoleId = transition.Value.ToRoleId;
-            ApplyTransitionDelta(quest, transition.Value);
-        }
-        else
-        {
-            quest.CurrentRoleId = null;
-        }
-    }
-
-    private static void ApplyTransitionDelta(QuestModel quest, QuestTransition transition)
-    {
-        if (Math.Abs(transition.DcDelta) < 1e-9 && transition.DurationDelta == 0) return;
-
-        foreach (var phase in quest.Phases)
-        {
-            if (phase.RoleId != transition.ToRoleId) continue;
-
-            if (Math.Abs(transition.DcDelta) > 1e-9)
-            {
-                foreach (var sol in phase.Solutions)
-                {
-                    var keys = new List<string>(sol.Skills.Keys);
-                    foreach (var k in keys)
-                        sol.Skills[k] += transition.DcDelta;
-                }
-            }
-
-            phase.DurationMinutes += transition.DurationDelta;
-            break;
-        }
-    }
-
-    private static void LogRolls(List<SkillRollResult> rolls)
-    {
-        if (rolls == null || rolls.Count == 0) return;
-
-        foreach (var r in rolls)
-        {
-            string mark;
-            if (!r.Passed) mark = "✗";
-            else if (r.Ratio >= 1.0) mark = "✓";
-            else mark = "!";
-
-            Log.Info($"      {mark} [s{r.SolutionIndex + 1}] {r.SkillId,-12} " +
-                     $"{r.SkillValue,6:F1}/{r.Required,6:F1} " +
-                     $"ratio={r.Ratio:F2} chance={r.Chance:F0}% roll={r.Roll:F1} " +
-                     $"({r.BestAdvName})");
-        }
-    }
-
-    // === Ночь ===
-
-    private void ProcessNightResult(QuestModel quest, GameTime at)
-    {
-        double attackChance = QuestCalculator.NightAttackChance(quest);
-
-        if (!RollChance(attackChance))
-        {
-            Log.Info($"    NIGHT {quest.DaysSpent + 1} → peaceful");
-            Report(at.Day, quest, ReportFormatter.NightPeaceful());
-            return;
-        }
-
-        Log.Info($"    NIGHT {quest.DaysSpent + 1} → attacked");
-
-        int nightLevel = Math.Max(1, quest.CodeLevel - QuestBalance.Active.NightCreatureLevelPenalty);
-
-        var combatPhase = BuildNightCombatPhase(quest, nightLevel);
-        if (combatPhase == null)
-        {
-            Log.Info($"    NIGHT {quest.DaysSpent + 1} → peaceful (no combat phase)");
-            return;
-        }
-
-        var combatOutcome = QuestCalculator.EvaluatePhase(
-            combatPhase, quest.Party, nightLevel, woundRng);
-
-        if (combatOutcome.Passed)
-        {
-            Log.Info($"    NIGHT {quest.DaysSpent + 1} → survived");
-            Report(at.Day, quest, ReportFormatter.NightAttacked(defended: true));
-            var creature = !string.IsNullOrEmpty(quest.TargetId)
-                ? QuestDatabase.GetCreature(quest.TargetId)
-                : null;
-            ApplyLightWounds(quest, creature, at);
-        }
-        else
-        {
-            Log.Info($"    NIGHT {quest.DaysSpent + 1} → defeated");
-            Report(at.Day, quest, ReportFormatter.NightAttacked(defended: false));
-            ApplyCombatOutcome(quest, at);
-            quest.CurrentRoleId = null;
-            quest.AmbientIndex = quest.AmbientPhases.Count;
-        }
-    }
-
-    private static QuestPhaseInstance BuildNightCombatPhase(QuestModel quest, int nightLevel)
-    {
-        if (!QuestDatabase.Phases.TryGetValue("combat", out var template))
-            return null;
-
-        var target = !string.IsNullOrEmpty(quest.TargetId)
-            ? QuestDatabase.GetCreature(quest.TargetId)
-            : null;
-        if (target == null) return null;
-
-        var balance = LevelBalance.Active;
-        var stats = new CreatureStats(target, nightLevel, balance);
-        double refMax = balance.StatStartPool + (nightLevel - 1) * balance.StatBaseSlope;
-
-        var solutions = new List<PhaseSolution>();
-
-        if (template.Paths != null)
-        {
-            foreach (var path in template.Paths)
-            {
-                var sol = new PhaseSolution { Skills = new Dictionary<string, double>() };
-
-                if (path.Checks != null)
-                {
-                    foreach (var check in path.Checks)
-                    {
-                        double dc = ComputeCheckDc(check, stats, refMax);
-                        if (dc >= 0) sol.Skills[check.Skill] = dc;
-                    }
-                }
-
-                if (sol.Skills.Count > 0) solutions.Add(sol);
+                // Если авантюристы выследили волка, засада проваливается автоматически
+                return true;
             }
         }
 
-        if (solutions.Count == 0) return null;
+        // 2. Основная проверка (Роль против Авантюриста)
+        if (!QuestDatabase.Roles.TryGetValue(encounter.RoleId, out var role)) return true;
+        if (role.Actions.Count == 0) return true;
 
-        return new QuestPhaseInstance
-        {
-            RoleId = null,
-            PhaseId = template.Id,
-            Name = template.Name,
-            Solutions = solutions,
-            DurationMinutes = 5,
-            ExpReward = 0,
-            Critical = false,
-            NextOnPass = default,
-            NextOnFail = default,
-        };
+        var action = role.Actions[0];
+        if (action.Check == null) return true; // Если проверки нет, считаем успехом
+
+        return RollCombat(quest, encounter, action.Check.Value);
     }
 
-    private static double ComputeCheckDc(PhaseCheck check, CreatureStats stats, double refMax)
+    private bool RollPreCheck(QuestModel quest, QuestEncounterInstance encounter)
     {
-        if (refMax <= 0) return -1;
+        // Ищем лучшего авантюриста по навыку
+        var check = new CheckInfo("", encounter.PreCheckSkillId, encounter.PreCheckTargetStat);
+        var (bestSkillValue, bestAdv) = FindBestAdventurer(quest.Party, check.TargetSkill, check.TargetStat);
 
-        if (check.Resistance == null || check.Resistance.Count == 0)
-        {
-            string statId = UnitDatabase.StatForSkill(check.Skill);
-            if (statId == null) return -1;
-            return stats.Get(statId) / refMax;
-        }
+        // Значение NPC (например, внимательность волка = его wis)
+        var species = UnitDatabase.GetSpecies(encounter.SpeciesId);
+        double npcStat = GetNpcStat(species, encounter.Level, check.TargetStat);
 
-        double sum = 0;
-        int count = 0;
-        foreach (var statId in check.Resistance)
-        {
-            sum += stats.Get(statId);
-            count++;
-        }
+        // Бросок (упрощенная формула: 1d100)
+        // Шанс успеха: 50% + разница между навыком и статом NPC
+        double diff = bestSkillValue - npcStat;
+        int chance = Math.Clamp(50 + (int)(diff * 5), 5, 95);
+        int roll = rng.Next(1, 101);
 
-        if (count == 0) return -1;
-        return (sum / count) / refMax;
+        return roll <= chance;
     }
 
-    // === Травмы и смерть ===
-
-    private void ApplyCombatOutcome(QuestModel quest, GameTime at)
+    private bool RollCombat(QuestModel quest, QuestEncounterInstance encounter, CheckInfo check)
     {
-        var creature = !string.IsNullOrEmpty(quest.TargetId)
-            ? QuestDatabase.GetCreature(quest.TargetId)
-            : null;
+        // NPC бросает свой actorStat
+        var species = UnitDatabase.GetSpecies(encounter.SpeciesId);
+        double npcValue = GetNpcStat(species, encounter.Level, check.ActorStat);
 
-        var b = QuestBalance.Active;
+        // Авантюрист бросает навык (или стат, если навыка нет)
+        var (bestSkillValue, bestAdv) = FindBestAdventurer(quest.Party, check.TargetSkill, check.TargetStat);
 
-        foreach (var a in quest.Party)
-        {
-            if (a.HasStatus(StatusIds.Dead))
-            {
-                Log.Info($"    {a.FullName,-24} skip (already dead)");
-                continue;
-            }
+        // Бросок
+        double diff = bestSkillValue - npcValue;
+        int chance = Math.Clamp(50 + (int)(diff * 5), 5, 95);
+        int roll = rng.Next(1, 101);
 
-            double end = EnduranceOf(a);
-            double injuryShield = InjuryShield(end);
-            double escapeChance = QuestCalculator.ComputeEscapeChance(a, creature, quest.CodeLevel);
-
-            if (RollChance(escapeChance))
-            {
-                var woundDays = b.WoundFailDays;
-                int days = woundRng.Next(woundDays.Min, woundDays.Max + 1);
-                a.SetStatus(StatusIds.Wounded, at + GameTime.FromDays(days));
-
-                Log.Info($"    {a.FullName,-24} esc {escapeChance,4:F0}% OK  " +
-                         $"end={end,6:F1} inj={injuryShield,4:P0} → wounded {days}d");
-                Report(at.Day, quest, ReportFormatter.Wounded(a, days));
-            }
-            else
-            {
-                var deadStatus = UnitDatabase.GetStatus(StatusIds.Dead);
-                var days = deadStatus?.AutoRemoveAfterDays ?? 4;
-                a.SetStatus(StatusIds.Dead, at + GameTime.FromDays(days));
-
-                Log.Info($"    {a.FullName,-24} esc {escapeChance,4:F0}% FAIL " +
-                         $"end={end,6:F1} inj={injuryShield,4:P0} → DIED");
-                Report(at.Day, quest, ReportFormatter.Died(a));
-            }
-        }
+        return roll <= chance;
     }
 
-    private void ApplyLightWounds(QuestModel quest, CreatureInfo creature, GameTime at)
+    private (double value, UnitModel adv) FindBestAdventurer(List<UnitModel> party, string skillId, string fallbackStat)
     {
-        var b = QuestBalance.Active;
-        var success = b.WoundSuccess;
+        UnitModel bestAdv = null;
+        double bestValue = -1;
 
-        foreach (var a in quest.Party)
+        foreach (var a in party)
         {
             if (a.HasStatus(StatusIds.Dead)) continue;
 
-            double end = EnduranceOf(a);
-            double injuryShield = InjuryShield(end);
-            double chance = success.Chance * (1.0 - injuryShield);
-
-            if (RollChance(chance))
+            double val = 0;
+            if (!string.IsNullOrEmpty(skillId))
             {
-                int days = woundRng.Next(success.Min, success.Max + 1);
-                a.SetStatus(StatusIds.Wounded, at + GameTime.FromDays(days));
-                Log.Info($"    {a.FullName,-24} light wound {days}d");
-                Report(at.Day, quest, ReportFormatter.Wounded(a, days));
+                // Формула навыка (стат * модификатор класса)
+                string statId = UnitDatabase.StatForSkill(skillId);
+                if (statId != null && a.Stats.TryGetValue(statId, out double statVal))
+                {
+                    var skill = UnitDatabase.GetSkill(skillId);
+                    double mod = 1.0;
+                    if (skill != null && skill.ClassModifiers.TryGetValue(a.ClassId, out double m)) mod = m;
+                    val = statVal * mod;
+                }
+            }
+            else if (!string.IsNullOrEmpty(fallbackStat))
+            {
+                val = a.Stats.GetValueOrDefault(fallbackStat, 0);
+            }
+
+            if (val > bestValue)
+            {
+                bestValue = val;
+                bestAdv = a;
             }
         }
+
+        return (bestValue, bestAdv);
     }
 
-    private void KillParty(QuestModel quest, GameTime at)
+    private double GetNpcStat(SpeciesInfo species, int level, string statId)
     {
-        foreach (var a in quest.Party)
-        {
-            if (a.HasStatus(StatusIds.Dead)) continue;
-            var deadStatus = UnitDatabase.GetStatus(StatusIds.Dead);
-            var days = deadStatus?.AutoRemoveAfterDays ?? 4;
-            a.SetStatus(StatusIds.Dead, at + GameTime.FromDays(days));
-        }
+        if (species == null || species.GrowthWeights == null) return 10;
+
+        // Быстрый расчет стата NPC по нашей формуле
+        var p = LevelBalance.Active;
+        int levelsAboveOne = Math.Max(0, level - 1);
+        double weight = species.GrowthWeights.GetValueOrDefault(statId, 0.20);
+
+        double value = p.StatBaseValue + (p.StatStartPool + levelsAboveOne * p.StatBaseSlope) * weight;
+        value += species.StatBonuses.GetValueOrDefault(statId, 0);
+
+        return value;
     }
 
-    // === Финал ===
-
-    private void FinishQuest(QuestModel quest, GameTime at)
+    private void FinishQuest(QuestModel quest, GameTime now)
     {
         quest.Result = resolver.Resolve(quest);
         quest.Status = QuestStatus.Completed;
-
         registry.CompleteToHistory(quest);
-
-        int totalXpGiven = DistributeExperience(quest, at);
-        LogCompletion(quest, totalXpGiven);
-
-        if (reports != null)
-        {
-            reports.Append(at.Day, quest, ReportFormatter.Finale(quest));
-            reports.MarkFinal(at.Day, quest);
-        }
-
-        foreach (var a in quest.Party)
-        {
-            if (a.HasStatus(StatusIds.Dead)) continue;
-            if (a.HasStatus(StatusIds.Wounded)) continue;
-            a.SetStatus(StatusIds.Free);
-        }
-
         bank.AddGold(quest.Result.GoldEarned);
         bank.AddGlory(quest.Result.GloryEarned);
 
-        Completed?.Invoke(quest);
-    }
-
-    private void Report(int day, QuestModel quest, string line)
-    {
-        reports?.Append(day, quest, line);
-    }
-
-    private void ReportMany(int day, QuestModel quest, IEnumerable<string> lines)
-    {
-        reports?.AppendMany(day, quest, lines);
-    }
-
-    // === Опыт ===
-
-    private int DistributeExperience(QuestModel quest, GameTime at)
-    {
-        var phaseResults = quest.PhaseResults ?? new List<PhaseResult>();
-        int totalExp = QuestCalculator.TotalExp(phaseResults);
-        if (totalExp <= 0) return 0;
-
-        var aliveParty = quest.Party
-            .Where(a => !a.HasStatus(StatusIds.Dead))
-            .ToList();
-
-        if (aliveParty.Count == 0)
+        foreach (var a in quest.Party)
         {
-            Log.Info("    experience: no survivors");
-            return 0;
-        }
-
-        var shares = QuestCalculator.ContributionShares(aliveParty, phaseResults, quest.CodeLevel);
-
-        var exact = new List<(UnitModel a, int xp, double frac)>();
-        int distributed = 0;
-
-        foreach (var a in aliveParty)
-        {
-            if (!shares.TryGetValue(a, out var share)) continue;
-
-            double e = totalExp * share;
-            int fl = (int)Math.Floor(e);
-            if (fl < 0) fl = 0;
-
-            distributed += fl;
-            exact.Add((a, fl, e - fl));
-        }
-
-        int remainder = totalExp - distributed;
-        if (remainder < 0) remainder = 0;
-
-        exact.Sort((x, y) => y.frac.CompareTo(x.frac));
-
-        var xpByAdv = new Dictionary<UnitModel, int>();
-        foreach (var (a, fl, _) in exact) xpByAdv[a] = fl;
-        for (int i = 0; i < exact.Count && remainder > 0; i++)
-        {
-            xpByAdv[exact[i].a] += 1;
-            remainder--;
-        }
-
-        int totalXpGiven = 0;
-
-        foreach (var a in aliveParty)
-        {
-            if (!xpByAdv.TryGetValue(a, out var xp) || xp <= 0) continue;
-
-            int levelBefore = a.Level.Number;
-
-            UnitProgress.AddExperience(a, xp);
-
-            int levelAfter = a.Level.Number;
-            bool leveled = levelAfter > levelBefore;
-
-            totalXpGiven += xp;
-
-            if (leveled)
-            {
-                Log.Info($"    {a.FullName,-24} {a.ClassId,-10} " +
-                         $"+{xp,3} XP  share={shares[a]:P0}  → L{levelAfter}");
-                Report(at.Day, quest, ReportFormatter.LevelUp(a, levelBefore, levelAfter));
-            }
-            else
-            {
-                Log.Info($"    {a.FullName,-24} {a.ClassId,-10} " +
-                         $"+{xp,3} XP  share={shares[a]:P0}  " +
-                         $"{a.Level.Experience,4}/{a.Level.ExpToNext,4}");
-            }
-        }
-
-        XpStats.Record(quest.CodeLevel, totalXpGiven);
-        return totalXpGiven;
-    }
-
-    // === Утилиты ===
-
-    private static double EnduranceOf(UnitModel a)
-    {
-        if (a?.Stats == null) return 0;
-        return a.Stats.TryGetValue(StatIds.Endurance, out var end) ? end : 0;
-    }
-
-    private static double InjuryShield(double end)
-    {
-        if (end <= 0) return 0;
-        var b = QuestBalance.Active;
-        double s = end / (end + b.EnduranceInjuryK);
-        return Math.Min(s, b.EnduranceInjuryCap);
-    }
-
-    private bool RollChance(double percent)
-        => percent > 0 && woundRng.NextDouble() * 100.0 < percent;
-
-    // === Логи ===
-
-    private static void LogStart(QuestModel quest, IReadOnlyList<UnitModel> party)
-    {
-        string name = quest.Name ?? "";
-        if (name.Length > 24) name = name[..24];
-
-        string target = quest.TargetId ?? "?";
-        string location = quest.LocationId ?? "?";
-
-        string diffStr = $"d={quest.DifficultyModifier:+0.00;-0.00;+0.00}";
-        Log.Info($"[Q] >>> PLAN   L{quest.CodeLevel,-2} {diffStr} '{name}' " +
-                 $"depart={quest.StartTime} party={party.Count} " +
-                 $"target={target} location={location}");
-
-        var members = string.Join(", ",
-            party.Select(a => $"{a.FirstName} ({a.RaceId} {a.ClassId} L{a.Level.Number})"));
-        Log.Info($"    party: {members}");
-
-        foreach (var phase in quest.Phases)
-        {
-            string crit = phase.Critical ? "[C]" : "   ";
-            Log.Info($"    {crit} {phase.RoleId,-14} ({phase.PhaseId,-12}) " +
-                     $"dur={phase.DurationMinutes,4}m exp={phase.ExpReward,3}");
-        }
-
-        if (quest.AmbientPhases != null && quest.AmbientPhases.Count > 0)
-        {
-            Log.Info($"    ambient: {quest.AmbientPhases.Count}");
-            foreach (var phase in quest.AmbientPhases)
-                Log.Info($"       {phase.PhaseId,-12} dur={phase.DurationMinutes,4}m exp={phase.ExpReward,3}");
+            if (!a.HasStatus(StatusIds.Dead)) a.SetStatus(StatusIds.Free);
         }
     }
-
-    private static void LogDepart(QuestModel quest)
-    {
-        Log.Info($"[Q] >>> DEPART {quest.StartTime} | {quest.Party.Count} adventurers");
-    }
-
-    private static void LogCompletion(QuestModel quest, int totalXpGiven)
-    {
-        string role = quest.Result.Role switch
-        {
-            QuestGradeRole.Triumph => "TRI",
-            QuestGradeRole.Success => "SUC",
-            QuestGradeRole.Failure => "FAI",
-            QuestGradeRole.Disaster => "DIS",
-            _ => "???"
-        };
-
-        string name = quest.Name ?? "";
-        if (name.Length > 24) name = name[..24];
-
-        var pr = quest.PhaseResults ?? new List<PhaseResult>();
-        int passed = pr.Count(r => r.Passed);
-        int total = pr.Count;
-        int critPassed = pr.Count(r => r.EffectiveCritical && r.Passed);
-        int critTotal = pr.Count(r => r.EffectiveCritical);
-        int totalExp = QuestCalculator.TotalExp(pr);
-
-        string failTag = quest.Result.FailedByCritical ? " FAILED" : "";
-        string target = quest.TargetId ?? "?";
-        string location = quest.LocationId ?? "?";
-
-        string diffStr = $"d={quest.DifficultyModifier:+0.00;-0.00;+0.00}";
-        Log.Info($"[Q] >>> FINAL  L{quest.CodeLevel,-2} {diffStr} {role}{failTag} '{name}'  " +
-                 $"days={quest.DaysSpent + 1} target={target} location={location}");
-
-        Log.Info($"    phases={passed}/{total} crit={critPassed}/{critTotal} " +
-                 $"exp={totalXpGiven}/{totalExp} " +
-                 $"gold={quest.Result.GoldEarned} glory={quest.Result.GloryEarned}");
-    }
-
-    // === Доска ===
 
     private void RefreshBoard()
     {
-        while (registry.CountAvailable() < BoardCapacity)
+        while (registry.CountAvailable() < 4)
         {
-            int codeLevel = RollQuestLevel();
-            var quest = factory.Create(clock.Now, codeLevel);
-            if (quest == null) break;
-
-            quest.Status = QuestStatus.Available;
-            registry.Add(quest);
-            Added?.Invoke(quest);
+            // Генерируем квест 1 уровня для партии из 4 человек
+            var q = factory.Create(clock.Now, 1, 4);
+            if (q != null) registry.Add(q);
+            else break;
         }
-    }
-
-    private int RollQuestLevel()
-    {
-        // TODO: правильное распределение уровней квестов. Пока — уровень 1.
-        int baseLevel = 1;
-        int roll = woundRng.Next(0, 1);
-        return Math.Clamp(baseLevel + roll, 1, LevelBalance.MaxLevel);
     }
 }

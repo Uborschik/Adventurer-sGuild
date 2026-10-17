@@ -43,8 +43,8 @@ public partial class PartySelect : Control
         add.Pressed -= OnAdd;
         apply.Pressed -= OnApply;
 
-        if (questFlow != null)
-            questFlow.Completed -= OnQuestCompleted;
+        // if (questFlow != null)
+        //     questFlow.Completed -= OnQuestCompleted;
     }
 
     public void Bind(UnitRegistry adventurerRegistry, QuestFlow questFlow, QuestResolver questResolver)
@@ -53,8 +53,8 @@ public partial class PartySelect : Control
         this.questFlow = questFlow;
         this.questResolver = questResolver;
 
-        if (questFlow != null)
-            questFlow.Completed += OnQuestCompleted;
+        // if (questFlow != null)
+        //     questFlow.Completed += OnQuestCompleted;
     }
 
     public void SetQuest(QuestModel newQuest)
@@ -89,9 +89,9 @@ public partial class PartySelect : Control
 
     private void OnQuestCompleted(QuestModel model)
     {
-        string gradeName = QuestDatabase.GradeName(model.Result.Role);
-        GD.Print($"[Quest] {model.Name}: {gradeName}, " +
-                 $"+{model.Result.GoldEarned}g, +{model.Result.GloryEarned}glory");
+        // string gradeName = QuestDatabase.GradeName(model.Result.Role);
+        // GD.Print($"[Quest] {model.Name}: {gradeName}, " +
+        //          $"+{model.Result.GoldEarned}g, +{model.Result.GloryEarned}glory");
     }
 
     private void RefreshCanApply()

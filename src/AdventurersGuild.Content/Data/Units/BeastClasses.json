@@ -1,7 +1,7 @@
 {
   "classes": [
-    { "id": "young", "name": { "ru": "Молодой",  "en": "Young" }, "statModifiers": {} },
-    { "id": "adult", "name": { "ru": "Взрослый", "en": "Adult" }, "statModifiers": {} },
-    { "id": "alpha", "name": { "ru": "Вожак",    "en": "Alpha" }, "statModifiers": {} }
+    { "id": "young", "name": { "ru": "Молодой",  "en": "Young" }, "classCost": 1, "statModifiers": {} },
+    { "id": "adult", "name": { "ru": "Взрослый", "en": "Adult" }, "classCost": 2, "statModifiers": {} },
+    { "id": "alpha", "name": { "ru": "Вожак",    "en": "Alpha" }, "classCost": 4, "statModifiers": {} }
   ]
 }
