@@ -1,0 +1,69 @@
+[gd_scene format=3 uid="uid://btxj6fchakec3"]
+
+[ext_resource type="Script" uid="uid://c2sssrfc1c5ah" path="res://scripts/presentation/adventurers/RegisterWindow.cs" id="1_l3ce5"]
+[ext_resource type="PackedScene" uid="uid://bh25hj6wv1tra" path="res://scenes/adventurer_board/AdventurerBoard.tscn" id="2_u16gv"]
+[ext_resource type="PackedScene" uid="uid://b3w57jddr281i" path="res://scenes/adventurer_info/AdventurerInfo.tscn" id="3_lpkkt"]
+[ext_resource type="PackedScene" uid="uid://dlpqc2bjjx5lt" path="res://scenes/available_board/AvailableBoard.tscn" id="4_u16gv"]
+
+[node name="RegisterWindow" type="HBoxContainer" unique_id=1105042690]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -240.0
+offset_top = -110.0
+offset_right = 240.0
+offset_bottom = 110.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 6
+size_flags_vertical = 6
+script = ExtResource("1_l3ce5")
+Type = 7
+
+[node name="AvailableBoard" parent="." unique_id=2096333078 instance=ExtResource("4_u16gv")]
+custom_minimum_size = Vector2(160, 200)
+custom_maximum_size = Vector2(160, -1)
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="VBox" type="VBoxContainer" parent="." unique_id=1596327685]
+custom_minimum_size = Vector2(0, 220)
+custom_maximum_size = Vector2(-1, 220)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="AdventurerInfo" parent="VBox" unique_id=1707344281 instance=ExtResource("3_lpkkt")]
+custom_minimum_size = Vector2(160, 192)
+layout_mode = 2
+size_flags_vertical = 1
+
+[node name="Control" type="HBoxContainer" parent="VBox" unique_id=874091636]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 20
+
+[node name="Hire" type="Button" parent="VBox/Control" unique_id=1245969566]
+custom_minimum_size = Vector2(50, 24)
+custom_maximum_size = Vector2(50, 24)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+text = "Hire"
+
+[node name="Reject" type="Button" parent="VBox/Control" unique_id=1779221022]
+custom_minimum_size = Vector2(50, 24)
+custom_maximum_size = Vector2(50, 24)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+text = "Reject
+"
+
+[node name="AdventurerBoard" parent="." unique_id=250230971 instance=ExtResource("2_u16gv")]
+custom_minimum_size = Vector2(160, 200)
+custom_maximum_size = Vector2(160, -1)
+layout_mode = 2
+size_flags_vertical = 4

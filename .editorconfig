@@ -1,0 +1,95 @@
+# .editorconfig
+# Корневой файл — правила ниже применяются ко всему проекту.
+root = true
+
+# === Общие настройки для всех файлов ===
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+# === C# ===
+[*.cs]
+indent_style = space
+indent_size = 4
+
+# File-scoped namespace (C# 10+): namespace Foo;
+csharp_style_namespace_declarations = file_scoped:warning
+
+# Using-директивы — внутри namespace (namespace сверху, using под ним)
+csharp_using_directive_placement = inside_namespace:suggestion
+
+# Скобки на новой строке (Allman style)
+csharp_new_line_before_open_brace = all
+
+# var — где тип очевиден
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = true:suggestion
+
+# Expression-bodied для простых методов и свойств
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+csharp_style_expression_bodied_properties = true:suggestion
+csharp_style_expression_bodied_indexers = true:suggestion
+csharp_style_expression_bodied_accessors = true:suggestion
+
+# System using — первыми
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+
+# Приватные поля — без подчёркивания (как у нас в проекте)
+dotnet_naming_rule.private_fields_should_be_camel_case.severity = suggestion
+dotnet_naming_rule.private_fields_should_be_camel_case.symbols = private_fields
+dotnet_naming_rule.private_fields_should_be_camel_case.style = camel_case_style
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+
+dotnet_naming_style.camel_case_style.capitalization = camel_case
+
+# === Полное отключение проверок на var ===
+
+# 1. Отключаем предупреждение "Используйте явный тип вместо var" (IDE0008)
+dotnet_diagnostic.IDE0008.severity = none
+
+# 2. Отключаем обратное предупреждение "Используйте var вместо явного типа" (IDE0007)
+dotnet_diagnostic.IDE0007.severity = none
+
+# 3. Меняем уровень подсказок для var с suggestion на silent
+# (silent = не показывать подчеркивание, но оставить форматирование в редакторе)
+csharp_style_var_for_built_in_types = true:silent
+csharp_style_var_when_type_is_apparent = true:silent
+csharp_style_var_elsewhere = true:silent
+
+# === Razor ===
+[*.razor]
+indent_style = space
+indent_size = 4
+
+# === JSON ===
+[*.json]
+indent_style = space
+indent_size = 2
+
+# === csproj / props / targets ===
+[*.{csproj,props,targets}]
+indent_style = space
+indent_size = 2
+
+# === Markdown ===
+[*.md]
+trim_trailing_whitespace = false
+
+# === Bat / cmd (Windows line endings обязательны) ===
+[*.{bat,cmd}]
+end_of_line = crlf
+
+[*.cs]
+# CA1859 иногда даёт ложные срабатывания на API-границах.
+# Не отключаем совсем, но понижаем до suggestion.
+nullable = disable
+dotnet_diagnostic.CA1859.severity = suggestion
+dotnet_diagnostic.SYSLIB1045.severity = none

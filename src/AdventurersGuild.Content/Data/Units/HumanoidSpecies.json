@@ -1,0 +1,140 @@
+{
+  "species": [
+    {
+      "id": "human",
+      "name": {
+        "ru": { "nom": "человек", "gen": "человека", "dat": "человеку", "acc": "человека", "ins": "человеком", "pre": "человеке" },
+        "en": "human"
+      },
+      "population": 20,
+      "statBonuses": { "str": 1, "dex": 1, "int": 1, "cha": 1 },
+      "growthWeights": {},
+      "classes": [
+        { "classId": "warrior",   "weight": 3, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "barbarian", "weight": 1, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "paladin",   "weight": 3, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "rogue",     "weight": 3, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "ranger",    "weight": 1, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "mage",      "weight": 3, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "cleric",    "weight": 3, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "bard",      "weight": 2, "minLvl": 1, "maxLvl": 60 }
+      ],
+      "roles": []
+    },
+    {
+      "id": "elf",
+      "name": {
+        "ru": { "nom": "эльф", "gen": "эльфа", "dat": "эльфу", "acc": "эльфа", "ins": "эльфом", "pre": "эльфе" },
+        "en": "elf"
+      },
+      "population": 20,
+      "statBonuses": { "str": -1, "dex": 2, "int": 1, "wis": 1, "cha": 1 },
+      "growthWeights": {},
+      "classes": [
+        { "classId": "warrior", "weight": 2, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "paladin", "weight": 1, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "rogue",   "weight": 3, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "ranger",  "weight": 3, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "mage",    "weight": 3, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "cleric",  "weight": 3, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "bard",    "weight": 2, "minLvl": 1, "maxLvl": 60 }
+      ],
+      "roles": []
+    },
+    {
+      "id": "dwarf",
+      "name": {
+        "ru": { "nom": "дварф", "gen": "дварфа", "dat": "дварфу", "acc": "дварфа", "ins": "дварфом", "pre": "дварфе" },
+        "en": "dwarf"
+      },
+      "population": 20,
+      "statBonuses": { "str": 2, "end": 4, "int": -1, "wis": 1 },
+      "growthWeights": {},
+      "classes": [
+        { "classId": "warrior",   "weight": 3, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "barbarian", "weight": 2, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "paladin",   "weight": 2, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "rogue",     "weight": 1, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "ranger",    "weight": 1, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "cleric",    "weight": 1, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "bard",      "weight": 2, "minLvl": 1, "maxLvl": 60 }
+      ],
+      "roles": []
+    },
+    {
+      "id": "halfling",
+      "name": {
+        "ru": { "nom": "полурослик", "gen": "полурослика", "dat": "полурослику", "acc": "полурослика", "ins": "полуросликом", "pre": "полурослике" },
+        "en": "halfling"
+      },
+      "population": 20,
+      "statBonuses": { "dex": 1, "end": -1, "int": 1, "wis": 1, "cha": 1 },
+      "growthWeights": {},
+      "classes": [
+        { "classId": "warrior", "weight": 1, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "rogue",   "weight": 3, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "ranger",  "weight": 2, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "mage",    "weight": 1, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "cleric",  "weight": 2, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "bard",    "weight": 3, "minLvl": 1, "maxLvl": 60 }
+      ],
+      "roles": []
+    },
+    {
+      "id": "dragonborn",
+      "name": {
+        "ru": { "nom": "драконорождённый", "gen": "драконорождённого", "dat": "драконорождённому", "acc": "драконорождённого", "ins": "драконорождённым", "pre": "драконорождённом" },
+        "en": "dragonborn"
+      },
+      "population": 20,
+      "statBonuses": { "str": 1, "end": 2, "int": 1, "wis": 2, "cha": -1 },
+      "growthWeights": {},
+      "classes": [
+        { "classId": "warrior",   "weight": 3, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "barbarian", "weight": 2, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "paladin",   "weight": 3, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "mage",      "weight": 2, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "cleric",    "weight": 1, "minLvl": 1, "maxLvl": 60 }
+      ],
+      "roles": []
+    },
+    {
+      "id": "half_orc",
+      "name": {
+        "ru": { "nom": "полуорк", "gen": "полуорка", "dat": "полуорку", "acc": "полуорка", "ins": "полуорком", "pre": "полуорке" },
+        "en": "half-orc"
+      },
+      "population": 20,
+      "statBonuses": { "str": 3, "dex": -1, "end": 4, "int": -1, "wis": 1, "cha": 0 },
+      "growthWeights": {},
+      "classes": [
+        { "classId": "warrior",   "weight": 3, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "barbarian", "weight": 3, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "rogue",     "weight": 2, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "ranger",    "weight": 2, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "mage",      "weight": 1, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "cleric",    "weight": 1, "minLvl": 1, "maxLvl": 60 },
+        { "classId": "bard",      "weight": 1, "minLvl": 1, "maxLvl": 60 }
+      ],
+      "roles": []
+    },
+    {
+      "id": "goblin",
+      "name": {
+        "ru": { "nom": "гоблин", "gen": "гоблина", "dat": "гоблину", "acc": "гоблина", "ins": "гоблином", "pre": "гоблине" },
+        "en": "goblin"
+      },
+      "population": 20,
+      "statBonuses": {},
+      "growthWeights": { "str": 0.7, "dex": 0.9, "end": 0.6, "int": 0.5, "wis": 0.5, "cha": 0.2 },
+      "classes": [
+        { "classId": "warrior", "weight": 3, "minLvl": 1, "maxLvl": 40 },
+        { "classId": "rogue",   "weight": 3, "minLvl": 1, "maxLvl": 40 },
+        { "classId": "ranger",  "weight": 2, "minLvl": 1, "maxLvl": 40 },
+        { "classId": "cleric",  "weight": 1, "minLvl": 1, "maxLvl": 40 },
+        { "classId": "bard",    "weight": 1, "minLvl": 1, "maxLvl": 40 }
+      ],
+      "roles": []
+    }
+  ]
+}

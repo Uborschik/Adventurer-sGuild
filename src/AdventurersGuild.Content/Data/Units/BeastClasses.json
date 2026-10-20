@@ -1,0 +1,7 @@
+{
+  "classes": [
+    { "id": "young", "name": { "ru": "Молодой",  "en": "Young" }, "classCost": 1, "hpMultiplier": 0.6, "primaryStat": "dex", "secondaryStat": "dex", "statModifiers": {} },
+    { "id": "adult", "name": { "ru": "Взрослый", "en": "Adult" }, "classCost": 2, "hpMultiplier": 1.0, "primaryStat": "str", "secondaryStat": "end", "statModifiers": {} },
+    { "id": "alpha", "name": { "ru": "Вожак",    "en": "Alpha" }, "classCost": 4, "hpMultiplier": 1.5, "primaryStat": "str", "secondaryStat": "end", "statModifiers": {} }
+  ]
+}

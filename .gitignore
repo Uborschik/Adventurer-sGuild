@@ -1,0 +1,70 @@
+# ============================================================
+# Общее
+# ============================================================
+.DS_Store
+Thumbs.db
+*.log
+logs/
+*.tmp
+*.temp
+*.cache
+
+# ============================================================
+# IDE и редакторы
+# ============================================================
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# ============================================================
+# .NET / C# — сборка и артефакты
+# ============================================================
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+publish/
+build/
+artifacts/
+
+# Файлы, генерируемые компилятором
+*.AssemblyInfo.cs
+*.deps.json
+*.runtimeconfig.json
+*.sourcelink.json
+project.assets.json
+*.nuget.dgspec.json
+
+# Тесты
+TestResults/
+*.trx
+*.coverage
+*.coverlet.json
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+!packages/build/
+
+# ============================================================
+# Godot Engine
+# ============================================================
+.godot/
+/data_*/
+*.translation
+.mono/
+mono_crash.*.json
+export_presets.cfg
+
+# ============================================================
+# Blazor / Web
+# ============================================================
+wwwroot/dist/
+*.styles.css
+*.styles.css.map

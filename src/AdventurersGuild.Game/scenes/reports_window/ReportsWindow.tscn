@@ -1,0 +1,39 @@
+[gd_scene format=3 uid="uid://rjwyhniy5xe6"]
+
+[ext_resource type="Script" uid="uid://onpvmrywsajm" path="res://scripts/presentation/reports/ReportsWindow.cs" id="1_mx0a7"]
+
+[node name="ReportsWindow" type="PanelContainer" unique_id=1295045385]
+custom_minimum_size = Vector2(420, 292)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -190.0
+offset_top = -146.0
+offset_right = 190.0
+offset_bottom = 146.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_mx0a7")
+
+[node name="VBox" type="VBoxContainer" parent="." unique_id=872722796]
+layout_mode = 2
+
+[node name="Header" type="Label" parent="VBox" unique_id=639344187]
+layout_mode = 2
+text = "Отчёты о миссиях"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="VBox" unique_id=559605834]
+layout_mode = 2
+
+[node name="Scroll" type="ScrollContainer" parent="VBox" unique_id=166008529]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="List" type="VBoxContainer" parent="VBox/Scroll" unique_id=965911526]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3

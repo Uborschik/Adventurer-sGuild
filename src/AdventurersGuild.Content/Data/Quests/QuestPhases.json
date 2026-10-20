@@ -1,0 +1,163 @@
+{
+  "phases": [
+    {
+      "id": "tracking",
+      "name": { "ru": "Выследить", "en": "Track" },
+      "tags": ["tracking", "investigation"],
+      "paths": [
+        { "checks": [
+          { "skill": "perception", "resistance": ["wis", "dex"] },
+          { "skill": "athletics",  "resistance": ["str", "dex"] }
+        ]},
+        { "checks": [
+          { "skill": "perception", "resistance": ["wis", "dex"] },
+          { "skill": "grit",       "resistance": ["end", "str"] }
+        ]},
+        { "checks": [
+          { "skill": "stealth",    "resistance": ["dex", "wis"] },
+          { "skill": "perception", "resistance": ["wis", "dex"] }
+        ]}
+      ]
+    },
+    {
+      "id": "exploration",
+      "name": { "ru": "Разведать", "en": "Explore" },
+      "tags": ["exploration", "investigation"],
+      "paths": [
+        { "checks": [
+          { "skill": "investigation", "resistance": ["int", "wis"] },
+          { "skill": "perception",    "resistance": ["wis", "dex"] }
+        ]},
+        { "checks": [
+          { "skill": "investigation", "resistance": ["int", "wis"] },
+          { "skill": "grit",          "resistance": ["end", "str"] }
+        ]}
+      ]
+    },
+    {
+      "id": "stealth",
+      "name": { "ru": "Скрытно пройти", "en": "Sneak" },
+      "tags": ["stealth"],
+      "paths": [
+        { "checks": [
+          { "skill": "stealth",       "resistance": ["dex", "wis"] },
+          { "skill": "perception",    "resistance": ["wis", "dex"] }
+        ]},
+        { "checks": [
+          { "skill": "stealth",       "resistance": ["dex", "wis"] },
+          { "skill": "investigation", "resistance": ["int", "wis"] }
+        ]},
+        { "checks": [
+          { "skill": "stealth",       "resistance": ["dex", "wis"] },
+          { "skill": "deception",     "resistance": ["cha", "dex"] }
+        ]}
+      ]
+    },
+    {
+      "id": "guard",
+      "name": { "ru": "Защитить", "en": "Guard" },
+      "tags": ["guard", "combat"],
+      "paths": [
+        { "checks": [
+          { "skill": "athletics",  "resistance": ["str", "dex"] },
+          { "skill": "grit",       "resistance": ["end", "str"] }
+        ]},
+        { "checks": [
+          { "skill": "athletics",  "resistance": ["str", "dex"] },
+          { "skill": "persuasion", "resistance": ["cha", "wis"] }
+        ]},
+        { "checks": [
+          { "skill": "perception", "resistance": ["wis", "dex"] },
+          { "skill": "grit",       "resistance": ["end", "str"] }
+        ]}
+      ]
+    },
+    {
+      "id": "social",
+      "name": { "ru": "Договориться", "en": "Negotiate" },
+      "tags": ["social"],
+      "paths": [
+        { "checks": [
+          { "skill": "persuasion",    "resistance": ["cha", "wis"] },
+          { "skill": "perception",    "resistance": ["wis", "dex"] }
+        ]},
+        { "checks": [
+          { "skill": "persuasion",    "resistance": ["cha", "wis"] },
+          { "skill": "investigation", "resistance": ["int", "wis"] }
+        ]},
+        { "checks": [
+          { "skill": "deception",     "resistance": ["cha", "dex"] },
+          { "skill": "investigation", "resistance": ["int", "wis"] }
+        ]}
+      ]
+    },
+    {
+      "id": "combat",
+      "name": { "ru": "Схватка", "en": "Combat" },
+      "tags": ["combat"],
+      "paths": [
+        { "checks": [
+          { "skill": "athletics",  "resistance": ["str", "dex"] },
+          { "skill": "grit",       "resistance": ["end", "str"] }
+        ]},
+        { "checks": [
+          { "skill": "acrobatics", "resistance": ["dex", "str"] },
+          { "skill": "grit",       "resistance": ["end", "str"] }
+        ]},
+        { "checks": [
+          { "skill": "arcana",     "resistance": ["int", "wis"] },
+          { "skill": "perception", "resistance": ["wis", "dex"] }
+        ]},
+        { "checks": [
+          { "skill": "deception",  "resistance": ["cha", "dex"] },
+          { "skill": "acrobatics", "resistance": ["dex", "str"] }
+        ]}
+      ]
+    },
+    {
+      "id": "puzzle",
+      "name": { "ru": "Разгадать", "en": "Puzzle" },
+      "tags": ["puzzle", "lore"],
+      "paths": [
+        { "checks": [
+          { "skill": "investigation", "resistance": ["int", "wis"] },
+          { "skill": "perception",    "resistance": ["wis", "dex"] }
+        ]},
+        { "checks": [
+          { "skill": "arcana",        "resistance": ["int", "wis"] },
+          { "skill": "investigation", "resistance": ["int", "wis"] }
+        ]}
+      ]
+    },
+    {
+      "id": "lore",
+      "name": { "ru": "Древние знания", "en": "Lore" },
+      "tags": ["lore", "investigation"],
+      "paths": [
+        { "checks": [
+          { "skill": "arcana",     "resistance": ["int", "wis"] },
+          { "skill": "perception", "resistance": ["wis", "dex"] }
+        ]},
+        { "checks": [
+          { "skill": "arcana",     "resistance": ["int", "wis"] },
+          { "skill": "persuasion", "resistance": ["cha", "wis"] }
+        ]}
+      ]
+    },
+    {
+      "id": "survival",
+      "name": { "ru": "Выжить", "en": "Survive" },
+      "tags": ["survival"],
+      "paths": [
+        { "checks": [
+          { "skill": "grit",       "resistance": ["end", "str"] },
+          { "skill": "perception", "resistance": ["wis", "dex"] }
+        ]},
+        { "checks": [
+          { "skill": "athletics",  "resistance": ["str", "dex"] },
+          { "skill": "grit",       "resistance": ["end", "str"] }
+        ]}
+      ]
+    }
+  ]
+}

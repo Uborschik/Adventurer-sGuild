@@ -1,0 +1,29 @@
+{
+  "maxLevel": 60,
+  "expCapLvl1": 45,
+  "expCapScaling": "polynomial",
+  "expCapAcceleration": 0.22,
+
+  "complexityPerLevelPerMember": 2,
+  "statBaseValue": 0.0,
+  "statStartPool": 10.0,
+  "statBaseSlope": 3.5,
+  
+  "hpPerEndurance": 5,
+
+  "combat": {
+    "maxRounds": 15,
+    "diceSides": 20,
+    "damageMultiplier": 1.5,
+    
+    "acBase": 4,
+    "acDexMod": 0.5,
+    "acEndMod": 0.5,
+    
+    "defaultStatFallback": 10,
+    "defaultGrowthWeight": 0.2,
+
+    "woundHeavyThreshold": 0.3,
+    "woundMediumThreshold": 0.6
+  }
+}

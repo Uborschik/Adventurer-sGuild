@@ -1,0 +1,14 @@
+{
+  "habitats": [
+    {
+      "locationId": "forest",
+      "roles": {
+        "predator":  { "wolf": 10, "goblin": 3 },
+        "berserker": { "boar": 10, "bear": 5 },
+        "pilgrim":   { "human": 10, "elf": 5, "halfling": 5 },
+        "merchant":  { "human": 5, "dwarf": 5 },
+        "guard":     { "human": 2 }
+      }
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://bh25hj6wv1tra"]
+
+[ext_resource type="Script" uid="uid://hmreoybdq7h3" path="res://scripts/presentation/adventurers/AdventurerBoard.cs" id="1_yjoyy"]
+[ext_resource type="Script" uid="uid://dkw120agxembb" path="res://scripts/presentation/adventurers/AdventurerList.cs" id="2_dxo13"]
+[ext_resource type="PackedScene" uid="uid://71rvwg3j2430" path="res://scenes/adventurer_board/AdventurerBoardRow.tscn" id="3_yjoyy"]
+
+[node name="AdventurerBoard" type="PanelContainer" unique_id=1011375650]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_yjoyy")
+
+[node name="AdventurerList" type="PanelContainer" parent="." unique_id=357206379]
+layout_mode = 2
+size_flags_vertical = 3
+script = ExtResource("2_dxo13")
+RowPrefab = ExtResource("3_yjoyy")
+
+[node name="Scroll" type="ScrollContainer" parent="AdventurerList" unique_id=1507077914]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="VBox" type="VBoxContainer" parent="AdventurerList/Scroll" unique_id=1004331892]
+custom_maximum_size = Vector2(138, -1)
+layout_mode = 2
+size_flags_vertical = 3

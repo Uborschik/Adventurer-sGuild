@@ -1,0 +1,117 @@
+[gd_scene format=3 uid="uid://cfshp3jpfjndn"]
+
+[ext_resource type="Script" uid="uid://cxuxti4hqx5q4" path="res://scripts/presentation/game/Status.cs" id="9_2g78a"]
+[ext_resource type="Texture2D" uid="uid://cgpryj8bhcrjb" path="res://resources/sprites/icons/interface/gold.tres" id="10_i8ydx"]
+[ext_resource type="Texture2D" uid="uid://cn8hd5mc47hfn" path="res://resources/sprites/icons/interface/glory.tres" id="11_k3wmv"]
+[ext_resource type="Texture2D" uid="uid://ci1ltfvdo7gpc" path="res://resources/sprites/icons/interface/day.tres" id="12_jphqr"]
+[ext_resource type="Texture2D" uid="uid://bljg73dxujgco" path="res://resources/sprites/icons/interface/hourglasses.tres" id="13_rdba7"]
+
+[node name="TopBar" type="PanelContainer" unique_id=546413600]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 16.0
+grow_horizontal = 2
+size_flags_horizontal = 3
+size_flags_vertical = 2
+
+[node name="Status" type="HBoxContainer" parent="." unique_id=838958993]
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 4
+theme_override_constants/separation = 0
+script = ExtResource("9_2g78a")
+
+[node name="Gold" type="HBoxContainer" parent="Status" unique_id=1927105028]
+custom_minimum_size = Vector2(40, 16)
+custom_maximum_size = Vector2(40, 16)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Gold"
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="Status/Gold" unique_id=145259613]
+texture_filter = 1
+texture_repeat = 1
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("10_i8ydx")
+stretch_mode = 2
+
+[node name="Count" type="Label" parent="Status/Gold" unique_id=715536022]
+layout_mode = 2
+size_flags_horizontal = 6
+text = "000"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Glory" type="HBoxContainer" parent="Status" unique_id=1080185854]
+custom_minimum_size = Vector2(40, 16)
+custom_maximum_size = Vector2(40, 16)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Reputation"
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="Status/Glory" unique_id=1823440308]
+texture_filter = 1
+texture_repeat = 1
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("11_k3wmv")
+stretch_mode = 2
+
+[node name="Count" type="Label" parent="Status/Glory" unique_id=2031605385]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+text = "000"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Day" type="HBoxContainer" parent="Status" unique_id=1921967599]
+custom_minimum_size = Vector2(40, 16)
+custom_maximum_size = Vector2(40, 16)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Day"
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="Status/Day" unique_id=1971542088]
+texture_filter = 1
+texture_repeat = 1
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("12_jphqr")
+stretch_mode = 2
+
+[node name="Count" type="Label" parent="Status/Day" unique_id=578259187]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+text = "000"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Time" type="HBoxContainer" parent="Status" unique_id=1833060615]
+custom_minimum_size = Vector2(48, 16)
+custom_maximum_size = Vector2(48, 16)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 2
+
+[node name="Icon" type="TextureRect" parent="Status/Time" unique_id=523209430]
+texture_filter = 1
+texture_repeat = 1
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("13_rdba7")
+stretch_mode = 2
+
+[node name="Count" type="Label" parent="Status/Time" unique_id=1118118380]
+layout_mode = 2
+text = "00:00"
+horizontal_alignment = 1

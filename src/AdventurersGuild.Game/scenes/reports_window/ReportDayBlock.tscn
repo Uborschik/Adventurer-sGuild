@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://cer8r8see8ft5"]
+
+[ext_resource type="Script" uid="uid://baq6c63amaxbc" path="res://scripts/presentation/reports/ReportDayBlock.cs" id="1_uf3l8"]
+
+[node name="ReportDayBlock" type="VBoxContainer" unique_id=585658853]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_uf3l8")
+
+[node name="Header" type="Label" parent="." unique_id=1549196177]
+layout_mode = 2
+text = "День N"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Body" type="RichTextLabel" parent="." unique_id=927534961]
+layout_mode = 2
+size_flags_vertical = 3
+fit_content = true

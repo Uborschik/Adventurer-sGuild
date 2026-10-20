@@ -1,0 +1,158 @@
+{
+  "blueprints": [
+    {
+      "id": "hunt",
+      "name": { "ru": "Охота", "en": "Hunt" },
+      "description": {
+        "ru": "Охота на {target:acc} в {location:pre}.",
+        "en": "A hunt for a {target} in the {location}."
+      },
+      "ambientRange": { "min": 0, "max": 1 },
+      "travelDays": 1,
+      "baseGold": 10,
+      "baseGlory": 3,
+      "roles": [
+        {
+          "id": "tracking",
+          "tags": ["tracking", "investigation"],
+          "required": true,
+          "consequences": {
+            "onSuccess": [{ "delay": 240 }, { "gainExp": 10 }],
+            "onFail": [{ "delay": 240 }]
+          },
+          "incoming": []
+        },
+        {
+          "id": "combat",
+          "tags": ["combat"],
+          "required": true,
+          "consequences": {
+            "onSuccess": [{ "delay": 30 }, { "gainExp": 10 }],
+            "onFail": [{ "delay": 30 }, { "wound": { "chance": 30, "min": 1, "max": 2 } }]
+          },
+          "incoming": [{ "from": "tracking", "condition": "any" }]
+        }
+      ]
+    },
+    {
+      "id": "escort",
+      "name": { "ru": "Сопровождение", "en": "Escort" },
+      "description": {
+        "ru": "Проводить {target:acc} через {location:acc}.",
+        "en": "Escort the {target} through the {location}."
+      },
+      "ambientRange": { "min": 1, "max": 3 },
+      "travelDays": 2,
+      "baseGold": 60,
+      "baseGlory": 8,
+      "roles": [
+        {
+          "id": "guard",
+          "tags": ["guard"],
+          "required": true,
+          "consequences": {
+            "onSuccess": [{ "delay": 120 }, { "gainExp": 10 }, { "gainGold": 10 }],
+            "onFail": [{ "delay": 120 }, { "wound": { "chance": 30, "min": 1, "max": 2 } }]
+          },
+          "incoming": []
+        },
+        {
+          "id": "social",
+          "tags": ["social"],
+          "required": false,
+          "consequences": {
+            "onSuccess": [{ "delay": 60 }, { "gainExp": 30 }, { "gainGlory": 10 }],
+            "onFail": [{ "delay": 40 }, { "gainGlory": -5 }]
+          },
+          "incoming": [
+            { "from": "guard", "condition": "any" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "expedition",
+      "name": { "ru": "Экспедиция", "en": "Expedition" },
+      "description": {
+        "ru": "Исследовать {location:acc}. Говорят, там водится {target:nom}.",
+        "en": "Explore the {location}. They say a {target} dwells there."
+      },
+      "ambientRange": { "min": 1, "max": 2 },
+      "travelDays": 3,
+      "baseGold": 100,
+      "baseGlory": 15,
+      "roles": [
+        {
+          "id": "exploration",
+          "tags": ["exploration", "investigation"],
+          "required": true,
+          "consequences": {
+            "onSuccess": [{ "delay": 360 }, { "gainExp": 50 }, { "gainGold": { "chance": 15, "min": 1, "max": 30 } }, { "gainGlory": 10 } ],
+            "onFail": [{ "delay": 360 }, { "wound": { "chance": 30, "min": 1, "max": 2 } }]
+          },
+          "incoming": []
+        },
+        {
+          "id": "combat",
+          "tags": ["combat"],
+          "required": false,
+          "consequences": {
+            "onSuccess": [{ "delay": 30 }, { "gainExp": 10 }],
+            "onFail": [{ "delay": 30 }, { "wound": { "chance": 30, "min": 1, "max": 2 } }]
+          },
+          "incoming": [
+            { "from": "exploration", "condition": "any" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "diplomacy",
+      "name": { "ru": "Дипломатия", "en": "Diplomacy" },
+      "description": {
+        "ru": "Вести переговоры с {target:ins} в {location:pre}.",
+        "en": "Negotiate with the {target} in the {location}."
+      },
+      "ambientRange": { "min": 0, "max": 1 },
+      "travelDays": 2,
+      "baseGold": 80,
+      "baseGlory": 10,
+      "roles": [
+        {
+          "id": "audience",
+          "tags": ["social"],
+          "required": true,
+          "incoming": []
+        },
+        {
+          "id": "negotiation",
+          "tags": ["social", "guard"],
+          "required": true,
+          "incoming": [
+            { "from": "audience", "condition": "any" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "investigation",
+      "name": { "ru": "Расследование", "en": "Investigation" },
+      "description": {
+        "ru": "Расследовать случившееся в {location:pre}. След ведёт к {target:dat}.",
+        "en": "Investigate what happened in the {location}. The trail leads to the {target}."
+      },
+      "ambientRange": { "min": 0, "max": 2 },
+      "travelDays": 2,
+      "baseGold": 70,
+      "baseGlory": 12,
+      "roles": [
+        {
+          "id": "search",
+          "tags": ["investigation", "exploration"],
+          "required": true,
+          "incoming": []
+        }
+      ]
+    }
+  ]
+}

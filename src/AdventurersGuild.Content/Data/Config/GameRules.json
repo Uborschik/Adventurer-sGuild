@@ -1,0 +1,12 @@
+{
+  "initialAdventurerLvl": 1,
+  "initialQuestLvl": 1,
+  "adventurerSpecies": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "dragonborn",
+    "half_orc"
+  ]
+}

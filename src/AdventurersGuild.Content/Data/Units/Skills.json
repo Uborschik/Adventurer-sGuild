@@ -1,0 +1,112 @@
+{
+  "skills": [
+    {
+      "id": "athletics",
+      "statId": "str",
+      "name": { "ru": "Атлетика", "en": "Athletics" },
+      "classModifiers": {
+        "warrior": 1.20, "barbarian": 1.25, "paladin": 1.15, "rogue": 0.90,
+        "ranger": 1.00, "mage": 0.70, "cleric": 0.80, "bard": 0.85
+      }
+    },
+    {
+      "id": "intimidation",
+      "statId": "str",
+      "name": { "ru": "Запугивание", "en": "Intimidation" },
+      "classModifiers": {
+        "warrior": 0.88, "barbarian": 1.04, "paladin": 0.84, "rogue": 0.68,
+        "ranger": 0.72, "mage": 0.56, "cleric": 0.72, "bard": 0.80
+      }
+    },
+    {
+      "id": "stealth",
+      "statId": "dex",
+      "name": { "ru": "Скрытность", "en": "Stealth" },
+      "classModifiers": {
+        "warrior": 0.80, "barbarian": 0.85, "paladin": 0.85, "rogue": 1.30,
+        "ranger": 1.25, "mage": 0.95, "cleric": 0.85, "bard": 1.10
+      }
+    },
+    {
+      "id": "acrobatics",
+      "statId": "dex",
+      "name": { "ru": "Акробатика", "en": "Acrobatics" },
+      "classModifiers": {
+        "warrior": 0.90, "barbarian": 0.95, "paladin": 0.90, "rogue": 1.20,
+        "ranger": 1.15, "mage": 0.85, "cleric": 0.85, "bard": 1.15
+      }
+    },
+    {
+      "id": "grit",
+      "statId": "end",
+      "name": { "ru": "Упорство", "en": "Grit" },
+      "classModifiers": {
+        "warrior": 1.15, "barbarian": 1.10, "paladin": 1.15, "rogue": 0.95,
+        "ranger": 1.05, "mage": 0.75, "cleric": 0.90, "bard": 0.90
+      }
+    },
+    {
+      "id": "fortitude",
+      "statId": "end",
+      "name": { "ru": "Стойкость", "en": "Fortitude" },
+      "classModifiers": {
+        "warrior": 0.99, "barbarian": 1.08, "paladin": 1.04, "rogue": 0.81,
+        "ranger": 0.90, "mage": 0.72, "cleric": 0.90, "bard": 0.77
+      }
+    },
+    {
+      "id": "arcana",
+      "statId": "int",
+      "name": { "ru": "Магия", "en": "Arcana" },
+      "classModifiers": {
+        "warrior": 0.60, "barbarian": 0.55, "paladin": 0.75, "rogue": 0.90,
+        "ranger": 0.85, "mage": 1.30, "cleric": 1.15, "bard": 1.00
+      }
+    },
+    {
+      "id": "investigation",
+      "statId": "int",
+      "name": { "ru": "Анализ", "en": "Investigation" },
+      "classModifiers": {
+        "warrior": 0.85, "barbarian": 0.80, "paladin": 0.90, "rogue": 1.15,
+        "ranger": 1.00, "mage": 1.20, "cleric": 1.05, "bard": 1.10
+      }
+    },
+    {
+      "id": "perception",
+      "statId": "wis",
+      "name": { "ru": "Восприятие", "en": "Perception" },
+      "classModifiers": {
+        "warrior": 0.90, "barbarian": 0.90, "paladin": 1.00, "rogue": 1.05,
+        "ranger": 1.20, "mage": 1.10, "cleric": 1.20, "bard": 1.05
+      }
+    },
+    {
+      "id": "survival",
+      "statId": "wis",
+      "name": { "ru": "Выживание", "en": "Survival" },
+      "classModifiers": {
+        "warrior": 0.90, "barbarian": 1.15, "paladin": 0.95, "rogue": 0.95,
+        "ranger": 1.30, "mage": 0.85, "cleric": 1.00, "bard": 0.95
+      }
+    },
+    {
+      "id": "persuasion",
+      "statId": "cha",
+      "name": { "ru": "Убеждение", "en": "Persuasion" },
+      "classModifiers": {
+        "warrior": 0.90, "barbarian": 0.80, "paladin": 1.20, "rogue": 0.95,
+        "ranger": 0.90, "mage": 0.95, "cleric": 1.15, "bard": 1.30
+      }
+    },
+    {
+      "id": "deception",
+      "statId": "cha",
+      "name": { "ru": "Обман", "en": "Deception" },
+      "classModifiers": {
+        "warrior": 0.75, "barbarian": 0.70, "paladin": 0.85, "rogue": 1.25,
+        "ranger": 0.95, "mage": 1.00, "cleric": 0.85, "bard": 1.30
+      }
+    }
+  ]
+}

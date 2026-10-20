@@ -1,0 +1,69 @@
+[gd_resource type="Theme" format=3 uid="uid://cmf54jkgsj5et"]
+
+[ext_resource type="Texture2D" uid="uid://ciwq016lowu2v" path="res://Resources/Sprites/Buttons/FSHoverBtn.png" id="1_sg4dm"]
+[ext_resource type="Texture2D" uid="uid://46i4hfsf0vbf" path="res://Resources/Sprites/Buttons/FSNormalBtn.png" id="2_f8yms"]
+[ext_resource type="Texture2D" uid="uid://cmqv7hncgo0uh" path="res://Resources/Sprites/Buttons/FSPressBtn.png" id="3_mbivn"]
+[ext_resource type="StyleBox" uid="uid://bw0l8q6ijxx3g" path="res://Resources/Themes/StyleBoxTexture.tres" id="4_7kt7r"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_sg4dm"]
+texture = ExtResource("3_mbivn")
+texture_margin_left = 7.0
+texture_margin_top = 7.0
+texture_margin_right = 7.0
+texture_margin_bottom = 7.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_giaqp"]
+texture = ExtResource("1_sg4dm")
+texture_margin_left = 7.0
+texture_margin_top = 7.0
+texture_margin_right = 7.0
+texture_margin_bottom = 7.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_e4krq"]
+texture = ExtResource("2_f8yms")
+texture_margin_left = 7.0
+texture_margin_top = 7.0
+texture_margin_right = 7.0
+texture_margin_bottom = 7.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_0u3di"]
+texture = ExtResource("3_mbivn")
+texture_margin_left = 7.0
+texture_margin_top = 7.0
+texture_margin_right = 7.0
+texture_margin_bottom = 7.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_mbivn"]
+
+[resource]
+Button/font_sizes/font_size = 2
+Button/styles/disabled = SubResource("StyleBoxTexture_sg4dm")
+Button/styles/hover = SubResource("StyleBoxTexture_giaqp")
+Button/styles/normal = SubResource("StyleBoxTexture_e4krq")
+Button/styles/pressed = SubResource("StyleBoxTexture_0u3di")
+ItemList/colors/font_color = Color(0.8729688, 0.9076563, 0.925, 1)
+ItemList/colors/font_hovered_color = Color(0.9536719, 0.9689062, 0.975, 1)
+ItemList/colors/font_hovered_selected_color = Color(0.8745098, 0.90588236, 0.9254902, 1)
+ItemList/colors/font_outline_color = Color(0.8671875, 0.89139646, 0.925, 1)
+ItemList/colors/font_selected_color = Color(0.8745098, 0.90588236, 0.9254902, 1)
+ItemList/colors/guide_color = Color(0.047285136, 0.049358252, 0.056249976, 1)
+ItemList/colors/scroll_hint_color = Color(0, 0, 0, 1)
+ItemList/constants/h_separation = 0
+ItemList/constants/icon_margin = 0
+ItemList/constants/line_separation = 0
+ItemList/constants/outline_size = 0
+ItemList/constants/v_separation = 6
+ItemList/font_sizes/font_size = 10
+ItemList/fonts/font = null
+ItemList/icons/scroll_hint = null
+ItemList/styles/cursor = null
+ItemList/styles/cursor_unfocused = null
+ItemList/styles/focus = null
+ItemList/styles/hovered = null
+ItemList/styles/hovered_selected = null
+ItemList/styles/hovered_selected_focus = null
+ItemList/styles/panel = null
+ItemList/styles/selected = null
+ItemList/styles/selected_focus = null
+Panel/styles/panel = SubResource("StyleBoxTexture_mbivn")
+PanelContainer/styles/panel = ExtResource("4_7kt7r")

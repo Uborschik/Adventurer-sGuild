@@ -1,0 +1,12 @@
+{
+  "classes": [
+    { "id": "warrior",   "name": { "ru": "Воин",    "en": "Warrior" },   "primaryStat": "str", "primarySkill": "athletics", "secondaryStat": "end", "secondarySkill": "grit",          "classCost": 1, "hpMultiplier": 1.2, "statModifiers": {} },
+    { "id": "barbarian", "name": { "ru": "Варвар",  "en": "Barbarian" }, "primaryStat": "str", "primarySkill": "athletics", "secondaryStat": "end", "secondarySkill": "fortitude",     "classCost": 1, "hpMultiplier": 1.3, "statModifiers": {} },
+    { "id": "paladin",   "name": { "ru": "Паладин", "en": "Paladin" },   "primaryStat": "str", "primarySkill": "athletics", "secondaryStat": "cha", "secondarySkill": "persuasion",    "classCost": 1, "hpMultiplier": 1.2, "statModifiers": {} },
+    { "id": "rogue",     "name": { "ru": "Плут",    "en": "Rogue" },     "primaryStat": "dex", "primarySkill": "stealth",   "secondaryStat": "int", "secondarySkill": "investigation", "classCost": 1, "hpMultiplier": 0.9, "statModifiers": {} },
+    { "id": "ranger",    "name": { "ru": "Рейнджер","en": "Ranger" },    "primaryStat": "dex", "primarySkill": "stealth",   "secondaryStat": "wis", "secondarySkill": "perception",    "classCost": 1, "hpMultiplier": 1.0, "statModifiers": {} },
+    { "id": "mage",      "name": { "ru": "Маг",     "en": "Mage" },      "primaryStat": "int", "primarySkill": "arcana",    "secondaryStat": "wis", "secondarySkill": "perception",    "classCost": 1, "hpMultiplier": 0.7, "statModifiers": {} },
+    { "id": "cleric",    "name": { "ru": "Клирик",  "en": "Cleric" },    "primaryStat": "wis", "primarySkill": "perception","secondaryStat": "cha", "secondarySkill": "persuasion",    "classCost": 1, "hpMultiplier": 0.9, "statModifiers": {} },
+    { "id": "bard",      "name": { "ru": "Бард",    "en": "Bard" },      "primaryStat": "cha", "primarySkill": "persuasion","secondaryStat": "dex", "secondarySkill": "acrobatics",    "classCost": 1, "hpMultiplier": 0.8, "statModifiers": {} }
+  ]
+}

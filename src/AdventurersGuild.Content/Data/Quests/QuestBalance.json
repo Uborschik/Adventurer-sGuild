@@ -1,0 +1,56 @@
+{
+  "profiles": [
+    {
+      "id": "default",
+      
+      "budgetPerLevel": {
+        "1": 10, "2": 15, "3": 20, "4": 25, "5": 35,
+        "6": 45, "7": 55, "8": 70, "9": 85, "10": 100,
+        "11": 120, "12": 140, "13": 160, "14": 180, "15": 200,
+        "16": 230, "17": 260, "18": 290, "19": 320, "20": 350,
+        "21": 390, "22": 430, "23": 470, "24": 510, "25": 550,
+        "26": 600, "27": 650, "28": 700, "29": 750, "30": 800,
+        "31": 860, "32": 920, "33": 980, "34": 1040, "35": 1100,
+        "36": 1170, "37": 1240, "38": 1310, "39": 1380, "40": 1450,
+        "41": 1530, "42": 1610, "43": 1690, "44": 1770, "45": 1850,
+        "46": 1940, "47": 2030, "48": 2120, "49": 2210, "50": 2300,
+        "51": 2400, "52": 2500, "53": 2600, "54": 2700, "55": 2800,
+        "56": 2910, "57": 3020, "58": 3130, "59": 3240, "60": 3350
+      },
+
+      "durationMultiplier": 1.2,
+      "durationFailPenaltyPerPhase": 0.30,
+      "durationIntBonusCap": 0.30,
+      "durationIntBonusK": 0.15,
+
+      "skillRoll": {
+        "base": 50,
+        "perRatio": 50,
+        "min": 5,
+        "max": 80
+      },
+
+      "escapeStatK": 40,
+      "escapeStatCap": 95,
+      "escapeBase": 45,
+      "escapeEndWeight": 0.8,
+      "escapeWisWeight": 0.5,
+
+      "woundFailDays": { "min": 3, "max": 6 },
+      "woundSuccess":  { "chance": 15, "min": 1, "max": 3 },
+
+      "nightAttackChanceBase": 25,
+      "maxQuestDays": 90,
+      "nightCreatureLevelPenalty": 5,
+
+      "enduranceInjuryK": 60,
+      "enduranceInjuryCap": 0.75,
+      "enduranceDeathK": 150,
+      "enduranceDeathCap": 0.50,
+
+      "experience": {
+        "contributionBaseScore": 0.2
+      }
+    }
+  ]
+}
