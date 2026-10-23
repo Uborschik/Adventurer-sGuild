@@ -45,17 +45,13 @@ public class QuestModel
     public QuestResult Result { get; set; }
 }
 
+public record EncounterUnit(string SpeciesId, string ClassId, string RoleId, int Level) { }
+
 public class QuestEncounterInstance
 {
-    public string SpeciesId { get; set; }
-    public string ClassId { get; set; }
-    public string RoleId { get; set; }
-    public int Level { get; set; }
+    public List<EncounterUnit> Units { get; set; }
 
-    // Главное столкновение?
     public bool IsMainEncounter { get; set; }
-
-    // Данные для предпроверки (если есть)
     public string PreCheckSkillId { get; set; }
     public string PreCheckTargetStat { get; set; }
 }

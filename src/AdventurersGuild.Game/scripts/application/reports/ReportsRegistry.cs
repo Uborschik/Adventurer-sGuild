@@ -35,9 +35,9 @@ public class ReportsRegistry
         var report = day.Quests.FirstOrDefault(q => q.QuestId == quest.Id);
         if (report != null) return report;
 
-        // Достаем ID вида из главного столкновения (если оно есть)
+        // Достаем ID вида из главного столкновения (берем первого врага из группы)
         var mainEnc = quest.Encounters?.FirstOrDefault(e => e.IsMainEncounter);
-        string targetId = mainEnc?.SpeciesId ?? "unknown";
+        string targetId = mainEnc?.Units?.FirstOrDefault()?.SpeciesId ?? "unknown";
 
         report = new QuestDayReport
         {

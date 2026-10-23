@@ -1,0 +1,125 @@
+[gd_scene format=3 uid="uid://jumolddmdxjt"]
+
+[ext_resource type="Script" uid="uid://dpv8x0cu3e0l8" path="res://addons/balance_lab/tabs/CombatLabTab.cs" id="1_jov4g"]
+[ext_resource type="PackedScene" uid="uid://evwox0q7u2br" path="res://addons/balance_lab/tabs/CombatLabCard.tscn" id="2_g5fc8"]
+[ext_resource type="PackedScene" uid="uid://co7elpoybwi5c" path="res://addons/balance_lab/tabs/CombatLabPopup.tscn" id="3_gvyjt"]
+
+[node name="CombatLabTab" type="MarginContainer" unique_id=1456922655 node_paths=PackedStringArray("partyList", "enemyList", "addHeroBtn", "addEnemyBtn", "runBtn", "resetBtn", "resultLabel")]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+script = ExtResource("1_jov4g")
+cardScene = ExtResource("2_g5fc8")
+popupScene = ExtResource("3_gvyjt")
+partyList = NodePath("Scroll/VBox/Columns/PartySide/Scroll/partyList")
+enemyList = NodePath("Scroll/VBox/Columns/EnemySide/Scroll/enemyList")
+addHeroBtn = NodePath("Scroll/VBox/Columns/PartySide/addHeroBtn")
+addEnemyBtn = NodePath("Scroll/VBox/Columns/EnemySide/addEnemyBtn")
+runBtn = NodePath("Scroll/VBox/ActionBox/runButton")
+resetBtn = NodePath("Scroll/VBox/ActionBox/resetButton")
+resultLabel = NodePath("Scroll/VBox/resultLabel")
+
+[node name="Scroll" type="ScrollContainer" parent="." unique_id=2003692532]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="Scroll" unique_id=90483524]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="Columns" type="HBoxContainer" parent="Scroll/VBox" unique_id=619898866]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="PartySide" type="VBoxContainer" parent="Scroll/VBox/Columns" unique_id=486219369]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+theme_override_constants/separation = 6
+
+[node name="PartyHeader" type="Label" parent="Scroll/VBox/Columns/PartySide" unique_id=156258939]
+layout_mode = 2
+text = "Party (Heroes)"
+
+[node name="HSeparator" type="HSeparator" parent="Scroll/VBox/Columns/PartySide" unique_id=1884510208]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="addHeroBtn" type="Button" parent="Scroll/VBox/Columns/PartySide" unique_id=1060235175]
+custom_maximum_size = Vector2(116, -1)
+layout_mode = 2
+text = "+ Add Hero"
+
+[node name="Scroll" type="ScrollContainer" parent="Scroll/VBox/Columns/PartySide" unique_id=910351693]
+custom_minimum_size = Vector2(0, 260)
+custom_maximum_size = Vector2(-1, 260)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="partyList" type="VBoxContainer" parent="Scroll/VBox/Columns/PartySide/Scroll" unique_id=311938659]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="EnemySide" type="VBoxContainer" parent="Scroll/VBox/Columns" unique_id=327723573]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+theme_override_constants/separation = 6
+
+[node name="EnemyHeader" type="Label" parent="Scroll/VBox/Columns/EnemySide" unique_id=1593197427]
+layout_mode = 2
+text = "Enemy"
+
+[node name="HSeparator" type="HSeparator" parent="Scroll/VBox/Columns/EnemySide" unique_id=426442488]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="addEnemyBtn" type="Button" parent="Scroll/VBox/Columns/EnemySide" unique_id=202791998]
+custom_maximum_size = Vector2(116, -1)
+layout_mode = 2
+text = "+ Add Enemy"
+
+[node name="Scroll" type="ScrollContainer" parent="Scroll/VBox/Columns/EnemySide" unique_id=886178960]
+custom_minimum_size = Vector2(0, 260)
+custom_maximum_size = Vector2(-1, 260)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="enemyList" type="VBoxContainer" parent="Scroll/VBox/Columns/EnemySide/Scroll" unique_id=516169701]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="HSeparator" type="HSeparator" parent="Scroll/VBox" unique_id=738396502]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="ActionBox" type="HBoxContainer" parent="Scroll/VBox" unique_id=25226760]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 15
+
+[node name="runButton" type="Button" parent="Scroll/VBox/ActionBox" unique_id=1489329191]
+custom_maximum_size = Vector2(-1, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Run 1000 Simulations"
+
+[node name="resetButton" type="Button" parent="Scroll/VBox/ActionBox" unique_id=1746013287]
+custom_maximum_size = Vector2(100, 40)
+layout_mode = 2
+text = "Reset"
+
+[node name="resultLabel" type="Label" parent="Scroll/VBox" unique_id=1190702686]
+layout_mode = 2
+size_flags_vertical = 3
+text = "Awaiting simulation..."

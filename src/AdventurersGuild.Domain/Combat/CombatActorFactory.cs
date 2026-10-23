@@ -29,33 +29,43 @@ public static class CombatActorFactory
         };
     }
 
-    public static CombatActor FromEnemy(QuestEncounterInstance encounter)
+    public static List<CombatActor> FromEncounter(QuestEncounterInstance encounter)
     {
-        var species = UnitDatabase.GetSpecies(encounter.SpeciesId);
-        var enemyClass = UnitDatabase.GetClass(encounter.ClassId);
+        var enemies = new List<CombatActor>();
+        if (encounter.Units == null) return enemies;
+
         var rules = LevelBalance.Active;
 
-        string enemyName = species?.Name?.Get("ru") ?? encounter.SpeciesId;
-        string atkStatId = enemyClass?.PrimaryStat ?? "str";
-
-        double enemyEnd = GetNpcStat(species, encounter.Level, "end");
-        double enemyDex = GetNpcStat(species, encounter.Level, "dex");
-        double enemyAtk = GetNpcStat(species, encounter.Level, atkStatId);
-
-        // Формула здоровья без hpBase (как ты и решил)
-        double baseHp = enemyEnd * rules.HpPerEndurance;
-        int maxHp = (int)(baseHp * (enemyClass?.HpMultiplier ?? 1.0));
-
-        return new CombatActor
+        foreach (var unit in encounter.Units)
         {
-            Name = enemyName,
-            IsEnemy = true,
-            MaxHp = maxHp,
-            CurrentHp = maxHp,
-            Attack = enemyAtk,
-            Initiative = enemyDex,
-            Ac = CombatMath.CalculateAc(enemyDex, enemyEnd)
-        };
+            var species = UnitDatabase.GetSpecies(unit.SpeciesId);
+            var enemyClass = UnitDatabase.GetClass(unit.ClassId);
+
+            if (species == null || enemyClass == null) continue;
+
+            string enemyName = species.Name?.Get("ru") ?? unit.SpeciesId;
+            string atkStatId = enemyClass.PrimaryStat ?? "str";
+
+            double enemyEnd = GetNpcStat(species, unit.Level, "end");
+            double enemyDex = GetNpcStat(species, unit.Level, "dex");
+            double enemyAtk = GetNpcStat(species, unit.Level, atkStatId);
+
+            double baseHp = enemyEnd * rules.HpPerEndurance;
+            int maxHp = (int)(baseHp * enemyClass.HpMultiplier);
+
+            enemies.Add(new CombatActor
+            {
+                Name = $"{enemyName} ({UnitDatabase.ClassName(unit.ClassId)})",
+                IsEnemy = true,
+                MaxHp = maxHp,
+                CurrentHp = maxHp,
+                Attack = enemyAtk,
+                Initiative = enemyDex,
+                Ac = CombatMath.CalculateAc(enemyDex, enemyEnd)
+            });
+        }
+
+        return enemies;
     }
 
     private static double GetNpcStat(SpeciesInfo species, int level, string statId)

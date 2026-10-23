@@ -1,0 +1,89 @@
+[gd_scene format=3 uid="uid://co7elpoybwi5c"]
+
+[ext_resource type="Script" uid="uid://coievlaxsodpn" path="res://addons/balance_lab/tabs/CombatLabPopup.cs" id="1_66wpv"]
+
+[node name="CombatLabPopup" type="Window" unique_id=569515567 node_paths=PackedStringArray("speciesSelect", "classSelect", "levelInput", "overrideCheck", "saveBtn", "cancelBtn")]
+oversampling_override = 1.0
+title = "CombatLabPopup"
+position = Vector2i(0, 36)
+size = Vector2i(500, 650)
+visible = false
+transient = true
+exclusive = true
+script = ExtResource("1_66wpv")
+speciesSelect = NodePath("MainMargin/VBox/MainGrid/speciesSelect")
+classSelect = NodePath("MainMargin/VBox/MainGrid/classSelect")
+levelInput = NodePath("MainMargin/VBox/MainGrid/levelInput")
+overrideCheck = NodePath("MainMargin/VBox/overrideCheck")
+saveBtn = NodePath("MainMargin/VBox/ButtonsBox/saveBtn")
+cancelBtn = NodePath("MainMargin/VBox/ButtonsBox/cancelBtn")
+
+[node name="MainMargin" type="MarginContainer" parent="." unique_id=1513395970]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBox" type="VBoxContainer" parent="MainMargin" unique_id=734467326]
+layout_mode = 2
+
+[node name="MainGrid" type="GridContainer" parent="MainMargin/VBox" unique_id=1421852775]
+layout_mode = 2
+columns = 2
+
+[node name="Species" type="Label" parent="MainMargin/VBox/MainGrid" unique_id=1292688062]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Species:"
+
+[node name="speciesSelect" type="OptionButton" parent="MainMargin/VBox/MainGrid" unique_id=739579943]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Class" type="Label" parent="MainMargin/VBox/MainGrid" unique_id=901191294]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Class:"
+
+[node name="classSelect" type="OptionButton" parent="MainMargin/VBox/MainGrid" unique_id=1302966240]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Level" type="Label" parent="MainMargin/VBox/MainGrid" unique_id=1192642063]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Level:"
+
+[node name="levelInput" type="SpinBox" parent="MainMargin/VBox/MainGrid" unique_id=18164171]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HSeparator" type="HSeparator" parent="MainMargin/VBox" unique_id=774848622]
+layout_mode = 2
+
+[node name="overrideCheck" type="CheckBox" parent="MainMargin/VBox" unique_id=628783616]
+layout_mode = 2
+text = "Override check"
+
+[node name="statsGrid" type="GridContainer" parent="MainMargin/VBox" unique_id=1629664922]
+layout_mode = 2
+columns = 2
+
+[node name="HSeparator2" type="HSeparator" parent="MainMargin/VBox" unique_id=1796773241]
+layout_mode = 2
+
+[node name="ButtonsBox" type="HBoxContainer" parent="MainMargin/VBox" unique_id=1321797573]
+layout_mode = 2
+
+[node name="saveBtn" type="Button" parent="MainMargin/VBox/ButtonsBox" unique_id=1001346848]
+layout_mode = 2
+text = "Save"
+
+[node name="cancelBtn" type="Button" parent="MainMargin/VBox/ButtonsBox" unique_id=1043994443]
+layout_mode = 2
+text = "Cancel"

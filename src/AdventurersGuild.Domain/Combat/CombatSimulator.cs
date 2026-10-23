@@ -12,8 +12,8 @@ public class CombatSimulator
         var result = new CombatResult();
         var rules = LevelBalance.Active.Combat;
 
-        // 1. Создаем бойцов отряда
         var party = new List<CombatActor>(quest.Party.Count);
+
         for (int i = 0; i < quest.Party.Count; i++)
         {
             var adv = quest.Party[i];
@@ -28,21 +28,25 @@ public class CombatSimulator
             return result;
         }
 
-        // 2. Создаем врага
-        var enemy = CombatActorFactory.FromEnemy(encounter);
+        var enemies = CombatActorFactory.FromEncounter(encounter);
 
-        // Событие старта боя (показывает статы врага)
-        result.Events.Add(CombatEvent.Start(enemy.Name, enemy.CurrentHp, enemy.MaxHp));
+        if (enemies.Count == 0)
+        {
+            result.PartyWon = true;
+            result.Events.Add(CombatEvent.Victory(0, "Пустая встреча"));
+            return result;
+        }
 
-        // 3. Сортируем по инициативе
-        var turnOrder = new List<CombatActor>(party.Count + 1);
+        result.Events.Add(CombatEvent.Start($"{enemies.Count} враг(ов)", 0, 0));
+
+        var turnOrder = new List<CombatActor>(party.Count + enemies.Count);
         turnOrder.AddRange(party);
-        turnOrder.Add(enemy);
+        turnOrder.AddRange(enemies);
         turnOrder.Sort((a, b) => b.Initiative.CompareTo(a.Initiative));
 
-        // 4. Цикл боя
-        int round = 1;
-        while (round <= rules.MaxRounds && enemy.IsAlive && HasAlivePartyMembers(party))
+        var round = 1;
+
+        while (round <= rules.MaxRounds && HasAlive(enemies) && HasAlive(party))
         {
             result.Events.Add(CombatEvent.RoundStart(round));
 
@@ -50,33 +54,26 @@ public class CombatSimulator
             {
                 var actor = turnOrder[i];
                 if (!actor.IsAlive) continue;
-                if (!enemy.IsAlive || !HasAlivePartyMembers(party)) break;
+                if (!HasAlive(enemies) || !HasAlive(party)) break;
 
                 if (actor.IsEnemy)
                 {
-                    EnemyTurn(enemy, party, result, round);
+                    EnemyTurn(actor, party, result, round);
                 }
                 else
                 {
-                    var attackRes = ExecuteAttack(actor, enemy);
-                    result.Events.Add(CombatEvent.Attack(
-                        round, actor.Name, enemy.Name, attackRes.Roll, attackRes.Total,
-                        enemy.Ac, attackRes.Damage, enemy.CurrentHp, enemy.MaxHp, attackRes.Hit));
-
-                    if (!enemy.IsAlive)
-                        result.Events.Add(CombatEvent.Death(round, enemy.Name));
+                    HeroTurn(actor, enemies, result, round);
                 }
             }
             round++;
         }
 
-        // 5. Итоги боя
-        if (!enemy.IsAlive)
+        if (!HasAlive(enemies))
         {
             result.PartyWon = true;
-            result.Events.Add(CombatEvent.Victory(round, enemy.Name));
+            result.Events.Add(CombatEvent.Victory(round, "Все враги"));
         }
-        else if (!HasAlivePartyMembers(party))
+        else if (!HasAlive(party))
         {
             result.PartyWon = false;
             result.Events.Add(CombatEvent.Defeat(round));
@@ -87,7 +84,6 @@ public class CombatSimulator
             result.Events.Add(CombatEvent.Timeout(round));
         }
 
-        // 6. Синхронизация HP и ран
         for (int i = 0; i < party.Count; i++)
         {
             var actor = party[i];
@@ -102,36 +98,39 @@ public class CombatSimulator
         return result;
     }
 
-    private static bool HasAlivePartyMembers(List<CombatActor> party)
+    private static bool HasAlive(List<CombatActor> actors)
     {
-        for (int i = 0; i < party.Count; i++)
-            if (party[i].IsAlive) return true;
+        for (int i = 0; i < actors.Count; i++)
+            if (actors[i].IsAlive) return true;
         return false;
+    }
+
+    private static void HeroTurn(CombatActor hero, List<CombatActor> enemies, CombatResult result, int round)
+    {
+        var aliveEnemies = new List<CombatActor>();
+        foreach (var e in enemies) if (e.IsAlive) aliveEnemies.Add(e);
+
+        if (aliveEnemies.Count == 0) return;
+
+        var target = aliveEnemies[Random.Shared.Next(aliveEnemies.Count)];
+        var attackRes = ExecuteAttack(hero, target);
+
+        result.Events.Add(CombatEvent.Attack(
+            round, hero.Name, target.Name, attackRes.Roll, attackRes.Total,
+            target.Ac, attackRes.Damage, target.CurrentHp, target.MaxHp, attackRes.Hit));
+
+        if (!target.IsAlive)
+            result.Events.Add(CombatEvent.Death(round, target.Name));
     }
 
     private static void EnemyTurn(CombatActor enemy, List<CombatActor> party, CombatResult result, int round)
     {
-        int aliveCount = 0;
-        for (int i = 0; i < party.Count; i++)
-            if (party[i].IsAlive) aliveCount++;
+        var aliveParty = new List<CombatActor>();
+        foreach (var p in party) if (p.IsAlive) aliveParty.Add(p);
 
-        if (aliveCount == 0) return;
+        if (aliveParty.Count == 0) return;
 
-        int targetIndex = Random.Shared.Next(aliveCount);
-        int current = 0;
-        CombatActor target = null;
-
-        for (int i = 0; i < party.Count; i++)
-        {
-            if (party[i].IsAlive)
-            {
-                if (current == targetIndex) { target = party[i]; break; }
-                current++;
-            }
-        }
-
-        if (target == null) return;
-
+        var target = aliveParty[Random.Shared.Next(aliveParty.Count)];
         var attackRes = ExecuteAttack(enemy, target);
 
         result.Events.Add(CombatEvent.Attack(

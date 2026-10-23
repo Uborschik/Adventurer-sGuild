@@ -29,9 +29,23 @@ public partial class BalanceLabPlugin : EditorPlugin
         {
             Title = "Balance Lab",
             InitialPosition = Window.WindowInitialPosition.CenterMainWindowScreen,
-            MinSize = new Vector2I(1100, 700)
+            Size = new Vector2I(1270, 720),
+            MinSize = new Vector2I(1270, 720),
         };
+
+        AutoTranslateMode = AutoTranslateModeEnum.Disabled;
+
+        window.CloseRequested += () =>
+        {
+            window.QueueFree();
+            window = null;
+        };
+
         AddChild(window);
+
+        var mainContent = new BalanceLabMain();
+        mainContent.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        window.AddChild(mainContent);
 
         window.PopupCentered();
     }

@@ -1,0 +1,101 @@
+[gd_scene format=3 uid="uid://evwox0q7u2br"]
+
+[ext_resource type="Script" uid="uid://bdlels7n7gneb" path="res://addons/balance_lab/tabs/CombatLabCard.cs" id="1_v02ws"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_v02ws"]
+bg_color = Color(0.19607843, 0.3372549, 0.8235294, 1)
+
+[node name="CombatLabCard" type="PanelContainer" unique_id=949363855 node_paths=PackedStringArray("nameLabel", "classLabel", "levelLabel", "hpLabel", "acLabel", "editBtn", "removeBtn")]
+custom_minimum_size = Vector2(0, 45)
+custom_maximum_size = Vector2(-1, 45)
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 39.0
+grow_horizontal = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_v02ws")
+script = ExtResource("1_v02ws")
+nameLabel = NodePath("MainMargin/InfoGrid/nameLabel")
+classLabel = NodePath("MainMargin/InfoGrid/classLabel")
+levelLabel = NodePath("MainMargin/InfoGrid/levelLabel")
+hpLabel = NodePath("MainMargin/InfoGrid/hpLabel")
+acLabel = NodePath("MainMargin/InfoGrid/acLabel")
+editBtn = NodePath("MainMargin/InfoGrid/editBtn")
+removeBtn = NodePath("MainMargin/InfoGrid/removeBtn")
+
+[node name="MainMargin" type="MarginContainer" parent="." unique_id=1650746643]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="InfoGrid" type="GridContainer" parent="MainMargin" unique_id=690518126]
+layout_mode = 2
+size_flags_vertical = 3
+columns = 7
+
+[node name="nameLabel" type="Label" parent="MainMargin/InfoGrid" unique_id=1937666585]
+custom_minimum_size = Vector2(120, 0)
+custom_maximum_size = Vector2(120, -1)
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 18
+text = "человек"
+vertical_alignment = 1
+text_overrun_behavior = 3
+
+[node name="classLabel" type="Label" parent="MainMargin/InfoGrid" unique_id=501526398]
+custom_minimum_size = Vector2(90, 0)
+custom_maximum_size = Vector2(90, -1)
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 18
+vertical_alignment = 1
+
+[node name="levelLabel" type="Label" parent="MainMargin/InfoGrid" unique_id=377815695]
+custom_minimum_size = Vector2(64, 0)
+custom_maximum_size = Vector2(64, -1)
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 18
+vertical_alignment = 1
+
+[node name="hpLabel" type="Label" parent="MainMargin/InfoGrid" unique_id=653383356]
+custom_minimum_size = Vector2(54, 0)
+custom_maximum_size = Vector2(54, -1)
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 18
+vertical_alignment = 1
+
+[node name="acLabel" type="Label" parent="MainMargin/InfoGrid" unique_id=1158508234]
+custom_minimum_size = Vector2(54, 0)
+custom_maximum_size = Vector2(54, -1)
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 18
+vertical_alignment = 1
+
+[node name="editBtn" type="Button" parent="MainMargin/InfoGrid" unique_id=1081965141]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Edit"
+
+[node name="removeBtn" type="Button" parent="MainMargin/InfoGrid" unique_id=158604118]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Remove"

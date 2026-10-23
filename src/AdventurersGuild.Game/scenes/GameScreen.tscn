@@ -1,0 +1,86 @@
+[gd_scene format=3 uid="uid://cbo5nxmilc3q7"]
+
+[ext_resource type="Theme" uid="uid://b2ilsxfe25nbm" path="res://resources/themes/Default.tres" id="1_gj13t"]
+[ext_resource type="Script" uid="uid://cv3lmiab677mv" path="res://scenes/GameScreen.cs" id="1_o75v1"]
+[ext_resource type="FontFile" uid="uid://ctoddssodsoaf" path="res://resources/fonts/PublicPixel.ttf" id="2_gj13t"]
+
+[node name="GameScreen" type="Control" unique_id=142854543]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_gj13t")
+script = ExtResource("1_o75v1")
+
+[node name="MainVBox" type="VBoxContainer" parent="." unique_id=1347550299]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LogPanel" type="PanelContainer" parent="MainVBox" unique_id=1509964746]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="HBox" type="HBoxContainer" parent="MainVBox/LogPanel" unique_id=1453860462]
+layout_mode = 2
+
+[node name="VBoxMap" type="VBoxContainer" parent="MainVBox/LogPanel/HBox" unique_id=393843550]
+custom_minimum_size = Vector2(240, 0)
+custom_maximum_size = Vector2(240, -1)
+layout_mode = 2
+
+[node name="MapPanel" type="PanelContainer" parent="MainVBox/LogPanel/HBox/VBoxMap" unique_id=93037026]
+custom_minimum_size = Vector2(240, 240)
+custom_maximum_size = Vector2(240, 240)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MapText" type="RichTextLabel" parent="MainVBox/LogPanel/HBox/VBoxMap/MapPanel" unique_id=1336437997]
+custom_minimum_size = Vector2(230, 230)
+custom_maximum_size = Vector2(230, 230)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 6
+theme_override_fonts/normal_font = ExtResource("2_gj13t")
+theme_override_font_sizes/normal_font_size = 12
+bbcode_enabled = true
+scroll_active = false
+autowrap_mode = 0
+horizontal_alignment = 1
+vertical_alignment = 1
+meta_underlined = false
+hint_underlined = false
+
+[node name="TooltipContainer" type="PanelContainer" parent="MainVBox/LogPanel/HBox/VBoxMap" unique_id=703234439]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MapTooltip" type="Label" parent="MainVBox/LogPanel/HBox/VBoxMap/TooltipContainer" unique_id=932543891]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.6666667, 0.6666667, 0.6666667, 1)
+theme_override_font_sizes/font_size = 8
+autowrap_mode = 3
+
+[node name="LogContainer" type="PanelContainer" parent="MainVBox/LogPanel/HBox" unique_id=202360418]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LogText" type="RichTextLabel" parent="MainVBox/LogPanel/HBox/LogContainer" unique_id=1814872342]
+layout_mode = 2
+size_flags_horizontal = 3
+bbcode_enabled = true
+fit_content = true
+
+[node name="BottomPanel" type="PanelContainer" parent="MainVBox" unique_id=1064397849]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+
+[node name="StatusText" type="RichTextLabel" parent="MainVBox/BottomPanel" unique_id=1928027076]
+layout_mode = 2

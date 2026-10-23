@@ -15,8 +15,10 @@ public static class ReportFormatter
         string lang = Loc.Language;
 
         var mainEnc = quest.Encounters?.FirstOrDefault(e => e.IsMainEncounter);
-        var target = mainEnc != null
-            ? Capitalize(UnitDatabase.GetSpecies(mainEnc.SpeciesId)?.Name?.Get(lang) ?? mainEnc.SpeciesId)
+        var primaryUnit = mainEnc?.Units?.FirstOrDefault();
+
+        var target = primaryUnit != null
+            ? Capitalize(UnitDatabase.GetSpecies(primaryUnit.SpeciesId)?.Name?.Get(lang) ?? primaryUnit.SpeciesId)
             : "Не определено";
 
         string location = Capitalize(QuestDatabase.GetLocation(quest.LocationId)?.Name?.Get(lang)
@@ -44,8 +46,12 @@ public static class ReportFormatter
     public static string Encounter(QuestEncounterInstance enc, bool passed)
     {
         string result = passed ? "[color=#7ad67a]УСПЕШНО[/color]" : "[color=#ff6b6b]ПРОВАЛ[/color]";
-        string role = enc.RoleId ?? "Непредвиденное событие";
-        return $"  [color=#aaa]Инцидент:[/color] [b]{role}[/b] (Уровень угрозы: {enc.Level}). Исход: {result}.\n";
+
+        var primaryUnit = enc.Units?.FirstOrDefault();
+        string role = primaryUnit?.RoleId ?? "Непредвиденное событие";
+        int level = primaryUnit?.Level ?? 0;
+
+        return $"  [color=#aaa]Инцидент:[/color] [b]{role}[/b] (Уровень угрозы: {level}). Исход: {result}.\n";
     }
 
     // === Травмы / смерть / level up ===

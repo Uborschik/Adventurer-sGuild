@@ -10,6 +10,12 @@ public class QuestEncounterResolver(Random rng)
 {
     public bool Resolve(QuestModel quest, QuestEncounterInstance encounter)
     {
+        // Защита от пустых встреч
+        if (encounter.Units == null || encounter.Units.Count == 0) return true;
+
+        // Берем первого юнита как "лицо" встречи (для роли и проверок)
+        var primaryUnit = encounter.Units[0];
+
         // 1. Предпроверка (Выслеживание)
         if (!string.IsNullOrEmpty(encounter.PreCheckSkillId))
         {
@@ -17,7 +23,7 @@ public class QuestEncounterResolver(Random rng)
         }
 
         // 2. Основная проверка роли
-        if (!QuestDatabase.Roles.TryGetValue(encounter.RoleId, out var role)) return true;
+        if (!QuestDatabase.Roles.TryGetValue(primaryUnit.RoleId, out var role)) return true;
         if (role.Actions.Count == 0) return true;
 
         var action = role.Actions[0];
@@ -42,10 +48,10 @@ public class QuestEncounterResolver(Random rng)
         var check = new CheckInfo("", encounter.PreCheckSkillId, encounter.PreCheckTargetStat);
         var (bestSkillValue, _) = FindBestAdventurer(quest.Party, check.TargetSkill, check.TargetStat);
 
-        var species = UnitDatabase.GetSpecies(encounter.SpeciesId);
-        double npcStat = GetNpcStat(species, encounter.Level, check.TargetStat);
+        // Ищем самый высокий стат среди всех врагов в группе
+        double maxNpcStat = GetMaxNpcStat(encounter, check.TargetStat);
 
-        double diff = bestSkillValue - npcStat;
+        double diff = bestSkillValue - maxNpcStat;
         int chance = Math.Clamp(50 + (int)(diff * 5), 5, 95);
         int roll = rng.Next(1, 101);
 
@@ -54,16 +60,29 @@ public class QuestEncounterResolver(Random rng)
 
     private bool RollCombat(QuestModel quest, QuestEncounterInstance encounter, CheckInfo check)
     {
-        var species = UnitDatabase.GetSpecies(encounter.SpeciesId);
-        double npcValue = GetNpcStat(species, encounter.Level, check.ActorStat);
+        // Ищем самый высокий боевой стат среди всех врагов в группе
+        double maxNpcValue = GetMaxNpcStat(encounter, check.ActorStat);
 
         var (bestSkillValue, _) = FindBestAdventurer(quest.Party, check.TargetSkill, check.TargetStat);
 
-        double diff = bestSkillValue - npcValue;
+        double diff = bestSkillValue - maxNpcValue;
         int chance = Math.Clamp(50 + (int)(diff * 5), 5, 95);
         int roll = rng.Next(1, 101);
 
         return roll <= chance;
+    }
+
+    // Новый метод: вычисляет максимальный стат среди всех участников встречи
+    private double GetMaxNpcStat(QuestEncounterInstance encounter, string statId)
+    {
+        double maxStat = 0;
+        foreach (var unit in encounter.Units)
+        {
+            var species = UnitDatabase.GetSpecies(unit.SpeciesId);
+            double val = GetNpcStat(species, unit.Level, statId);
+            if (val > maxStat) maxStat = val;
+        }
+        return maxStat > 0 ? maxStat : 10; // Fallback
     }
 
     private void ApplyConsequences(QuestModel quest, List<ConsequenceInfo> consequences)
@@ -92,7 +111,6 @@ public class QuestEncounterResolver(Random rng)
                     {
                         adv.SetStatus(StatusIds.Dead, GameTime.FromDays(4)); // Мертв (удаление через 4 дня)
                     }
-                    // "delay" и "dc-penalty" можно добавить позже
                 }
             }
         }

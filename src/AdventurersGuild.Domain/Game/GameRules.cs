@@ -6,7 +6,7 @@ public static class GameRules
 {
     public static int InitialAdventurerLvl { get; private set; } = 1;
     public static int InitialQuestLvl { get; private set; } = 1;
-    public static List<string> AdventurerSpecies { get; private set; } = new();
+    public static List<string> AdventurerSpecies { get; private set; } = [];
 
     public static void Install(GameRulesDatabase db)
     {

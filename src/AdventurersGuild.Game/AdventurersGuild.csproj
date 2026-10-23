@@ -3,20 +3,10 @@
     <TargetFramework>net8.0</TargetFramework>
     <TargetFramework Condition=" '$(GodotTargetPlatform)' == 'android' ">net9.0</TargetFramework>
     <EnableDynamicLoading>true</EnableDynamicLoading>
-    <RootNamespace>AdventurersGuild</RootNamespace>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Remove="Core\Databases\Generated\**" />
-    <EmbeddedResource Remove="Core\Databases\Generated\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="AdventurersGuild.Domain\**\*.cs" />
-    <Compile Remove="AdventurersGuild.Data\**\*.cs" />
-    <Compile Remove="AdventurersGuild.Editor\**\*.cs" />
-    <Compile Remove="AdventurersGuild.Desktop\**\*.cs" />
-  </ItemGroup>
-  <ItemGroup>
+    <ItemGroup>
     <ProjectReference Include="..\AdventurersGuild.Domain\AdventurersGuild.Domain.csproj" />
     <ProjectReference Include="..\AdventurersGuild.Data\AdventurersGuild.Data.csproj" />
+    <ProjectReference Include="..\AdventurersGuild.Content\AdventurersGuild.Content.csproj" />
   </ItemGroup>
 </Project>
